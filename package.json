@@ -6,9 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migration:generate": "drizzle-kit generate:mysql",
+    "migration:push": "drizzle-kit push:mysql --config=drizzle.config.ts"
+
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^0.3.14",
+    "@planetscale/database": "^1.13.0",
+    "dotenv": "^16.3.1",
+    "drizzle-orm": "^0.29.3",
+    "mysql2": "^3.7.0",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18"
@@ -19,6 +27,7 @@
     "@types/react-dom": "^18",
     "@typescript-eslint/parser": "^6.18.0",
     "autoprefixer": "^10.0.1",
+    "drizzle-kit": "^0.20.10",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
     "postcss": "^8",
