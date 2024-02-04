@@ -3,8 +3,10 @@ import type { AdapterAccount } from "@auth/core/adapters"
 
 export const users = sqliteTable("user", {
  id: text("id").notNull().primaryKey(),
- name: text("name"),
+ firstName: text("firstName"),
+ lastName: text("lastName"),
  email: text("email").notNull(),
+ password: text("password"),
  emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
  image: text("image"),
 })
@@ -33,19 +35,11 @@ export const accounts = sqliteTable(
  })
 )
 
-export const sessions = sqliteTable("session", {
-sessionToken: text("sessionToken").notNull().primaryKey(),
-userId: text("userId")
-  .notNull()
-  .references(() => users.id, { onDelete: "cascade" }),
-expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-})
-
 export const verificationTokens = sqliteTable(
 "verificationToken",
 {
   identifier: text("identifier").notNull(),
-  token: text("token").notNull(),
+  token: text("token").notNull().unique(),
   expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
 },
 (vt) => ({

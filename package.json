@@ -20,6 +20,7 @@
     "@hookform/resolvers": "^3.3.4",
     "@libsql/client": "^0.4.3",
     "@mui/material": "^5.15.6",
+    "bcrypt": "^5.1.1",
     "drizzle-orm": "^0.29.3",
     "next": "14.0.4",
     "react": "^18",
@@ -28,6 +29,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

@@ -1,11 +1,11 @@
 //message displaying success/failure of form
-interface FormResultProps {
+export interface FormResultProps {
   result?: string;
   message?: string;
 }
 
 export const FormResult = ({ result, message }: FormResultProps) => {
-  if (!message) return null;
+  // if (!message) return null;
 
   const styles =
     result === "success"

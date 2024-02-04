@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
+import Link from 'next/link'
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,12 +10,13 @@ import { SignupFormSchema } from "@/lib/schema";
 
 import { addNewUser } from "@/app/actions";
 import { Input, InputData } from "@/components/auth/form-input";
-import { FormResult } from "@/components/auth/form-result";
+import { FormResult, FormResultProps } from "@/components/auth/form-result";
 
 type Inputs = z.infer<typeof SignupFormSchema>;
 
 export default function SignUp() {
   const [data, setData] = useState<Inputs>();
+  const [formResult, setFormResult] = useState<FormResultProps>();
 
   const {
     register,
@@ -34,10 +36,11 @@ export default function SignUp() {
     }
 
     if (result.error) {
-      // set local error state
-      console.log(result.error);
+      setFormResult({result: "fail", message: String(result.error)});      
       return;
     }
+
+    setFormResult({result: "success"});      
 
     reset();
     setData(result.data);
@@ -70,12 +73,12 @@ export default function SignUp() {
           </button>
           <p className="text-sm font-light text-gray-500 dark:text-gray-400">
             Already have an account?{" "}
-            <a
-              href="#"
+            <Link
+              href="/login"
               className="text-primary-600 dark:text-primary-500 font-medium hover:underline"
             >
               Login here
-            </a>
+            </Link>
           </p>
         </form>
       </section>
