@@ -1,0 +1,58 @@
+.livesContainer {
+  position: relative;
+}
+
+#liveStage2 {
+  top: 0;
+  left: 0;
+  z-index: 2;
+  position: absolute;
+  visibility: hidden;
+  animation: 2s show infinite;
+  animation-delay: 1.125s;
+}
+
+#liveStage3 {
+  top: 0;
+  left: 0;
+  z-index: 3;
+  position: absolute;
+  visibility: hidden;
+  animation: 2s show infinite;
+  animation-delay: 1.25s;
+}
+
+#liveStage4 {
+  top: 0;
+  left: 0;
+  z-index: 4;
+  position: absolute;
+  visibility: hidden;
+  animation: 2s show infinite;
+  animation-delay: 1.375s;
+}
+
+#liveStage5 {
+  top: 0;
+  left: 0;
+  z-index: 5;
+  position: absolute;
+  visibility: hidden;
+  animation: 2s show infinite;
+  animation-delay: 1.5s;
+}
+
+@keyframes show {
+  0% {
+    visibility: visible;
+  }
+  12.5% {
+    visibility: visible;
+  }
+  12.6% {
+    visibility: hidden;
+  }
+  100% {
+    visibility: hidden;
+  }
+}

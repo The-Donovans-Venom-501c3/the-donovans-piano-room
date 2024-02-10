@@ -1,0 +1,199 @@
+@import '../../../assets/scss/variables';
+
+@keyframes character {
+  from {
+    margin-top: 10%;
+  }
+
+  to {
+    margin-top: 4%;
+  }
+}
+
+@keyframes baseCharacter {
+  0% {
+    transform: scaleX(1);
+  }
+
+  100% {
+    transform: scaleX(0.3);
+  }
+
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.7;
+  }
+}
+
+//contain the loading element
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 85vh;
+  z-index: 1;
+  overflow: hidden;
+  width: 100vw;
+}
+
+.loading {
+  margin: 2rem auto;
+  background-color: $white;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  border-radius: 30px;
+  gap: 2rem;
+  width: 55vw;
+  padding: 2rem;
+
+  section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  img {
+    width: 35%;
+  }
+
+  h1 {
+    font-size: 35px;
+    font-weight: 500;
+    color: $black;
+    letter-spacing: -0.8px;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: #000;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: -0.22px;
+  }
+
+  span {
+    font-size: 18px;
+    font-weight: 400;
+    color: #000;
+  }
+
+  .loader {
+    margin-top: 0.8rem;
+    width: 30vw;
+    padding: 6px;
+    border-radius: 20px;
+    background: $pale-purple;
+
+    .circle {
+      height: 25px;
+      width: 25px;
+      border-radius: 20px;
+      background: $purple-900;
+      padding: 6px;
+      box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.3);
+      animation: loaderAnimation 5s linear forwards 0.8s;
+
+      .shine {
+        height: 4px;
+        width: 4px;
+        border-radius: 50%;
+        background: $white;
+      }
+    }
+  }
+}
+
+.characterContainer {
+  width: 25vw;
+  height: 15vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 30px 0;
+
+  #character {
+    width: 190px;
+    animation-name: character;
+    animation-duration: 1s;
+    animation-delay: 2s;
+    animation-fill-mode: forwards;
+    animation-direction: alternate-reverse;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+
+  #baseCharacter {
+    width: 190px;
+    height: 31px;
+    animation: baseCharacter 2s linear forwards infinite;
+  }
+}
+
+@keyframes loaderAnimation {
+  0% {
+    width: 24px;
+  }
+
+  100% {
+    box-shadow: 1px 1px 0px 0px rgba(0, 0, 0, 0.3);
+    width: 100%;
+  }
+}
+
+//tablet
+@media screen and (min-width: 768px) and (max-width: 991px) {
+  .loading h1 {
+    font-size: 27px;
+    font-weight: 500;
+    color: $black;
+    letter-spacing: -0.8px;
+    margin-bottom: 1rem;
+  }
+
+  .loading p {
+    color: #000;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: -0.22px;
+  }
+
+  .loading span {
+    font-size: 12px;
+    font-weight: 400;
+    color: #000;
+  }
+
+  // .characterContainer #character {
+  //   width: 20vw;
+  // }
+}
+
+//small laptop
+@media screen and (min-width: 992px) and (max-width: 1199px) {
+  .loading h1 {
+    font-size: 27px;
+    font-weight: 500;
+    color: $black;
+    letter-spacing: -0.8px;
+    margin-bottom: 1rem;
+  }
+
+  .loading p {
+    color: #000;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: -0.22px;
+  }
+
+  .loading span {
+    font-size: 15px;
+    font-weight: 400;
+    color: #000;
+  }
+}

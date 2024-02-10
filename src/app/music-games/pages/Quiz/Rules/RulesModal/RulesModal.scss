@@ -1,0 +1,69 @@
+@import '../../../../assets/scss/variables';
+
+.rules-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(128, 128, 128, 0.5);
+  z-index: 99;
+}
+
+.rules-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 100;
+  transform: translate(-50%, -50%);
+  width: 40rem;
+  padding: 2rem 3rem;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  .rules-title {
+    font-size: 32px;
+  }
+}
+
+.rules-title {
+  font-size: 30px;
+  margin-bottom: 2rem;
+}
+
+.rules-section {
+  margin-bottom: 1rem;
+}
+
+.rules-header {
+  font-size: 20px;
+  margin-bottom: 0.5rem;
+}
+
+.rules-paragraph {
+  font-size: 16px;
+  color: $black;
+  margin-bottom: 1rem;
+  white-space: normal;
+}
+
+.btn-exit {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background-color: $Cream-700;
+  color: white;
+  font-family: $primary-font;
+  font-size: 20px;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  box-shadow: 0px 5px 0px 0px $Cream-800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

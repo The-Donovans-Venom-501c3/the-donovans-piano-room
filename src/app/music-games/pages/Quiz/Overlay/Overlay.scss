@@ -1,0 +1,119 @@
+@import '../../../assets/scss/variables';
+
+.dialog {
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+  height: calc($page-height - $nav-height);
+  background-color: rgba(#000000, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .dialogContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 20px;
+    padding: 2.3%;
+    gap: 2vw;
+    width: 45vw;
+    .cat {
+      display: flex;
+      justify-content: center;
+      img {
+        width: 50vw;
+        height: 35vh;
+      }
+    }
+    .textDialog {
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      height: 30%;
+      font-size: 2.5vw;
+      font-weight: 400;
+
+      #text {
+        font-size: 1.5vw;
+      }
+    }
+    .btnDialog {
+      width: 100%;
+      display: flex;
+      font-size: 1.5vw;
+      font-weight: 500;
+      line-height: 24px;
+      word-wrap: break-word;
+      justify-content: space-between;
+      gap: 10px;
+      margin: auto;
+    }
+    #btn-red {
+      background-color: $Cream-700;
+      box-shadow: 0px 5px 0px 0px $Cream-800;
+    }
+    #btn-purple {
+      background-color: $purple-800;
+      box-shadow: 0px 5px 0px 0px $purple-900;
+    }
+    #btn-orange {
+      box-shadow: 0px 5px 0px 0px $orange-600;
+    }
+    #btn-white {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 60%;
+      padding: 10px;
+      font-family: $primary-font;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 1.5vw;
+      font-weight: 500;
+      word-wrap: break-word;
+      cursor: pointer;
+      background-color: white;
+      border: 1px solid $grey-200;
+      box-shadow: 0px 5px 0px 0px $grey-200;
+      color: black;
+    }
+  }
+}
+
+.overlay-btn {
+  background-color: $orange-500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 60%;
+  padding: 10px;
+  color: white;
+  font-family: $primary-font;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1.5vw;
+  font-weight: 500;
+  word-wrap: break-word;
+  cursor: pointer;
+}
+@media (min-width: 1360px) and (max-width: 1460px) and (min-height: 1024px) {
+  .dialogContainer {
+    top: 47%;
+  }
+}
+@media (min-width: 1180px) and (max-width: 1360px) and (min-height: 820px) {
+  .dialogContainer {
+    top: 48.5%;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1180px) and (min-height: 768px) {
+  .dialogContainer {
+    top: 47%;
+  }
+}

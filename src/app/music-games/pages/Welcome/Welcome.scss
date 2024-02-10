@@ -1,0 +1,302 @@
+@import '../../assets/scss/variables';
+
+@keyframes falldown {
+  from {
+    margin: -80rem auto;
+  }
+  to {
+    margin: 3rem auto;
+  }
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes comesFromRight {
+  from {
+    margin-right: -60vw;
+    margin-left: 30vw;
+    opacity: 0;
+  }
+  to {
+    margin-right: 0vw;
+    margin-left: 0vw;
+    opacity: 1;
+  }
+}
+
+.welcome-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: calc($page-height - $nav-height);
+
+  .welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    width: 80%;
+    border-radius: 2rem;
+    background-color: $white;
+    animation-name: falldown;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    animation-direction: linear;
+
+    p {
+      white-space: wrap;
+    }
+
+    h1 {
+      font-family: $tertiary-font;
+      font-size: 2.2rem;
+      font-weight: 500;
+      letter-spacing: -1px;
+      opacity: 0;
+      color: $black;
+      margin-bottom: 2rem;
+      animation-name: appear;
+      animation-duration: 1s;
+      animation-delay: 1s;
+      animation-fill-mode: forwards;
+      animation-direction: linear;
+
+      span {
+        color: $orange-500;
+      }
+    }
+
+    main {
+      display: flex;
+      flex-direction: row;
+      justify-items: center;
+      justify-content: center;
+      width: 100%;
+      gap: 0.5rem;
+
+      .intro {
+        padding: 1rem;
+        padding-bottom: 0;
+        .bubble {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          width: 35rem;
+          margin-left: 1rem;
+
+          .chat {
+            background-color: $orange-200;
+            border-radius: 2rem;
+            padding: 1.5rem 1.75rem;
+            opacity: 0;
+            animation-name: appear;
+            animation-duration: 1s;
+            animation-delay: 3s;
+            animation-fill-mode: forwards;
+            animation-direction: linear;
+            width: 100%;
+
+            p {
+              font-size: 1rem;
+              font-style: normal;
+              font-weight: 400;
+              color: $black;
+              white-space: normal;
+            }
+
+            p + p {
+              margin-top: 1rem;
+              font-weight: 600;
+            }
+          }
+
+          img {
+            width: 5vw;
+            margin-top: -1px;
+            margin-left: 56%;
+            opacity: 0;
+            animation-name: appear;
+            animation-duration: 1s;
+            animation-delay: 3s;
+            animation-fill-mode: forwards;
+            animation-direction: linear;
+          }
+        }
+
+        .cat {
+          margin-top: -2rem;
+          margin-left: 2rem;
+          width: 16rem;
+          height: 16rem;
+          opacity: 0;
+          animation-name: appear;
+          animation-duration: 1s;
+          animation-delay: 2s;
+          animation-fill-mode: forwards;
+          animation-direction: linear;
+        }
+      }
+
+      .levels {
+        display: flex;
+        margin-right: -60vw;
+        margin-left: 30vw;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        width: 50%;
+        opacity: 0;
+        animation-name: comesFromRight;
+        animation-duration: 1.5s;
+        animation-delay: 4s;
+        animation-fill-mode: forwards;
+        animation-direction: linear;
+
+        button {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 90%;
+          padding: 0 2.25rem;
+          height: 30%;
+          border-radius: 1rem;
+
+          p {
+            font-size: 2rem;
+            font-style: normal;
+            font-weight: 700;
+            line-height: 2rem;
+            color: $grey-700;
+          }
+
+          img {
+            width: 15%;
+          }
+        }
+
+        .easy {
+          background-color: $green-100;
+          border: 2px solid $green-300;
+          border-bottom: 8px solid $green-300;
+
+          &:hover {
+            background-color: $green-100-hover;
+          }
+        }
+
+        .medium {
+          background-color: $yellow-100;
+          border: 2px solid $yellow-300;
+          border-bottom: 8px solid $yellow-300;
+
+          &:hover {
+            background-color: $yellow-100-hover;
+          }
+        }
+
+        .hard {
+          background-color: $grey-100;
+          border: 2px solid $grey-300;
+          border-bottom: 8px solid $grey-300;
+
+          &:hover {
+            background-color: $grey-100-hover;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 1536px) {
+  .welcome-container {
+    .welcome {
+      width: 70%;
+      h1 {
+        font-size: 2rem;
+      }
+
+      main {
+        .intro {
+          .bubble {
+            margin-left: 0;
+            width: 25rem;
+          }
+
+          .cat {
+            margin-top: -2rem;
+            margin-left: 1rem;
+            width: 12rem;
+            height: 12rem;
+          }
+        }
+        .levels {
+          button {
+            padding: 0 2rem;
+            height: 30%;
+
+            p {
+              font-size: 2rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Small Laptop Screen
+@media only screen and (max-width: 1366px) {
+  .welcome-container {
+    .welcome {
+      h1 {
+        font-size: 2rem;
+      }
+
+      main {
+        .intro {
+          .bubble {
+            margin-left: 0;
+            width: 25rem;
+          }
+
+          .cat {
+            margin-top: -2rem;
+            margin-left: 1rem;
+            width: 10rem;
+            height: 10rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Tablet
+@media only screen and (max-width: 1024px) {
+  .welcome-container {
+    .welcome {
+      width: 80%;
+      padding: 2rem 1rem;
+      main {
+        .intro {
+          .bubble {
+            width: 25rem;
+          }
+        }
+
+        .levels {
+          button {
+            height: 30%;
+          }
+        }
+      }
+    }
+  }
+}

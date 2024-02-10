@@ -1,0 +1,65 @@
+@import '../../../assets/scss/variables';
+
+.option-btn {
+  border: 1px solid $grey-200;
+  box-shadow: 0px 5px 0px 0px $grey-200;
+  font-size: 15px;
+  font-weight: 500;
+
+  &:hover {
+    background-color: $yellow-100-hover;
+    box-shadow: 0px 5px 0px 0px $yellow-300;
+  }
+  &:active {
+    background-color: white;
+    box-shadow: 0px 1px 0px 0px $grey-200;
+    transform: translateY(2px);
+  }
+}
+
+.small-btn-wrapper {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-column-gap: 5px;
+  grid-row-gap: 10px;
+
+  .small-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    height: 45px;
+
+    img {
+      margin-left: 1px;
+      width: 5px;
+    }
+  }
+
+  .option-blank {
+    height: 55px;
+    background-color: $grey-50;
+    border-radius: 10px;
+  }
+}
+
+.large-btn-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-column-gap: 5px;
+  grid-row-gap: 10px;
+
+  .large-btn {
+    border-radius: 12px;
+    height: 3rem;
+  }
+}
+
+@media only screen and (max-width: 1366px) {
+  .small-btn-wrapper {
+    .small-btn {
+      height: 35px;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+@import "../../../../assets/scss/variables";
+
+.selected-note {
+    background-color: $yellow-100-hover;
+    box-shadow: 0px 5px 0px 0px $yellow-300;
+}

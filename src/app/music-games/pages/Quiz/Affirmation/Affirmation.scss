@@ -1,0 +1,466 @@
+@import '../../../assets/scss/variables';
+
+@media (min-width: 1113px) {
+  .container {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    background: rgba(28, 26, 26, 0.3);
+    top: 0;
+    left: 0;
+    z-index: 4;
+  }
+
+  .background-rectangle {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 23%;
+    z-index: -1;
+    display: inline-flex;
+    justify-content: center;
+    font-size: 1.538rem;
+  }
+
+  .beater {
+    position: fixed;
+    bottom: 0;
+    width: 17%;
+    margin-left: 14%;
+    height: 28%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ButtonResponse {
+    width: 17%;
+    height: 26%;
+    background-color: white;
+    font-family: $primary-font;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 8%;
+    color: #1c1a1a;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #dddada;
+    border-radius: 12px;
+    -webkit-box-shadow: 0px 4px 1px #dddada;
+    -moz-box-shadow: 0px 4px 1px #dddada;
+    box-shadow: 0px 4px 1px #dddada;
+
+    &:hover {
+      background-color: rgba(162, 98, 234, 0.1);
+    }
+
+    &:active {
+      background-color: #dddada;
+    }
+  }
+
+  .tip-try-again {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 1rem;
+    text-align: left;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+
+    border-radius: 30px 30px 30px 0;
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+    padding-left: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-right: 3rem;
+  }
+
+  .tip {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 1.125rem;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 30px 30px 30px 0;
+
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+
+    padding: 1%;
+
+    span {
+      margin-left: 5px;
+      font-weight: bold;
+    }
+  }
+}
+
+@media (min-width: 1080px) and (max-width: 1113px) {
+  .container {
+    position: relative;
+    display: flex;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(128, 128, 128, 0.5);
+    z-index: -2;
+  }
+
+  .background-rectangle {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 23%;
+    z-index: -1;
+    display: inline-flex;
+    justify-content: center;
+    font-size: 1.538rem;
+  }
+
+  .beater {
+    position: fixed;
+    bottom: 0;
+    width: 17%;
+    margin-left: 14%;
+    height: 28%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  // .ButtonResponse{
+  //     display: inline-flex;
+  //     justify-content: center;
+  //     align-items: center;
+  //     background-color: white;
+  //     font-family: 'Caveat', cursive;
+  //     font-family: $primary-font;
+  //     font-weight: 600;
+  //     font-size: 0.95rem;
+  //     width: 17%;
+  //     height: 26%;
+  //     margin-top: auto;
+  //     margin-bottom:auto;
+  //     margin-left: 8%;
+
+  //     color: #1C1A1A;
+  //     border-radius: 8px;
+
+  //     position: relative;
+  //     overflow: hidden;
+
+  //     &:after {
+  //         content: '';
+  //         background-color: rgb(223, 208, 208);
+  //         position: absolute;
+  //         bottom: 0;
+  //         left: 0;
+  //         height: 0.25rem;
+  //         width: 100%;
+  //     }
+
+  //     &:hover {
+  //         background-color: rgba(162, 98, 234, 0.1);
+  //     }
+
+  //     &:active {
+  //         background-color: rgba(162, 98, 234, 0.2);
+  //     }
+  // }
+  .tip {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 1rem;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 30px 30px 30px 0;
+
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+
+    padding: 2%;
+  }
+
+  .tip-try-again {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 0.8rem;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 30px 30px 30px 0;
+
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+    padding-left: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-right: 3rem;
+  }
+}
+
+@media (min-width: 870px) and (max-width: 1080px) {
+  .container {
+    position: relative;
+    display: flex;
+    z-index: 4;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(128, 128, 128, 0.5);
+    z-index: -2;
+  }
+
+  .background-rectangle {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 23%;
+    z-index: -1;
+    display: inline-flex;
+    justify-content: center;
+    font-size: 1.538rem;
+  }
+
+  .beater {
+    position: fixed;
+    bottom: 0;
+    width: 17%;
+    margin-left: 14%;
+    height: 28%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ButtonResponse {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-weight: 600;
+    font-size: 0.95rem;
+    width: 17%;
+    height: 26%;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 8%;
+
+    color: #1c1a1a;
+    border-radius: 8px;
+
+    position: relative;
+    overflow: hidden;
+
+    &:after {
+      content: '';
+      background-color: rgb(223, 208, 208);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 0.25rem;
+      width: 100%;
+    }
+
+    &:hover {
+      background-color: rgba(162, 98, 234, 0.1);
+    }
+
+    &:active {
+      background-color: rgba(162, 98, 234, 0.2);
+    }
+  }
+  .tip {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 1rem;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 30px 30px 30px 0;
+
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+
+    padding: 2%;
+  }
+
+  .tip-try-again {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 0.9rem;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 30px 30px 30px 0;
+
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+    padding-left: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 870px) {
+  .container {
+    position: relative;
+    display: flex;
+    z-index: 4;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(128, 128, 128, 0.5);
+    z-index: -2;
+  }
+
+  .background-rectangle {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 23%;
+    z-index: -1;
+    display: inline-flex;
+    justify-content: center;
+    font-size: 1.538rem;
+  }
+
+  .beater {
+    position: fixed;
+    bottom: 0;
+    width: 17%;
+    margin-left: 14%;
+    height: 28%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ButtonResponse {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-weight: 600;
+    font-size: 0.95rem;
+    width: 17%;
+    height: 26%;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 8%;
+
+    color: #1c1a1a;
+    border-radius: 8px;
+
+    position: relative;
+    overflow: hidden;
+
+    &:after {
+      content: '';
+      background-color: rgb(223, 208, 208);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 0.25rem;
+      width: 100%;
+    }
+
+    &:hover {
+      background-color: rgba(162, 98, 234, 0.1);
+    }
+
+    &:active {
+      background-color: rgba(162, 98, 234, 0.2);
+    }
+  }
+  .tip-try-again {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 0.5rem;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 30px 30px 30px 0;
+
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+    padding-left: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-right: 1rem;
+  }
+
+  .tip {
+    background-color: white;
+    font-family: 'Caveat', cursive;
+    font-family: $primary-font;
+    font-size: 0.8rem;
+    width: 28%;
+    height: 36%;
+    margin-left: 15%;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 30px 30px 30px 0;
+
+    display: inline-flex; /* horizon center */
+    justify-content: center;
+    align-items: center; /* vertical center */
+
+    padding: 2%;
+  }
+}

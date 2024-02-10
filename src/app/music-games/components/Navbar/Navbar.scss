@@ -1,0 +1,30 @@
+@import '../../assets/scss/variables';
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: $nav-height;
+  width: 100%;
+  padding: 0 2.5rem;
+  background-color: $orange-50;
+  position: fixed;
+  top: 0;
+  z-index: 3;
+  gap: 5rem;
+  img {
+    width: 15vw;
+  }
+
+  .navigation-link {
+    font-family: Noto Sans;
+    font-size: 1.3rem;
+    color: black;
+    font-weight: 500;
+  }
+
+  .navigation-link:hover,
+  :active {
+    color: $orange-400;
+  }
+}

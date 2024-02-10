@@ -1,0 +1,8 @@
+@import '../../assets/scss/variables';
+
+.game-finished {
+  height: calc($page-height - $nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
