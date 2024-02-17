@@ -9,7 +9,7 @@ export default function Welcome() {
   const setLevel = useSetAtom(levelStateAtom);
   const setAppState = useSetAtom(appStateAtom);
 
-  const handleLevelClick = (level) => {
+  const handleLevelClick = (level:string) => {
     setLevel(level);
     setAppState('quiz');
   };
