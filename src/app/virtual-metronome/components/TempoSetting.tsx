@@ -26,6 +26,7 @@ const TempoSetting = ({
   let timeSeg = 0;
 
   const [note, setNote] = useState<number>(2);
+  const [time, setTime] = useState<number>(0);
 
   const handleTempo = (num: number): void => {
     if ((tempoNum < 30 && num === -5) || (tempoNum < 26 && num === -1)) {
@@ -67,12 +68,25 @@ const TempoSetting = ({
     }
   };
 
-  const setRandomTempo = (): void => {
-    const randomNumber: number =
-      Math.floor(Math.random() * (168 - 25 + 1)) + 25;
+  const calculateTempo = (): void => {
+    if (!time) {
+      const d = new Date();
+      const t = d.getTime();
+      setTime(t);
+    } else {
+      const d = new Date();
+      const t = d.getTime();
+      const tempCal = Math.floor(60 / ((t - time) / 1000));
 
-    // set the result
-    setTempo(randomNumber);
+      if (tempCal < 20) {
+        setTempo(20);
+      } else if (tempCal > 168) {
+        setTempo(168);
+      } else {
+        setTempo(tempCal);
+      }
+      setTime(t);
+    }
   };
 
   const handleNote = (num: number): void => {
@@ -300,7 +314,7 @@ const TempoSetting = ({
         </div>
 
         <button
-          onClick={() => setRandomTempo()}
+          onClick={() => calculateTempo()}
           className="rounded-full bg-primary-yellow px-16 text-6xl font-semibold"
         >
           Tap Tempo
