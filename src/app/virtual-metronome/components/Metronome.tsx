@@ -17,11 +17,12 @@ const Metronome = ({
   animation,
 }: MetronomeProps) => {
   const [soundState, setSoundState] = useState<string[]>([
-    "/sounds/Bongo.mp3",
-    "/sounds/BongoEmp.mp3",
+    "Bongo.mp3",
+    "BongoEmp.mp3",
   ]);
   const [animatedIndex, setAnimatedIndex] = useState<number>(0);
   const [animatedImage, setAnimatedImage] = useState<number>(0);
+  const [vol, setVol] = useState<number>(5);
 
   useEffect(() => {
     if (animation) {
@@ -32,9 +33,11 @@ const Metronome = ({
       let index = 0;
 
       if (beatEmp === index) {
+        soundEmp.volume = vol / 10;
         soundEmp.play();
         index = (index + 1) % beatsNum;
       } else {
+        sound.volume = vol / 10;
         sound.play();
         index = (index + 1) % beatsNum;
       }
@@ -42,10 +45,12 @@ const Metronome = ({
       const interval = setInterval(
         () => {
           if (beatEmp === index) {
+            soundEmp.volume = vol / 10;
             soundEmp.play();
             index = (index + 1) % beatsNum;
             setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
           } else {
+            sound.volume = vol / 10;
             sound.play();
             index = (index + 1) % beatsNum;
             setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
@@ -57,7 +62,13 @@ const Metronome = ({
       // Clear the interval on component unmount to avoid memory leaks
       return () => clearInterval(interval);
     }
-  }, [animation, beatsNum, tempoNum, beatEmp]);
+  }, [animation, beatsNum, tempoNum, beatEmp, vol]);
+
+  const handleVol = (event: Event, value: number | number[]): void => {
+    if (typeof value === "number") {
+      setVol(value);
+    }
+  };
 
   function MarkingCalc(tempo: number): string {
     if (tempo >= 25 && tempo < 40) return "Grave";
@@ -76,7 +87,7 @@ const Metronome = ({
       <div className="metronome__container flex flex-col items-center border-2 p-10">
         <div className="ml-auto">
           <Image
-            src="./virtual-metronome/FullScreen.svg"
+            src="FullScreen.svg"
             width={200}
             height={200}
             alt="full screen icon"
@@ -148,7 +159,7 @@ const Metronome = ({
           })}
         </div>
         <div
-          className="relative h-[35rem] w-[30rem] bg-[url('/virtual-metronome/MetronomeMelody.svg')] bg-contain bg-center 
+          className="relative h-[35rem] w-[30rem] bg-[url('/MetronomeMelody.svg')] bg-contain bg-center 
                         bg-no-repeat
                         laptop:h-[45rem]
                         desktop:h-[55rem] desktop:w-[35rem]
@@ -168,7 +179,7 @@ const Metronome = ({
               style={{ originX: 0.5, originY: 0.6 }}
             >
               <Image
-                src="./virtual-metronome/MetronomePendulum.svg"
+                src="MetronomePendulum.svg"
                 alt="metronome pendulum"
                 width={200}
                 height={200}
@@ -183,7 +194,7 @@ const Metronome = ({
           ) : (
             <div>
               <Image
-                src="./virtual-metronome/MetronomePendulum.svg"
+                src="MetronomePendulum.svg"
                 alt="metronome pendulum"
                 width={200}
                 height={200}
@@ -212,6 +223,11 @@ const Metronome = ({
         <h2 className="text-4xl font-semibold desktop:text-5xl">Volume</h2>
 
         <Slider
+          min={0}
+          max={10}
+          step={1}
+          value={vol}
+          onChange={handleVol}
           sx={{
             color: "#E98427",
           }}
@@ -225,8 +241,8 @@ const Metronome = ({
             onClick={() => {
               const newArray = [...soundState];
               // Modify the copied array
-              newArray[0] = "/sounds/Bongo.mp3";
-              newArray[1] = "/sounds/BongoEmp.mp3";
+              newArray[0] = "Bongo.mp3";
+              newArray[1] = "BongoEmp.mp3";
               // Update the state with the modified array
               setSoundState(newArray);
             }}
@@ -238,8 +254,8 @@ const Metronome = ({
             onClick={() => {
               const newArray = [...soundState];
               // Modify the copied array
-              newArray[0] = "/sounds/Click.mp3";
-              newArray[1] = "/sounds/ClickEmp.mp3";
+              newArray[0] = "Click.mp3";
+              newArray[1] = "ClickEmp.mp3";
               // Update the state with the modified array
               setSoundState(newArray);
             }}
@@ -251,8 +267,8 @@ const Metronome = ({
             onClick={() => {
               const newArray = [...soundState];
               // Modify the copied array
-              newArray[0] = "/sounds/Electric.mp3";
-              newArray[1] = "/sounds/ElectricEmp.mp3";
+              newArray[0] = "Electric.mp3";
+              newArray[1] = "ElectricEmp.mp3";
               // Update the state with the modified array
               setSoundState(newArray);
             }}
@@ -264,8 +280,8 @@ const Metronome = ({
             onClick={() => {
               const newArray = [...soundState];
               // Modify the copied array
-              newArray[0] = "/sounds/Percussion.mp3";
-              newArray[1] = "/sounds/PercussionEmp.mp3";
+              newArray[0] = "Percussion.mp3";
+              newArray[1] = "PercussionEmp.mp3";
               // Update the state with the modified array
               setSoundState(newArray);
             }}

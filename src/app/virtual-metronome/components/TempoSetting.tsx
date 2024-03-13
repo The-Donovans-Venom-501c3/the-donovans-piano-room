@@ -23,8 +23,6 @@ const TempoSetting = ({
   setBeatEmp,
   setAnimation,
 }: TempoSettingProps) => {
-  let timeSeg = 0;
-
   const [note, setNote] = useState<number>(2);
   const [time, setTime] = useState<number>(0);
 
@@ -69,7 +67,7 @@ const TempoSetting = ({
   };
 
   const calculateTempo = (): void => {
-    if (!time) {
+    if (time === 0) {
       const d = new Date();
       const t = d.getTime();
       setTime(t);
@@ -304,7 +302,7 @@ const TempoSetting = ({
       <div className="tapTempo__container flex justify-center gap-10 desktop:scale-125">
         <div className="flex cursor-pointer items-center justify-center rounded-full bg-primary-yellow p-5">
           <Image
-            src="/virtual-metronome/PlayButton.svg"
+            src="PlayButton.svg"
             width={80}
             height={80}
             alt="PlayButton"
