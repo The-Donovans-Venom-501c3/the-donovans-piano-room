@@ -12,7 +12,7 @@ const config: Config = {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        
+        "flipbook": "url('/journal-book/flipbook_background.svg')",
       },
       colors: {
         "primary-yellow": "#E9BB18",
@@ -31,12 +31,13 @@ const config: Config = {
         "primary-blue-accent": "#E7F2E7",
       },
       screens: {
-        "sm": "640px",
-        "md": "768px",
-        "lg": "1024px",
-        "lg2": "1100px",
-        "xl": "1280px",
-        "xl2": "1440px", // "2xl" is the default breakpoint in Tailwind
+        sm: "640px",
+        md: "768px",
+        md2: "900px",
+        lg: "1024px",
+        lg2: "1100px",
+        xl: "1280px",
+        xl2: "1440px", // "2xl" is the default breakpoint in Tailwind
         "2xl": "1536px",
       },
     },

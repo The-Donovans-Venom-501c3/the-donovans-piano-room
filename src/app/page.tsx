@@ -12,6 +12,7 @@ export default function Home() {
           <Link href="/login">Login</Link>
           <Link href="/virtual-metronome">Virtual Metronome</Link>
           <Link href="/virtual-piano">Virtual Piano</Link>
+          <Link href="/journal-book">Journal Book</Link>
         </nav>
       </div>
     </>
