@@ -2,12 +2,15 @@ import Image from "next/image";
 import Slider from "@mui/material/Slider";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import styles from "./Metronome.module.css";
 
 interface MetronomeProps {
   beatsNum: number;
   tempoNum: number;
   beatEmp: number;
   animation: boolean;
+  fullScreen: boolean;
+  setFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const Metronome = ({
@@ -15,6 +18,8 @@ const Metronome = ({
   tempoNum,
   beatEmp,
   animation,
+  fullScreen,
+  setFullScreen
 }: MetronomeProps) => {
   const [soundState, setSoundState] = useState<string[]>([
     "Bongo.mp3",
@@ -23,6 +28,7 @@ const Metronome = ({
   const [animatedIndex, setAnimatedIndex] = useState<number>(0);
   const [animatedImage, setAnimatedImage] = useState<number>(0);
   const [vol, setVol] = useState<number>(5);
+
 
   useEffect(() => {
     if (animation) {
@@ -82,8 +88,12 @@ const Metronome = ({
     } else return "Allegro";
   }
 
+  const toggleFullScreen = () : void =>{
+    setFullScreen((prev)=>!prev);
+  }
+
   return (
-    <div className="flex basis-2/5 flex-col justify-between">
+    <div className={`flex basis-2/5 flex-col justify-between ${fullScreen ? styles.fullscreen : ''}`}>
       <div className="metronome__container flex flex-col items-center border-2 p-10">
         <div className="ml-auto">
           <Image
@@ -92,6 +102,7 @@ const Metronome = ({
             height={200}
             alt="full screen icon"
             className="h-8 w-8"
+            onClick={toggleFullScreen}
           />
         </div>
 

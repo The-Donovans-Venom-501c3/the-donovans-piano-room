@@ -1,0 +1,18 @@
+.fullscreen{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 80%;
+  height: 100%;
+}
+
+.hidetempo {
+  visibility: hidden;
+}
+
+.showtabtemp{
+    visibility: visible;
+    z-index: 20;
+    position: relative;
+    bottom: 90px;
+}
