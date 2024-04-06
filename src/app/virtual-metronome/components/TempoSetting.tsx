@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Slider from "@mui/material/Slider";
 import { useState } from "react";
+import styles from "./Metronome.module.css";
 
 interface TempoSettingProps {
   beatsNum: number;
@@ -12,6 +13,7 @@ interface TempoSettingProps {
   beatEmp: number;
   setBeatEmp: React.Dispatch<React.SetStateAction<number>>;
   setAnimation: React.Dispatch<React.SetStateAction<boolean>>;
+  fullScreen: boolean;
 }
 
 const TempoSetting = ({
@@ -22,6 +24,7 @@ const TempoSetting = ({
   beatEmp,
   setBeatEmp,
   setAnimation,
+  fullScreen
 }: TempoSettingProps) => {
   const [note, setNote] = useState<number>(4);
   const [time, setTime] = useState<number>(0);
@@ -123,8 +126,8 @@ const TempoSetting = ({
   }
 
   return (
-    <div className="flex basis-3/5 flex-col justify-around px-10">
-      <div className="tempo__container flex flex-col desktop:gap-5">
+    <div className={`flex basis-3/5 flex-col justify-around px-10 ${fullScreen ? styles.hidetempo : ''}`}>
+      <div className={`tempo__container flex flex-col desktop:gap-5`}>
         <div className="flex flex-col items-center gap-5">
           <h2 className="text-4xl font-semibold desktop:text-6xl">BPM</h2>
           <h2 className="text-5xl font-semibold desktop:text-8xl">
@@ -322,7 +325,7 @@ const TempoSetting = ({
         </div>
       </div>
 
-      <div className="tapTempo__container flex justify-center gap-10 desktop:scale-125">
+      <div className={`tapTempo__container flex justify-center gap-10 desktop:scale-125 ${fullScreen ? styles.showtabtemp : ''}`}>
         <div className="flex cursor-pointer items-center justify-center rounded-full bg-primary-yellow p-5">
           <Image
             src="PlayButton.svg"
@@ -367,3 +370,4 @@ const TempoSetting = ({
 };
 
 export default TempoSetting;
+
