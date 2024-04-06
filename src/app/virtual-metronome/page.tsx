@@ -1,3 +1,4 @@
+
 "use client";
 
 import TempoSetting from "@metronome/TempoSetting";
@@ -9,6 +10,8 @@ const VirtualMetronome = () => {
   const [beatsNum, setBeats] = useState<number>(4);
   const [beatEmp, setBeatEmp] = useState<number>(-1);
   const [animation, setAnimation] = useState<boolean>(false);
+  const [fullScreen, setFullScreen] = useState<boolean>(false);
+
 
   return (
     <div className="flex h-full justify-center bg-primary-skin p-12">
@@ -21,12 +24,15 @@ const VirtualMetronome = () => {
           beatEmp={beatEmp}
           setBeatEmp={setBeatEmp}
           setAnimation={setAnimation}
+          fullScreen={fullScreen}
         />
         <Metronome
           beatsNum={beatsNum}
           tempoNum={tempoNum}
           beatEmp={beatEmp}
           animation={animation}
+          fullScreen={fullScreen}
+          setFullScreen={setFullScreen}
         />
       </div>
     </div>
