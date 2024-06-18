@@ -21,6 +21,7 @@
     "@libsql/client": "^0.4.3",
     "@mui/icons-material": "^5.15.14",
     "@mui/material": "^5.15.14",
+    "@paypal/react-paypal-js": "^8.5.0",
     "drizzle-orm": "^0.29.3",
     "file-loader": "^6.2.0",
     "flowbite-react": "^0.7.6",

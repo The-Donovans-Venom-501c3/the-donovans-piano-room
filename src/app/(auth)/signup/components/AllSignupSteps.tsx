@@ -3,6 +3,7 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import SignupForm from './SignupForm'
 import SignupMembershipContent from './membership/SignupMembershipContent'
 import EmailVerificationContent from './email-verification/components/EmailVerificationContent.tsx'
+import PaymentMethod from '@/components/PaymentMethod'
 
 export default function AllSignupSteps() {
 
@@ -10,9 +11,10 @@ export default function AllSignupSteps() {
   return (
     <>
 
-        { signupStep === 1 && (<SignupForm/>) }
+        {/* { signupStep === 1 && (<SignupForm/>) }
         { signupStep === 2 && (<EmailVerificationContent />)}
-        { signupStep === 3 && (<SignupMembershipContent />)}
+        { signupStep === 3 && (<SignupMembershipContent />)} */}
+        <PaymentMethod/>
     </>
   )
 }
