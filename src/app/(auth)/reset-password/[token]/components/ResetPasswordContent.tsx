@@ -3,13 +3,18 @@ import Button1 from "@/components/atoms/Button1";
 import PasswordCases from "@/components/auth/PasswordCases";
 import PasswordInput from "@/components/auth/password-input";
 import { useState } from "react";
+import { useSetAtom } from "jotai";
+import { resetPasswordStepAtom } from "@/utils/stores";
 
 export default function ResetPasswordContent() {
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [allPasswordCasesCorrect, setAllPasswordCasesCorrect] = useState(false)
+    const setResetPasswordStep = useSetAtom(resetPasswordStepAtom);
+    
     const handleSubmit = (e: any) =>{
         e.preventDefault()
+        setResetPasswordStep(2)
     }
     const passwordsError = (allPasswordCasesCorrect && confirmPassword.length && password !== confirmPassword)
     
