@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import AuthSucceedWrapper from "@/components/auth/AuthSucceedWrapper";
 

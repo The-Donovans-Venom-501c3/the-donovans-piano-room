@@ -1,4 +1,3 @@
-"use client";
 import { useAtomValue } from 'jotai';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import EmailSentConfirmation from './EmailSentConfirmation';
