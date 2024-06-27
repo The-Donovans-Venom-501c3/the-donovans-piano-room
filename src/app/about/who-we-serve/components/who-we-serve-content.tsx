@@ -6,7 +6,7 @@ export default function WhoWeServeContent() {
     <div className='flex flex-row h-full'>
         <div className='flex flex-1 flex-col h-full justify-center items-center'>
             <div className='w-[325px]'>
-                <h2 className='text-primary-brown text-5xl font-semibold w-96'>Music for everybody</h2>
+                <h2 className='text-primary-brown text-7xl font-montserrat font-semibold w-96'>Music for everybody</h2>
                 <p className='text-2xl text-primary-gray mt-4'>Our program offers a well-rounded approach to musical growth, from learning to read music, to help preparing for college. We offer a range of programs to help children of any age and skill level continue to learn.</p>
             </div>
         </div>
@@ -46,6 +46,10 @@ export default function WhoWeServeContent() {
                         <li className='text-[16px] text-primary-gray'>Band, orchestra, and choral enrichment</li>
                         <li className='text-[16px] text-primary-gray'>AP Music Theory and college prep</li>
                     </ul>
+                    <a href='http://www.linkedin.com/company/the-donovans-venom-501c3/' target='_blank' rel="noopener noreferrer">
+                {/* linkedin */}
+                    <Image src={'/about/icons/Twitter.svg'} width={40} height={40} alt='LinkedIn' />
+                </a>
                 </div>
             </div>
         </div>

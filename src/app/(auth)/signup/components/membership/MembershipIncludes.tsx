@@ -12,8 +12,8 @@ export default function MembershipIncludes() {
     return membershipChoice && (
         <div className="fixed right-[25vw] 3xl:right-[23vw] w-[24vw] 3xl:w-[26vw] bg-tertiary-purple h-auto rounded-3xl p-6">
 
-            <h3 className="text-primary-yellow border-b-2 border-b-primary-yellow flex gap-2 text-[16px] 2xl:text-3xl 4xl:text-4xl font-semibold pb-3 4xl:pb-6"><Image src="/auth/membershipTitleWaring.svg" width={20} height={20} alt=""/> {membershipChoiceContent.title}</h3>
-            <ul className="my-4 border-b-2 border-primary-purple pb-3 4xl:pb-6">
+            <h3 className="text-primary-yellow border-b-2 border-b-primary-yellow flex gap-2 font-montserrat text-[16px] 2xl:text-3xl 4xl:text-4xl font-semibold pb-3 4xl:pb-6"><Image src="/auth/membershipTitleWaring.svg" width={20} height={20} alt=""/> {membershipChoiceContent.title}</h3>
+            <ul className="my-4 border-b-2 font-montserrat border-primary-purple pb-3 4xl:pb-6">
                 {membershipChoiceContent.content.map((item, i) => (
                     <li className="text-white mt-2 4xl:mt-4" key={i}>
                         <p className="text-[12px] 2xl:text-2xl 4xl:text-3xl ">
@@ -23,7 +23,7 @@ export default function MembershipIncludes() {
                 ))}
             </ul>
             <div>
-                <p className="text-white text-[12px] 4xl:text-2xl 2xl:text-4xl mb-2 4xl:mt-4">Enter your discount code <span className="text-primary-yellow underline cursor-pointer" onClick={()=>setShowDiscountInput(prev => !prev)}>here</span></p>
+                <p className="text-white text-[12px] font-montserrat 4xl:text-2xl 2xl:text-4xl mb-2 4xl:mt-4">Enter your discount code <span className="text-primary-yellow underline cursor-pointer" onClick={()=>setShowDiscountInput(prev => !prev)}>here</span></p>
                 {showDiscountInput && 
                 <InputForm 
                     onChange={(e: any) => setDiscountCode(e.target.value)}

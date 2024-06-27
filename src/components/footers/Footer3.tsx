@@ -10,11 +10,27 @@ export default function Footer3() {
             style={{width: '290px'}}
             >Copyright © 2024 The Donovan&apos;s Piano Room. Powered by <Link className='text-primary-purple underline' target='_blank' href='https://www.thedonovan.org/'>The Donovan&apos;s Venom</Link>, a 501(c)(3) nonprofit organization.</h2>
             <div className='flex gap-8'>
-                <Image src="/footer/Twitter.svg" width={40} height={40} alt='Twitter' />
-                <Image src='/footer/Facebook.svg' width={40} height={40} alt='Facebook' />
-                <Image src='/footer/Youtube.svg' width={40} height={40} alt='Youtube' />
+
+            <div className="relative h-[3.5vh] w-[3.5vh]">
+            <a href="https://x.com/iamthedonovan?s=11" target='_blank'>
+            <Image src="/about/icons/Twitter.svg" fill alt='Twitter' />
+            </a>
             </div>
-        </div>
+
+            <div className="relative h-[3.5vh] w-[3.5vh]">
+            <a href="https://www.facebook.com/thedonovanspianoroom/" target='_blank'>
+            <Image src='/about/icons/Facebook.svg' fill alt='Facebook' />
+            </a>
+            </div>
+
+            <div className="relative h-[3.5vh] w-[3.5vh]">
+            <a href="https://m.youtube.com/@thedonovansvenom2848" target='_blank'>
+            <Image src='/about/icons/Youtube.svg' fill alt='Youtube' />
+            </a>
+</div>
+</div>
+</div>
+
     </div>
   )
 }
