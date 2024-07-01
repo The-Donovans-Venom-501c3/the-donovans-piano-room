@@ -10,7 +10,7 @@ export default function LoginForm() {
     return (
         <div className="w-[24vw] 3xl:w-[26vw]">
             <Link href="/" className="text-primary-yellow text-xl font-bold flex relative w-[15%] mb-5"><Image src="/YellowBackIcon.svg" width={30} height={30} alt=""/><p className="mt-2">Home</p></Link>
-        <h1 className="text-7xl font-bold leading-tight tracking-tight text-white mb-5">
+        <h1 className="text-7xl font-bold leading-tight tracking-tight text-white font-montserrat mb-5">
         Log In
         </h1>
         <div className='mb-5 2xl:mt-5 2xl:mb-[20px]'>
