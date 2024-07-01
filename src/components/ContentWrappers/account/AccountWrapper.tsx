@@ -24,7 +24,10 @@ export default function AccountWrapper({children, currentPage}: {children: React
           <div className="h-[80.8vh] flex justify-center">
             <div className="w-[84.7%] relative">
               <AccountAndSettingsNav currentPage={currentPage}/>
-              {children}
+              <div className="w-full h-[85%] mt-[1%]">
+
+                {children}
+              </div>
             </div>
           </div>
         <Footer4 />

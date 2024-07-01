@@ -36,8 +36,21 @@ export const testPassword = (password: string) =>{
     return {correctLength: password.length >= 12, lowerCase, upperCase, numberCase, symbolCase}
 }
 
+/*************/
+/***Profile***/
+/*************/
+
 export const profile = { // to be removed after BE Integration
     fullName: "Jack Stuart",
     imageSrc: "/ToBeRemoved/avatar/1.svg",
-    pronouns: "Hi/Him/His"
+    pronouns: "Hi/Him/His",
+    email: "jacks@email.com",
+    birthDate: "2000-12-24",
+    phoneNumber: "1-234-567-8910"
 }
+
+export const pronouns = [
+    "She/Her/Hers",
+    "Hi/Him/His",
+    "They/Them/Theirs"
+]
