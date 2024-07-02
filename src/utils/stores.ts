@@ -21,8 +21,23 @@ export const forgotPasswordStepAtom = atom(1);
 export const resetPasswordStepAtom = atom(1);
 
 
+
+
+//****************//
+//*****Auth*******//
+//****************//
+
+export const profileAtom = atom({
+    fullName: "",
+    imageSrc: "",
+    pronouns: "",
+    email: "",
+    birthDate: "",
+    phoneNumber: ""
+})
+
 //////////////
 /////NAV//////
 //////////////
 
-export const IsNavOpenAtom = atom(false) 
+export const IsNavOpenAtom = atom(false)

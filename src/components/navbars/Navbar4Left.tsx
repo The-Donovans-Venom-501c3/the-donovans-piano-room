@@ -1,11 +1,11 @@
-import { profile } from "@/utils/general";
-import { IsNavOpenAtom } from "@/utils/stores";
-import { useAtom } from "jotai";
+import { IsNavOpenAtom, profileAtom } from "@/utils/stores";
+import { useAtom, useAtomValue } from "jotai";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Navbar4Left() {
   const [isNavOpen, setIsNavOpen] = useAtom(IsNavOpenAtom)
+  const profile = useAtomValue(profileAtom)
   const toggleOpenNav = () => setIsNavOpen(state => !state) 
   return (
     <div className="h-[100vh] relative z-50" style={{width: isNavOpen ? "20vw" : "8vw"}}>

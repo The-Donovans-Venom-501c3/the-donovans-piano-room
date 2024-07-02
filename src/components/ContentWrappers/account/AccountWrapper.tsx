@@ -2,10 +2,12 @@ import React from "react";
 import Footer4 from "../../footers/Footer4";
 import Navbar4Left from "../../navbars/Navbar4Left";
 import Image from "next/image";
-import { profile } from "@/utils/general";
 import AccountAndSettingsNav from "./AccountAndSettingsNav";
+import { useAtomValue } from "jotai";
+import { profileAtom } from "@/utils/stores";
 
 export default function AccountWrapper({children, currentPage}: {children: React.ReactNode, currentPage: string}) {
+  const profile = useAtomValue(profileAtom)
   return (
     <div className="flex w-[100vw] h-[100vh] bg-[#FFEBD5]">
       <Navbar4Left />
@@ -24,7 +26,10 @@ export default function AccountWrapper({children, currentPage}: {children: React
           <div className="h-[80.8vh] flex justify-center">
             <div className="w-[84.7%] relative">
               <AccountAndSettingsNav currentPage={currentPage}/>
-              {children}
+              <div className="w-full h-[85%] mt-[1%]">
+
+                {children}
+              </div>
             </div>
           </div>
         <Footer4 />
