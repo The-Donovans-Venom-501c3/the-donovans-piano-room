@@ -35,7 +35,8 @@ export default function SignupForm() {
         onChange={(e: any) => setFullName(e.target.value)}
         text={fullName}
         error={''}
-        />
+                />
+        
         <InputForm
             field={{
                 type: "email",

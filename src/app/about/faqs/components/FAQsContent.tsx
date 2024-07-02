@@ -208,7 +208,7 @@ export default function FAQsContent() {
   return (
     <div className='flex flex-col items-center justify-center h-full overflow-auto'>
         <div className='h-[82%] w-[90%]'>
-            <h4 className='text-secondary-brown text-7xl font-semibold font-montserrat font-medium text-center'>Your questions, answered.</h4>
+            <h4 className='text-secondary-brown text-6xl 3xl:text-7xl 4xl:text-8xl font-semibold font-montserrat font-medium text-center'>Your questions, answered.</h4>
             <div className='flex justify-between w-full mt-6'>
                 <div className='w-full select-none'>
                     {faqsList.map((item, i) => (

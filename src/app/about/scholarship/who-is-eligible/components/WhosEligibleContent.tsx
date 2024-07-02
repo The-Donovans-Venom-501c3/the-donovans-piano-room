@@ -7,7 +7,7 @@ import Link from 'next/link'
 export default function WhosEligibleContent() {
     return (
         <div className='flex flex-col justify-center items-center h-full gap-[5%]'>
-            <h2 className='text-primary-brown font-montserrat text-7xl font-semibold'>Unlock Potential with Scholarship Power!</h2>
+            <h2 className='text-primary-brown font-montserrat text-6xl 3xl:text-7xl 4xl:text-8xl font-semibold'>Unlock Potential with Scholarship Power!</h2>
             <AboutMembershipNav page={aboutScholarshipNavigation.whosEligible} />
             <div className='flex items-center justify-around w-full h-[56%] laptop:h-[60%]'>
                 <div className='flex flex-1 flex-col h-full justify-center items-center' style={{position: 'relative'}}>

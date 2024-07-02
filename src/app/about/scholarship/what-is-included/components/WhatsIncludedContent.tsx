@@ -6,7 +6,7 @@ import Image from 'next/image'
 export default function WhatsIncludedContent() {
   return (
     <div className='flex flex-col justify-center items-center h-full gap-[5%]'>
-        <h2 className='text-primary-brown text-7xl font-semibold'>Unlock Potential with Scholarship Power!</h2>
+        <h2 className='text-primary-brown text-6xl 3xl:text-7xl 4xl:text-8xl font-semibold'>Unlock Potential with Scholarship Power!</h2>
         <AboutMembershipNav page={aboutScholarshipNavigation.whatsIncluded} />
         <div className='flex items-center justify-around w-full h-[56%] laptop:h-[60%]'>
             <div className='w-[18%] h-full bg-white border-2 border-[#FCF0D8] rounded-3xl shadow-[#AC7A2280] shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px] p-5'>
