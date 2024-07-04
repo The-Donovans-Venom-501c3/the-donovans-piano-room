@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-export default function AllOrUnread() {
+export default function AllOrUnread({unreadsNumber}:{unreadsNumber: number}) {
     const [allOrUnread, setAllOrUnread] = useState("all")
   return (
     <div className="flex w-[80%] mt-[2vh] text-center text-2xl 3xl:text-3xl 4xl:text-4xl font-medium text-primary-brown">
@@ -21,7 +21,7 @@ export default function AllOrUnread() {
             style={allOrUnread === "unread" ?
                 {backgroundColor: "#D8BCFD"} :
                 {boxShadow: "inset 0px 5px 7px #FBDAC1"}}
-            >Unread</span>
+            >Unread {"("+unreadsNumber+")"}</span>
     </div>
   )
 }

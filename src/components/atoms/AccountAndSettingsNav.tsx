@@ -19,7 +19,7 @@ export default function AccountAndSettingsNav({currentPage}: {currentPage: strin
           style={currentPage === settingsNavigation.paymentMethods ? {background: "#D8BCFD", fontWeight: "600", color: "#6F219E"} : {}}
           >Payment methods</p>
         </Link>
-        <Link href="">
+        <Link href="/account/notifications">
           <p className="text-primary-gray text-xl py-[.5vh] px-[1vw] rounded-xl"
           style={currentPage === settingsNavigation.notification ? {background: "#D8BCFD", fontWeight: "600", color: "#6F219E"} : {}}
           >Notifications</p>
