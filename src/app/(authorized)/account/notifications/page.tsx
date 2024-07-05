@@ -9,6 +9,7 @@ import AllOrUnread from "./components/AllOrUnread";
 import AllCatchUp from "./components/AllCatchUp";
 import { notification } from "./components/notificationInterface";
 import NotificationItem from "./components/NotificationItem";
+import "./page.css"
 
 export default function Page() {
     const [allNotifications, setAllNotifications] = useState<{todays: notification[], past: notification[]}>({todays: [], past: []})
@@ -61,25 +62,29 @@ export default function Page() {
   return (
     <AuthorizedWrapper1 pageTitle={authorizedWrapperTitles.AccountAndSettings} openedLink="">
         <AccountAndSettingsNav currentPage={settingsNavigation.notification}/>
-        <div className="w-[60%] h-[85%] mt-[1%]">
-            <h2 className="text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-montserrat font-medium mt-[3vh]">Notifications</h2>
-            <AllOrUnread unreadsNumber={unreadsNumber} />
-            {/* <AllCatchUp /> */}
+        <div className="overflow-y-auto relative h-[88%] w-[85vw]">
+          <div className="w-[60%] h-full mt-[1%]">
+              <h2 className="text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-montserrat font-medium mt-[3vh]">Notifications</h2>
+              <AllOrUnread unreadsNumber={unreadsNumber} />
+              {/* <AllCatchUp /> */}
 
-          {!!displayedNotifications.todays.length && (
+            {!!displayedNotifications.todays.length && (
               <>
-                <h5 className="text-primary-brown text-2xl font-medium mt-[2%]">Today {"("+displayedNotifications.todays.length+")"}</h5>
-                
-              </>
-          )}
-          {!!displayedNotifications.past.length && (
+                  <h5 className="text-primary-brown text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">Today {"("+displayedNotifications.todays.length+")"}</h5>
+                  {displayedNotifications.todays.map((item, i) =>(
+                    <NotificationItem item={item} key={i}/>
+                  ))}
+                </>
+            )}
+            {!!displayedNotifications.past.length && (
               <>
-                <h5 className="text-primary-brown text-2xl font-medium mt-[2%]">Past notifications {"("+displayedNotifications.past.length+")"}</h5>
-                {displayedNotifications.past.map((item, i) =>(
-                  <NotificationItem item={item} key={i}/>
-                ))}
-              </>
-          )}
+                  <h5 className="text-primary-brown text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">Past notifications {"("+displayedNotifications.past.length+")"}</h5>
+                  {displayedNotifications.past.map((item, i) =>(
+                    <NotificationItem item={item} key={i}/>
+                  ))}
+                </>
+            )}
+          </div>
         </div>
     </AuthorizedWrapper1>
   )

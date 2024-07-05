@@ -6,4 +6,5 @@ export interface notification {
     date: Date;
     unread: boolean;
     imageSrc: string;
+    timeAgo?: string;
 }
