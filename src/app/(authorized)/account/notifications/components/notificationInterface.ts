@@ -7,4 +7,5 @@ export interface notification {
     unread: boolean;
     imageSrc: string;
     timeAgo?: string;
+    mainIndex?: number;
 }

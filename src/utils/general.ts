@@ -96,7 +96,7 @@ export const dummyNoticationsData = [
         title: "9.0.1 new version launched",
         description: "Version 9.0.1 has launched, featuring enhanced stability, improved features, and critical bug fixes. Upgrade now for a smoother, more efficient user experience.",
         actionTitle: "Update",
-        date: new Date('07-04-2024-12:10'),
+        date: new Date('07-05-2024-12:10'),
         unread: true,
         imageSrc: "/ToBeRemoved/notification-icons/upgrade.svg"
     },
@@ -104,7 +104,7 @@ export const dummyNoticationsData = [
         title: "Renew your annual program",
         description: "Renew your annual program today to continue enjoying all the benefits and features. Don't miss out on the latest updates and exclusive member services for another year!",
         actionTitle: "Renew",
-        date: new Date('07-04-2024-10:00'),
+        date: new Date('07-05-2024-10:00'),
         unread: false,
         imageSrc: "/ToBeRemoved/notification-icons/program.svg"
     },
