@@ -65,7 +65,7 @@ export default function Page() {
         <div className="overflow-y-auto relative h-[88%] w-[85vw]">
           <div className="w-[60%] h-full mt-[1%]">
               <h2 className="text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-montserrat font-medium mt-[3vh]">Notifications</h2>
-              <AllOrUnread unreadsNumber={unreadsNumber} />
+              <AllOrUnread unreadsNumber={unreadsNumber} displayAll={displayAll} filterUnreads={filterUnreads} />
               {/* <AllCatchUp /> */}
 
             {!!displayedNotifications.todays.length && (

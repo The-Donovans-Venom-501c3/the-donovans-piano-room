@@ -1,12 +1,13 @@
 import { useState } from "react"
 
-export default function AllOrUnread({unreadsNumber}:{unreadsNumber: number}) {
+export default function AllOrUnread({unreadsNumber, filterUnreads, displayAll}:{unreadsNumber: number, filterUnreads: any, displayAll: any}) {
     const [allOrUnread, setAllOrUnread] = useState("all")
   return (
-    <div className="flex w-[80%] mt-[2vh] text-center text-2xl 3xl:text-3xl 4xl:text-4xl font-medium text-primary-brown">
+    <div className="flex w-[80%] mt-[2vh] text-center text-2xl 3xl:text-3xl 4xl:text-4xl font-medium text-primary-brown select-none">
         <span
             onClick={()=>{
                 setAllOrUnread("all")
+                displayAll()
             }}
             className="w-[50%] p-[1.5vh] rounded-l-2xl border-r border-2 border-white"
             style={allOrUnread === "all" ?
@@ -16,6 +17,7 @@ export default function AllOrUnread({unreadsNumber}:{unreadsNumber: number}) {
         <span
             onClick={()=>{
                 setAllOrUnread("unread")
+                filterUnreads()
             }}
             className="w-[50%] p-[1.5vh] rounded-r-2xl border-2 border-l border-white"
             style={allOrUnread === "unread" ?
