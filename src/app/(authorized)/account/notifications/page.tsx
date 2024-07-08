@@ -2,7 +2,7 @@
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import { authorizedWrapperTitles, beenTimeAgo, dummyNoticationsData, profile, settingsNavigation } from "@/utils/general";
-import { IsNavOpenAtom, profileAtom } from "@/utils/stores";
+import { hasUnreadAtom, IsNavOpenAtom, profileAtom } from "@/utils/stores";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import AllOrUnread from "./components/AllOrUnread";
@@ -16,9 +16,10 @@ export default function Page() {
     const [displayedNotifications, setDisplayedNotifications] = useState<[notification[], notification[]]>([[],[]])
     const [unreadsNumber, setUnreadsNumber] = useState(0)
     const isNavOpen = useAtomValue(IsNavOpenAtom)
+    const setHasUnread = useSetAtom(hasUnreadAtom)
     const setProfile = useSetAtom(profileAtom)
     const initNotifications = (notifications: notification[]) => {
-
+    
       const todays = []
       const past = []
       let unreadsNumber = 0
@@ -32,6 +33,7 @@ export default function Page() {
           past.push({...item, timeAgo, mainIndex: past.length})
         }
       }
+      if(unreadsNumber){ setHasUnread(true) }
       setUnreadsNumber(unreadsNumber)
       setAllNotifications([todays, past])
       setDisplayedNotifications([todays, past])
