@@ -3,12 +3,15 @@ import Footer4 from "../../footers/Footer4";
 import Navbar4Left from "../../navbars/Navbar4Left";
 import Image from "next/image";
 import { useAtomValue } from "jotai";
-import { profileAtom } from "@/utils/stores";
+import { profileAtom, showNotificationAtom } from "@/utils/stores";
+import NotificationPopup from "@/components/atoms/NotificationPopup";
 
 export default function AuthorizedWrapper1({children, pageTitle, openedLink=""}: {children: React.ReactNode, pageTitle: string, openedLink?: string}) {
   const profile = useAtomValue(profileAtom)
+  const showNotification = useAtomValue(showNotificationAtom)
   return (
     <div className="flex w-[100vw] h-[100vh] bg-[#FFEBD5]">
+      {showNotification && <NotificationPopup/>}
       <Navbar4Left openedLink={openedLink}/>
       <div className="w-full">
         <div className="relative z-40 h-[9.7vh] border-b border-[#FED2AA] flex justify-center items-center backdrop-blur-sm">
