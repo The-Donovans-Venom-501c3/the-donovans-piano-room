@@ -33,6 +33,11 @@ export default function AuthorizedWrapper1({children, pageTitle, openedLink=""}:
       <div className="absolute h-[20vh] w-[15vw] top-0 right-0">
         <Image src="/background-icons/account-and-settings/WhiteTopRight.svg" fill alt=""/>
       </div>
+      <div className=" absolute w-[106.97] h-[79.34px] padding- 0px 4px 4px 0px top-[104px] left-[1296px] z-60">
+        <Image src="/dashboard/hfemoji.svg" alt="" fill />
+      </div>
+
+
       <div className="absolute h-[20vh] w-[15vw] bottom-0 left-0">
         <Image src="/background-icons/account-and-settings/WhiteBottomLeft.svg" fill alt=""/>
       </div>
