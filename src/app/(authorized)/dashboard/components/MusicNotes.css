@@ -8,6 +8,7 @@
     opacity: 1; /* Adjust as needed */
     background-color: #FFF2E5; /* Assuming you have this variable */
     box-shadow: inset 0px 0px 15px 0px #AC7A22;
+    margin-left: 40px;
 }
 .card{ background-color: #FFEBD5;
     padding: 20px;
