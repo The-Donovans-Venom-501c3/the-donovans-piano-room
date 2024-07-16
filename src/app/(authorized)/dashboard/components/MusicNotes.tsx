@@ -39,15 +39,13 @@ export default function MusicNotes() {
     <div className="music-notes-container">
         <div className=" w-[260px] h-[28px] gap-2 flex">
 
-            <div className=" w-[224px] h-[28px]">
+            <div className=" w-[259px] h-[28px]">
                 <h4 className="text-[#59371D] font-roboto text-[18px] font-semibold leading-28 text-left">
-                Things you need to know
+                Things you need to know (2)
                 </h4>
             </div>
 
-            <div className=" w-[23px] h-[28px] bg-[#F8DCB0] text-[#59371D] font-semibold flex justify-center items-center">
-                <span>3</span>
-            </div>
+           
         </div>
       <div className="card">
 

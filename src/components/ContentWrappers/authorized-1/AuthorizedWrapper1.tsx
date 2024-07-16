@@ -8,7 +8,7 @@ import { profileAtom } from "@/utils/stores";
 export default function AuthorizedWrapper1({children, pageTitle, openedLink=""}: {children: React.ReactNode, pageTitle: string, openedLink?: string}) {
   const profile = useAtomValue(profileAtom)
   return (
-    <div className="flex w-[100vw] h-[100vh] bg-[#FFEBD5]">
+    <div className="flex w-[100vw] h-[100vh] bg-[#f5e8fe]">
       <Navbar4Left openedLink={openedLink}/>
       <div className="w-full">
         <div className="relative z-40 h-[9.7vh] border-b border-[#FED2AA] flex justify-center items-center backdrop-blur-sm">

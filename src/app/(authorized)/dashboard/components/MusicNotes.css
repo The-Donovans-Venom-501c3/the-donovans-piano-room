@@ -1,16 +1,16 @@
 .music-notes-container {
     width: 384px; 
     height: 884px; 
-    padding: 24px 24px 24px 24px;
+    padding: 24px;
     gap: 36px;
-    border-radius: 12px 12px 12px 12px;
-    border: 2px solid transparent; /* Adjust as needed */
-    opacity: 1; /* Adjust as needed */
-    background-color: #FFF2E5; /* Assuming you have this variable */
-    box-shadow: inset 0px 0px 15px 0px #AC7A22;
+    border-radius: 12px;
+    border: 2px solid var(--TDPM-White, #FFFFFF); 
+    opacity: 1;
+    background-color: var(--TDPM-Purple-100, #F5E8FF);
+    box-shadow: inset 0px 0px 15px 0px #C5A5F3;
     margin-left: 40px;
 }
-.card{ background-color: #FFEBD5;
+.card{ background-color: #FFFFFF;
     padding: 20px;
     border-radius: 10px;
     width: 335px;
@@ -18,7 +18,7 @@
     margin-top: 30px;
    }
 
-   .card2{ background-color: #FFEBD5;
+   .card2{ background-color: #FFFFFF;
     padding: 20px;
     border-radius: 10px;
     width: 335px;
