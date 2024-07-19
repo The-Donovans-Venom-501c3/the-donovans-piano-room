@@ -1,28 +1,50 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { loadScript } from "@paypal/paypal-js";
 import axios from "axios"
 export default function PaymentMethod() {
+    const isLoadedRef = useRef(false)
+    const numberFieldRef = useRef<HTMLInputElement>(null)
+    const cvcFieldRef = useRef<HTMLInputElement>(null)
+    const expirationDateRef = useRef<HTMLInputElement>(null)
+    const zipFieldRef = useRef<HTMLInputElement>(null)
+    const buttonsRef = useRef<HTMLInputElement>(null)
     useEffect(()=>{
-        axios.post("localhost:5000//api/generate/token")
-        .then((token)=>{
+        if(isLoadedRef.current){
+            axios.post("http://localhost:5000/api/generate_token")
+            .then((res)=>{
             
-        })
-        loadScript({clientId: "AQTLR4qk4C3cDL7oMT6GN8oxoQ-pySBWicypWAAAELk1f5YD8Yx1dt5DXSVQJX9raTMWx3va9ebXhREW", components: "buttons,hosted-fields", currency: ""})
-        .then(paypal => {
-            
-            paypal?.Buttons({style: {
-                shape: "pill"
-            }}).render("#payment-options")
-            if(paypal?.HostedFields?.isEligible()){
-                // paypal.HostedFields.render({
-
-                // })
-            }
-        })
+                loadScript({clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID, dataClientToken: res.data, components: "buttons,card-fields",})
+                .then(paypal => {
+                    
+                    paypal?.Buttons({style: {
+                        shape: "pill"
+                    }}).render(buttonsRef.current)
+                    // if(paypal?.CardFields.isEligible()){
+                        //     // paypal.HostedFields.render({
+                            //     console.log("qdfhqsfqsdfjhhjhfhhdf")
+                            //     // })
+                            // }
+                            const cardField = paypal?.CardFields()
+                            cardField?.NumberField().render(numberFieldRef.current)
+                            // cardField?.NumberField({}).render(numberFieldRef)
+                        })
+                    })
+                    .catch(err => {throw err})
+        }
+        isLoadedRef.current = true
     }, [])
     return (
-    <div id="payment-options">
+        <>
+            <div ref={buttonsRef}/>
+            <form>
 
-    </div>
-  )
+                <div ref={numberFieldRef}></div>
+                <div className="flex gap-[3%]">
+                    <div ref={expirationDateRef}/>
+                    <div ref={cvcFieldRef}/>
+                    <div ref={zipFieldRef}/>
+                </div>
+            </form>
+        </>
+)
 }
