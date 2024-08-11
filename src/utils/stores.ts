@@ -1,19 +1,15 @@
 import bookInterface from "./interfaces/bookInterface";
 import { atom } from "jotai";
+import { membershipInterface } from "./interfaces/membership";
 
 ///////////////
 ////SIGN UP////
 ///////////////
 export const singupStepAtom = atom(1)
-//Membership//
-export const membershipChoiceAtom = atom("")
+export const emailAtom = atom("")
 
-export const membershipTypes = {
-    "24-hours": "24-hours",
-    "yearly-access": "yearly-access",
-    "monthly-access": "monthly-access",
-    "scholarship": "scholarship"
-}
+//Membership//
+export const membershipChoiceAtom = atom<membershipInterface | null>(null)
 
 //forgot-password//
 export const forgotPasswordStepAtom = atom(1);
