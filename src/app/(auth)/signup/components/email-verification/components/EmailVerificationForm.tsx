@@ -2,17 +2,32 @@ import { useState } from 'react'
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 import Button1 from '@/components/atoms/Button1'
 import Button2 from '@/components/atoms/Button2'
-
+import { useAtomValue } from 'jotai'
+import { emailAtom } from '@/utils/stores'
+import * as authAPI from "../../../../../../utils/APIs/authAPIs"
 export default function EmailVerificationForm({setToIsVerified}: {setToIsVerified: any}) {
     const [verificationCode, setVerificationCode] = useState(Array(6).fill(''))
+    const [loading, setLoading] = useState(false)
+    const email = useAtomValue(emailAtom)
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const newVerificationCode = [...verificationCode]
         newVerificationCode[index] = event.target.value
         setVerificationCode(newVerificationCode)
     }
-    const handleVerify = (e: any) =>{
+    const handleVerify = async (e: any) =>{
         e.preventDefault()
-        setToIsVerified()
+        try{
+            setLoading(true)
+            
+            const res = await authAPI.verify(email, verificationCode.join(""))
+            console.log(res)
+            setToIsVerified()
+        } catch(err){
+            console.log(err)
+        } finally{
+            setLoading(false)
+        }
+     
     }
     return (
         <section>
@@ -21,7 +36,7 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
                 <TimerOutlinedIcon className=' text-3xl' />
                 <p className='text-[13px] 2xl:text-[16px]'>This code expires in 10:00 minutes</p>
             </div>
-            <form className="mt-8 mb-7 w-full">
+            <form className="mt-8 mb-7 w-full"  onSubmit={handleVerify}>
                 <p className='text-primary-yellow text-lg 3xl:text-2xl mb-3'>Enter the 6 digit code</p>
                 <div className='flex align-center gap-2 w-full justify-between mb-7'>
                     {verificationCode.map((code, index) => (
@@ -36,7 +51,7 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
                         />
                     ))}
                 </div>
-                <Button1 text="Verify" onClick={handleVerify}/>
+                <Button1 text="Verify"/>
             </form>
             <Button2 text='Send a new code' onClick={()=>{}} />
         </section>
