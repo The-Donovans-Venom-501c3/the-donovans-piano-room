@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import AuthSucceedWrapper from "@/components/auth/AuthSucceedWrapper";
+import { useSetAtom } from "jotai";
+import { forgotPasswordStepAtom } from "@/utils/stores";
 
 export default function ForgotPasswordForm() {
+    const setForgotPasswordStep = useSetAtom(forgotPasswordStepAtom)
     return (
         <AuthSucceedWrapper>
             <h1 className="text-4xl md:text-8xl 2xl:text-8xl 4xl:text-9xl leading-tight tracking-tight text-white mb-5 font-montserrat">
@@ -12,7 +15,7 @@ export default function ForgotPasswordForm() {
             <div className="mb-5 2xl:mt-5 2xl:mb-[20px]">
                 <p className="text-white text-lg md:text-xl 2xl:text-2xl 4xl:text-3xl">You requested to reset your password and so a link has been sent to your email.</p>
                 <p className="mt-9 w-full text-lg md:text-xl 2xl:text-2xl 4xl:text-3xl text-white">
-                    Didn&apos;t receive the link? <Link href="#" className="text-primary-yellow-accent underline">Resend one</Link>
+                    Didn&apos;t receive the link? <Link href="" onClick={()=>{setForgotPasswordStep(1)}} className="text-primary-yellow-accent underline">Resend one</Link>
                 </p>
             </div>
             <p className="w-full text-center bg-primary-yellow-accent py-4 rounded-full text-primary-purple font-bold text-lg md:text-2xl 2xl:text-2xl 4xl:text-3xl">
