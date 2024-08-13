@@ -2,11 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function SignupHeader(
-    {stepNum, navLink, navName, stepName}:
-    {stepNum: number, navLink: string, navName: string, stepName: string}) {
+    {stepNum, navLink, navName, stepName, onClickNav=null}:
+    {stepNum: number, navLink: string, navName: string, stepName: string, onClickNav?: any}) {
   return (
     <>
-        <Link href={navLink} className="text-primary-yellow text-xl 3xl:text-3xl font-bold flex relative w-[15%] mb-5"><Image src="/YellowBackIcon.svg" width={30} height={30} alt=""/><p className="mt-2">{navName}</p></Link>
+        <Link onClick={onClickNav} href={navLink} className="text-primary-yellow text-xl 3xl:text-3xl font-bold flex relative w-[15%] mb-5"><Image src="/YellowBackIcon.svg" width={30} height={30} alt=""/><p className="mt-2">{navName}</p></Link>
         <h1 className="text-7xl 3xl:text-8xl font-bold leading-tight font-montserrat tracking-tight text-white mb-5">
         Sign Up
         </h1>

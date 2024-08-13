@@ -34,7 +34,7 @@ export default function InputForm({
           rows={numRows}
         />
       </FormControl>
-      {error && (<p className='mt-3'>{error}</p>)}
+      {error && (<p className='text-[#b3261e] mt-2 font-semibold'>{error}</p>)}
     </div>
   );
 }

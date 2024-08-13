@@ -23,6 +23,6 @@
       "@metronome/*": ["./src/app/virtual-metronome/components/*"],
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts","custom.d.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts","custom.d.ts", "**/*.jsx"],
   "exclude": ["node_modules"]
 }
