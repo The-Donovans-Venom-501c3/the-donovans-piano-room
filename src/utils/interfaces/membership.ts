@@ -1,5 +1,5 @@
 export interface membershipInterface {
-    memeberId: string,
+    memberId: string,
     type?: string,
     title: string,
     price: string,

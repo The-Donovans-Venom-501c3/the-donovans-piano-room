@@ -4,11 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import Button2 from "@/components/atoms/Button2";
 import SignupHeader from "./SignupHeader";
-import { useSetAtom } from "jotai";
-import { singupStepAtom } from "@/utils/stores";
+import { useAtomValue, useSetAtom } from "jotai";
+import { membershipChoiceAtom, singupStepAtom } from "@/utils/stores";
 import Checkbox from "@/components/atoms/Checkbox";
+import { createMembershipOrder, onApprovePayment } from "@/utils/APIs/orderAPI";
+import Error from "next/error";
+
 export default function SignupPayment() {
     const [displayCardFields, setDisplayCardFields] = useState(false)
+    const membershipChoice = useAtomValue(membershipChoiceAtom)
     const setSingupStep = useSetAtom(singupStepAtom)
     const fieldStyle = {
         '.card-icon': {
@@ -37,14 +41,23 @@ export default function SignupPayment() {
     }
 
     const createOrder = async () => {
-        return "";
+        return await createMembershipOrder(membershipChoice.memberId)
+        .catch(error => console.log(error))
+        
     }
 
-    const onApprove = async () => {
-        return "";
+    const onApprove = async (data) => {
+        return await onApprovePayment(data)
+        .then(res => {
+            const {data: orderData} = res
+            console.log(orderData)
+            console.log("Payment is approved!!")
+        })
+        .catch(err => console.log("Approve Error:", err))
     }
 
-    const onError = async () => {
+    const onError = async (error) => {
+        console.log("Payment Error:",error)
         return "";
     }
 
@@ -55,7 +68,7 @@ export default function SignupPayment() {
             <PayPalScriptProvider options={{clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID, components: "card-fields,buttons", enableFunding: "venmo"}}>
                 {!displayCardFields && (<>
                     <Button1 style={{padding: "15px", marginBottom: "4%", marginTop: "3%"}} text="Check out with credit card" onClick={()=>{setDisplayCardFields(true)}}></Button1>
-                    <PayPalButtons style={{shape: "pill"}}></PayPalButtons>
+                    <PayPalButtons style={{shape: "pill"}} createOrder={createOrder} onApprove={onApprove} onError={onError}></PayPalButtons>
                 </>)}
 
                 {displayCardFields && 
