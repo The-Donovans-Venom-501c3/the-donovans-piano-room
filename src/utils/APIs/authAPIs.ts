@@ -7,6 +7,10 @@ export async function verify (email: string, otp: string) {
     return await axios.post("/api/auth/verify", { email, otp })
 }
 
+export async function refreshOTP(email: string) {
+    return await axios.post("api/auth/refresh-otp", {email})
+    
+}
 export async function forgotPassword(email: string) {
     return await axios.post("/api/auth/forgot-password", {email})
     

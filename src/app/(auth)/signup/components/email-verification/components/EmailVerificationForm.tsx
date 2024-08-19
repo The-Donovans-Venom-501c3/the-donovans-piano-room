@@ -29,6 +29,15 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
         }
      
     }
+    const handleRefreshOTP = async (e: any) => {
+        e.preventDefault()
+        try{
+            const res = await authAPI.refreshOTP(email)
+            console.log(res)
+        } catch(err){
+            console.log(err)
+        }
+    }
     return (
         <section>
             <p className='mt-4 text-white text-[13px] 2xl:text-[16px] 3xl:text-[18px] font-montserrat mb-5'>Enter the verification 6 digit-code we sent to jacks@email.com</p>
@@ -51,9 +60,9 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
                         />
                     ))}
                 </div>
-                <Button1 text="Verify"/>
+                <Button1 text="Verify" disable={loading}/>
             </form>
-            <Button2 text='Send a new code' onClick={()=>{}} />
+            <Button2 text='Send a new code' onClick={handleRefreshOTP} />
         </section>
     )
 }
