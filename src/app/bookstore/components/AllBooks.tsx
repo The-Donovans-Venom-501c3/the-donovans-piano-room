@@ -1,52 +1,40 @@
 "use client"
 import { books } from '@/utils/general'
 import { useEffect, useState } from 'react'
-import {bookInterface} from "@/interfaces/bookInterface";
+import {bookInterface, booksByType} from "@/interfaces/bookInterface";
 import BookItem from "@/components/atoms/BookItem";
-
+import { WillMountEffect } from '@/utils/customHooks';
+import * as bookAPI from "../../../utils/APIs/bookAPIs"
 export default function AllBooks() {
-  const [booksList, setBooksList] = useState<[bookInterface[], bookInterface[], bookInterface[]]>([[], [], []])
+  const [booksList, setBooksList] = useState<booksByType[]>([])
+  function fetchBooks (){
+    (async()=>{
+      try{
 
-  useEffect(()=>{
-    let booksList: [bookInterface[], bookInterface[], bookInterface[]] = [[], [], []]
-    for(let i in books) {
-      const book = books[i]
-      switch(book.type){
-        case "Soft cover":
-          booksList[0].push(book)
-          break;
-        case "E-book":
-          booksList[1].push(book)
-          break
-        case "Audio book":
-          booksList[2].push(book)
-          break;
+        const res = await bookAPI.getAllBooksByTypes()
+        const booksList = res.data as booksByType[]
+        setBooksList(booksList)
+      }catch(err){
+        console.log(err)
       }
-    }
-    setBooksList(booksList)
-  }, [])
+
+    })()
+  }
+  WillMountEffect(fetchBooks) 
   return (
     <div className='min-h-[50.9vh] my-[6vh] flex justify-center'>
         <div className='w-[84.7%]'>
-            <h5 className='text-3xl text-primary-brown font-semibold mb-[2%]'>Soft cover books</h5>
-            <div className='flex justify-between'>
-              {booksList[0].map((book, i) => (
-                <BookItem key={i} book={book}/> 
-              ))}
+            {booksList.map((type, i)=>(
+              <div key={i}>
+
+              <h5 className='text-3xl text-primary-brown font-semibold mb-[2%]'>{type.name}</h5>
+                <div className='flex justify-between'>
+                  {type.books.map((book, i) => (
+                    <BookItem key={i} book={book}/> 
+                  ))}
+                </div>
               </div>
-            
-            <h5 className='text-3xl text-primary-brown font-semibold my-[2%]'>E-Books</h5>
-            <div className='flex justify-between'>
-              {booksList[1].map((book, i) => (
-                <BookItem key={i} book={book}/>
               ))}
-            </div>
-            <h5 className='text-3xl text-primary-brown font-semibold my-[2%]'>Audio books</h5>
-            <div className='flex justify-between'>
-              {booksList[2].map((book, i) => (
-                <BookItem key={i} book={book}/>
-              ))}
-            </div>
         </div>
     </div>
   )
