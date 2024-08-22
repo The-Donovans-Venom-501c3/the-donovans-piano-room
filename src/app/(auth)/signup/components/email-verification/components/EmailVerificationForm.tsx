@@ -33,6 +33,7 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
         e.preventDefault()
         try{
             const res = await authAPI.refreshOTP(email)
+            setTimeLeft(600)
             console.log(res)
         } catch(err){
             console.log(err)
@@ -56,10 +57,6 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
             clearInterval(timer);
         };
     }, [timeLeft]);
-
-    const sendNewCode = () => {
-        setTimeLeft(600)
-    }
 
     return (
         <section>
