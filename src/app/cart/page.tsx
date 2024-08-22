@@ -15,7 +15,7 @@ export default function SignUp() {
     <div className="relative">
         <Footer1/>
     </div>
-    <div className="absolute right-0 top-[50vh]">
+    <div className="absolute right-0 top-[50vh] tablet:top-[82vh] laptop:top-[70vh]">
         <div className="relative h-[8vw] w-[8vw]" >
             <Image src="/bookstore/background/left-star.svg" fill alt=""/>
         </div>

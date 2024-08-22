@@ -1,7 +1,7 @@
 "use client"
 import { books } from '@/utils/general'
 import { useEffect, useState } from 'react'
-import bookInterface from "@/utils/interfaces/bookInterface";
+import {bookInterface} from "@/interfaces/bookInterface";
 import BookItem from "@/components/atoms/BookItem";
 
 export default function AllBooks() {

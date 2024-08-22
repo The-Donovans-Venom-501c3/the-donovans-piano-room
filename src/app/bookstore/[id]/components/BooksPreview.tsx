@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import bookInterface from '@/utils/interfaces/bookInterface';
+import {bookInterface} from '@/interfaces/bookInterface';
 import Button3 from '@/components/atoms/Button3';
 import { books } from '@/utils/general';
 

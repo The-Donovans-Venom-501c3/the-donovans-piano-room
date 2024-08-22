@@ -29,7 +29,7 @@ export default function Navbar2(){
             <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="/about/why-choose-us">
               <p>ABOUT</p>
             </Link>
-            <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="#">
+            <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="https://thedonovansmusicgames.netlify.app/">
               <p>GAMES</p>
             </Link>
             <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="/bookstore">

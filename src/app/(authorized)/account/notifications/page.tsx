@@ -7,7 +7,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import AllOrUnread from "./components/AllOrUnread";
 import AllCatchUp from "./components/AllCatchUp";
-import { notification } from "./components/notificationInterface";
+import { notification } from "../../../../interfaces/notificationInterface";
 import NotificationItem from "./components/NotificationItem";
 import "../../../../styles/primary-purple-scrollbar.css"
 

@@ -1,6 +1,9 @@
-import bookInterface from "./interfaces/bookInterface";
+import {bookCartItemInterface, bookInterface} from "../interfaces/bookInterface";
 import { atom } from "jotai";
 import { membershipInterface } from "./interfaces/membership";
+
+
+
 
 ///////////////
 ////SIGN UP////
@@ -55,3 +58,8 @@ export const showNotificationAtom = atom(false)
 //*************//
 
 export const addedCartItemAtom = atom<null | bookInterface>(null) 
+
+
+export const addedCartItemsAtom = atom<bookCartItemInterface[]>([]);
+
+
