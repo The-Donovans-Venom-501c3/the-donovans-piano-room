@@ -26,7 +26,7 @@ const ListedItemCard = ({ book, index }: {book: bookCartItemInterface, index: nu
       {/* Image Section */}
       <div className="relative h-[28vh] w-[14vw]">
         <Image
-          src={book.imageSrc}
+          src={book.picture}
           alt="Book Cover"
           fill
           className="absolute w-full h-full left-0 top-0 rounded-[12px]"
@@ -71,7 +71,7 @@ const ListedItemCard = ({ book, index }: {book: bookCartItemInterface, index: nu
               Price
             </span>
             <span className="font-roboto font-semibold text-3xl 3xl:text-4xl 4xl:text-5xl text-[#1C1A1A]">
-              {book.price}
+              ${Number(book.price).toFixed(2)}
             </span>
           </div>
         </div>
