@@ -60,7 +60,7 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
 
     return (
         <section>
-            <p className='mt-4 text-white text-[13px] 2xl:text-[16px] 3xl:text-[18px] font-montserrat mb-5'>Enter the verification 6 digit-code we sent to jacks@email.com</p>
+            <p className='mt-4 text-white text-[13px] 2xl:text-[16px] 3xl:text-[18px] font-montserrat mb-5'>Enter the verification 6 digit-code we sent to {email}</p>
             <div className='w-full flex py-4 gap-4 justify-center text-center bg-[#FEF8EE] py-3 rounded-xl text-[16px] text-black font-semibold 2xl:py-5 2xl:rounded-xl'>
                 <TimerOutlinedIcon className=' text-3xl' />
                 {timeLeft > 0 ? (

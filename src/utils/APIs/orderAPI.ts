@@ -9,6 +9,6 @@ export async function createMembershipOrder(membershipId: string) {
     })
 }
 
-export async function onApprovePayment(data: any) {
-    return await axios.post(`/api/orders/${data.orderID}/capture`) 
+export async function onApprovePayment(data: any, memberId: string) {
+    return await axios.post(`/api/orders/membership/${memberId}/${data.orderID}/capture`) 
 }

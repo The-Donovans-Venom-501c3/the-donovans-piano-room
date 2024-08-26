@@ -8,7 +8,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { membershipChoiceAtom, singupStepAtom } from "@/utils/stores";
 import Checkbox from "@/components/atoms/Checkbox";
 import { createMembershipOrder, onApprovePayment } from "@/utils/APIs/orderAPI";
-import Error from "next/error";
+import * as authAPI from "../../../../utils/APIs/authAPIs"
 
 export default function SignupPayment() {
     const [displayCardFields, setDisplayCardFields] = useState(false)
@@ -47,13 +47,19 @@ export default function SignupPayment() {
     }
 
     const onApprove = async (data) => {
-        return await onApprovePayment(data)
+        try {
+        await authAPI.refreshToken()
+        return await onApprovePayment(data, membershipChoice.memberId)
         .then(res => {
             const {data: orderData} = res
             console.log(orderData)
             console.log("Payment is approved!!")
+            return orderData
         })
-        .catch(err => console.log("Approve Error:", err))
+        } catch(err){
+            console.log(err)
+        }
+        
     }
 
     const onError = async (error) => {
