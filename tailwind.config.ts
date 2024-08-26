@@ -1,6 +1,7 @@
 import { yellow } from "@mui/material/colors";
 import type { Config } from "tailwindcss";
 
+
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -52,6 +53,11 @@ const config: Config = {
       fontFamily: {
         montserrat: ['Montserrat', 'sans-serif'],
         roboto: ['Roboto', 'sans-serif'],
+      },
+      boxShadow: {
+        'custom': '2px 2px 4px 0px #AC7A2280', // Custom box shadow
+  
+
       },
     },
     plugins: [],

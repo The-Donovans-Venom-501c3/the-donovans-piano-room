@@ -67,7 +67,7 @@ export default function Navbar4Left({openedLink=""}: {openedLink: string}) {
                   )}
                 </div>
               </Link>
-              <Link href="">
+              <Link href="https://thedonovansmusicgames.netlify.app/">
                 <div className="bg-white w-full h-[8vh] rounded-2xl border border-[#F5E8FF] flex items-center" style={openedLink === nav4leftLinks.games ? {borderColor: "white", backgroundColor: "#F6E892", ...linkDynamicSyle} : linkDynamicSyle}>
                   <div className="relative h-[4vh] w-[4vh]" style={isNavOpen ? {marginLeft: "1vw"}: {}}>
                     <Image src="/navbar/NavBar4Left/Games.svg" fill alt="G" />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { notification } from './notificationInterface'
+import { notification } from '../../../../../interfaces/notificationInterface'
 import Image from 'next/image'
 import Button4 from '@/components/atoms/Button4'
 
