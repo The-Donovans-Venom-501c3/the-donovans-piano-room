@@ -26,7 +26,7 @@ const ListedItemCard = ({ book, index }: {book: bookCartItemInterface, index: nu
       {/* Image Section */}
       <div className="relative h-[28vh] w-[14vw]">
         <Image
-          src={book.picture}
+          src={book.picture2}
           alt="Book Cover"
           fill
           className="absolute w-full h-full left-0 top-0 rounded-[12px]"
@@ -89,22 +89,3 @@ const ListedItemCard = ({ book, index }: {book: bookCartItemInterface, index: nu
 };
 
 export default ListedItemCard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

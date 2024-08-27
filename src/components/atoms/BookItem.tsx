@@ -10,7 +10,7 @@ import { addedCartItemAtom, addedCartItemsAtom } from '@/utils/stores'
 
 export default function BookItem({ book }: { book: bookInterface }) {
   const [loading, setLoading] = useState(false);
-  const [addedCartItems, setAddedCartItems] = useAtom(addedCartItemsAtom); 
+  const [addedCartItems, setAddedCartItems] = useAtom(addedCartItemsAtom);
   const setAddedCartItem = useSetAtom(addedCartItemAtom)
   const addToCart = () => {
       setLoading(true);
@@ -21,7 +21,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
       }, 2000);
   };
   const isAdded = useMemo(()=> addedCartItems.find(item => item.id === book.id), [book, addedCartItems])
-  const intro = useMemo(()=>book.intro.slice(0, 101)+"...", [])
+  const intro = useMemo(()=>book.intro.slice(0, 101)+"...", [book])
   return (
     <div className='w-[27.5%] min-h-[40vh] p-[1vw] bg-[#FEF8EE] rounded-2xl shadow-[#AC7A2280] shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px]'>
         <div className='flex justify-between w-full'>
@@ -58,7 +58,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
           </div>
           <p>Added to the cart</p>
         </div>):
-         <Button3 text='Add to cart' style={{ fontSize: "1vw"}} onClick={addToCart}/> 
+         <Button3 text='Add to cart' style={{ fontSize: "1vw"}} onClick={addToCart}/>
         }
     </div>
   )

@@ -5,9 +5,10 @@ export interface bookInterface {
     level: string,
     color: string,
     picture: string,
+    picture2: string,
     tdprColor: string,
     price: number,
-    intro: string,  
+    intro: string,
     comments: string
 }
 
