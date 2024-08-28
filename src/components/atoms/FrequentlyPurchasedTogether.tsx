@@ -11,9 +11,8 @@ export default function FrequentlyPurchasedTogether() {
     const getFPTB = () => {
         if(!frequentlyPurchasedTogetherBooks.length){
             (async()=>{
-               const res = await bookAPI.getFrequentlyPurchasedTogether() 
-               const fptbs = res.data as bookInterface[]
-               setFrequentlyPurchasedTogetherBooks(fptbs)
+               const books = await bookAPI.getFrequentlyPurchasedTogether() as bookInterface[]
+               setFrequentlyPurchasedTogetherBooks(books)
             })()
         }
     }
