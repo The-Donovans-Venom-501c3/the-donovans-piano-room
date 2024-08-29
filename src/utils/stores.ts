@@ -8,7 +8,7 @@ import { membershipInterface } from "./interfaces/membership";
 ///////////////
 ////SIGN UP////
 ///////////////
-export const singupStepAtom = atom(3)
+export const singupStepAtom = atom(1)
 export const emailAtom = atom("")
 
 //Membership//
