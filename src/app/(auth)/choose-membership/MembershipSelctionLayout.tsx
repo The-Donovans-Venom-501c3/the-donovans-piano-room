@@ -2,11 +2,11 @@ import { membershipChoiceAtom, singupStepAtom } from "@/utils/stores";
 import { useAtom, useSetAtom } from "jotai";
 import Image from "next/image";
 import Link from "next/link";
-import SignupHeader from "../SignupHeader";
+import SignupHeader from "../signup/components/SignupHeader";
 import Button2 from "@/components/atoms/Button2";
 import { useEffect, useState } from "react";
 import { membershipInterface } from "@/utils/interfaces/membership";
-import * as membershipAPI from "../../../../../utils/APIs/membershipAPIs"
+import * as membershipAPI from "../../../utils/APIs/membershipAPIs"
 
 export default function MembershipSelctionLayout() {
     const [membershipChoice, setMembershipChoice] = useAtom(membershipChoiceAtom)
