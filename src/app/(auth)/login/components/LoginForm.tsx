@@ -1,12 +1,37 @@
+import Button1 from "@/components/atoms/Button1";
+import Button2 from "@/components/atoms/Button2";
 import InputForm from "@/components/atoms/form-input";
 import PasswordInput from "@/components/auth/password-input";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import * as authAPI from "../../../../utils/APIs/authAPIs"
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [emailError, setEmailError] = useState("")
+    const [passError, setPassError] = useState("")
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        setLoading(true)
+        authAPI.login(email, password)
+        .then(res => {
+            console.log(res)
+        })
+        .catch(err => {
+            console.log(err.response)
+            const {status, data} = err.response
+            if(status === 401){
+                if(data.field === "email") setEmailError("The email you entered is incorrect, please try again")
+                if(data.field === "password") setPassError("The password you entered is incorrect, please try again")
+            }
+            // console.log()
+        })
+        .finally(()=>setLoading(false))
+    }
     return (
         <div className="w-[24vw] 3xl:w-[26vw]">
             <Link href="/" className="text-primary-yellow text-xl font-bold flex relative w-[15%] mb-5"><Image src="/YellowBackIcon.svg" width={30} height={30} alt=""/><p className="mt-2">Home</p></Link>
@@ -16,7 +41,7 @@ export default function LoginForm() {
         <div className='mb-5 2xl:mt-5 2xl:mb-[20px]'>
             <p className='text-white text-xl'>Log in with your The Donovan&apos;s piano room account.</p>
         </div>
-            <form className="flex flex-col gap-4">
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                 
                 <InputForm
                     field={{
@@ -24,22 +49,22 @@ export default function LoginForm() {
                         name: "email",
                         label: "Email",
                     }}
-                    onChange={(e: any) => setEmail(e.target.value)}
+                    onChange={(e: any) => {setEmail(e.target.value); emailError && setEmailError("")}}
                     text={email}
-                    error={""}
+                    error={emailError}
                 />
                 <PasswordInput
-                    onChange={(e: any) => setPassword(e.target.value)}
+                    onChange={(e: any) => {setPassword(e.target.value); passError && setPassError("")}}
                     name='password'
                     label='Password'
-                    error={""}
+                    error={passError}
                     inputValue={password}
                 />
             <div className="flex justify-between w-full">
 
                 <div className="flex items-center">
                     <label className="relative flex items-center p-3 rounded-full cursor-pointer" htmlFor="check">
-                        <input type="checkbox"
+                        <input type="checkbox" checked
                             className="before:content[''] peer relative h-6 w-6 4xl:h-8 4xl:w-8 cursor-pointer appearance-none rounded-md border before:border-[#391f0f] checked:border-primary-yellow transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:opacity-0 before:transition-opacity checked:bg-primary-yellow bg-[#fef8ee] hover:before:opacity-10"
                             id="check" />
                         <span
@@ -58,7 +83,7 @@ export default function LoginForm() {
                 <Link href="/forgot-password" className="text-lg font-medium text-primary-yellow mt-3 2xl:mt-4 3xl:text-2xl 4xl:text-[16px]">Forgot password?</Link>
             </div>
             <div> 
-                <button className='w-full text-center bg-primary-yellow py-3 rounded-3xl text-[12px] 3xl:text-2xl 4xl:text-[16px] text-primary-purple font-semibold 2xl:py-5 2xl:rounded-full 2xl:py-5 3xl:py-7 2xl:rounded-full' type='submit'>Continue to verify account</button>
+                <Button1 text="Log in" disable={loading}/>
             </div>
         </form>
         <p className='w-full text-center mt-[10px] text-lg text-white bg-primary-purple py-3 rounded-3xl text-[12px] mt-9 2xl:py-5 2xl:rounded-full 3xl:text-2xl 4xl:text-[16px] 3xl:py-8'>Don&apos;t have an account? <Link href="/signup" className='text-primary-yellow underline'>Sign up</Link></p>

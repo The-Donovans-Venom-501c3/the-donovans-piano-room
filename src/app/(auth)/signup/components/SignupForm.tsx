@@ -4,27 +4,44 @@ import PasswordInput from '@/components/auth/password-input'
 import Link from 'next/link'
 import { useState } from 'react'
 import SignupHeader from './SignupHeader'
-import { useSetAtom } from 'jotai'
-import { singupStepAtom } from '@/utils/stores'
+import { useAtom, useSetAtom } from 'jotai'
+import { emailAtom, singupStepAtom } from '@/utils/stores'
 import Button1 from '@/components/atoms/Button1'
 import Checkbox from '@/components/atoms/Checkbox'
+import * as authAPIs from "../../../../utils/APIs/authAPIs"
 
 export default function SignupForm() {
 
   const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useAtom(emailAtom)
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [allPasswordCasesCorrect, setAllPasswordCasesCorrect] = useState(false)
+  const [loading, setLoading] = useState(false)
   const setSingupStep = useSetAtom(singupStepAtom)
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault()
-    setSingupStep(prev => prev+1)
+    try{
+        setLoading(true)
+        const res = await authAPIs.register(fullName, email, password)
+        setSingupStep(2)
+        console.log(res.data)
+   
+    } catch(err){
+        console.log(err)
+    } finally {
+        setLoading(false)
+    }
+    // .then(res => {
+    // })
+    // .catch(err => {
+    //     console.log(err)
+    // })
   }
   return (
     <section className='w-[24vw] 3xl:w-[26vw]'>
         <SignupHeader navName='Home' navLink='/' stepNum={1} stepName='Create your account' />
-        <form
+        <form onSubmit={handleSubmit}
         className="space-y-4 md:space-y-6"
         >
         <InputForm
@@ -65,7 +82,7 @@ export default function SignupForm() {
             inputValue={confirmPassword}
         />}
         <div> 
-            <Button1 onClick={handleSubmit} text='Continue to verify account' />    
+            <Button1 text='Continue to verify account' disable={!allPasswordCasesCorrect || loading} />    
         </div>
         <Checkbox>
             <label className="ms-2 text-l font-medium text-white mt-4 2xl:mt-6 4xl:mt-2 2xl:text-2xl">I agree to The Donovan&apos;s piano room <Link href="#" className='text-primary-yellow underline'>terms of use</Link> and <Link href="#" className='text-primary-yellow underline'>privacy policy</Link>.</label>
