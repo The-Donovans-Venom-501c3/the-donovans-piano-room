@@ -15,15 +15,14 @@ export default function BooksPreview() {
 
                 const bookId = window.location.pathname.split("/").pop()
                 if(bookId){
-                    const res = await bookAPI.getbookById(bookId)
-                    const book = res.data as bookInterface
+                    const book = await bookAPI.getbookById(bookId) as bookInterface
                     setBook(book)
                 }
             } catch(err){
                 console.log(err)
             }
         })()
-    } 
+    }
     WillMountEffect(fetchBook)
     return book && (
         <div className="bg-[#ECD6FE] w-[80vw] flex rounded-2xl grid grid-cols-2">
@@ -31,8 +30,8 @@ export default function BooksPreview() {
                 <div className="flex flex-col w-2/5 mr-40 mt-16 mb-20">
                     <div className="relative h-[55vh] w-[18vw] p-5">
                         <Image
-                            src={book.picture}
-                            fill    
+                            src={book.picture2}
+                            fill
                             alt=""
                             className="rounded-xl"
                         />
@@ -57,7 +56,7 @@ export default function BooksPreview() {
                     This exciting new learning method will teach you the fundamentals of music theory and piano in a fun, digestible way!
                 </div>
                 <Button3 text="Add to cart" style={{ marginTop: '12px', marginBottom: '12px', width: '60%' }} />
-                
+
             </div>
         </div>
     );

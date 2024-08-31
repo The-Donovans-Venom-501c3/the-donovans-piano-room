@@ -11,8 +11,7 @@ export default function AllBooks() {
     (async()=>{
       try{
 
-        const res = await bookAPI.getAllBooksByTypes()
-        const booksList = res.data as booksByType[]
+        const booksList = await bookAPI.getAllBooksByTypes() as booksByType[]
         setBooksList(booksList)
       }catch(err){
         console.log(err)
@@ -20,7 +19,7 @@ export default function AllBooks() {
 
     })()
   }
-  WillMountEffect(fetchBooks) 
+  WillMountEffect(fetchBooks)
   return (
     <div className='min-h-[50.9vh] my-[6vh] flex justify-center'>
         <div className='w-[84.7%]'>
@@ -30,7 +29,7 @@ export default function AllBooks() {
               <h5 className='text-3xl text-primary-brown font-semibold mb-[2%]'>{type.name}</h5>
                 <div className='flex justify-between'>
                   {type.books.map((book, i) => (
-                    <BookItem key={i} book={book}/> 
+                    <BookItem key={i} book={book}/>
                   ))}
                 </div>
               </div>
