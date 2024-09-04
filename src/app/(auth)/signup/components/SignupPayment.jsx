@@ -12,7 +12,9 @@ import * as authAPI from "../../../../utils/APIs/authAPIs"
 import InputForm from "@/components/atoms/form-input";
 import "../../../../styles/primary-purple-scrollbar.css"
 
-export default function SignupPayment() {
+
+
+export default function SignupPayment({ stepNum, totalSteps }) {
     const [displayCardFields, setDisplayCardFields] = useState(false)
     const [lastName, setLastName] = useState('')
     const [firstName, setFirstName] = useState("")
@@ -20,6 +22,7 @@ export default function SignupPayment() {
     const [shippingAdress, setShippingAdress] = useState("")
     const membershipChoice = useAtomValue(membershipChoiceAtom)
     const setSingupStep = useSetAtom(singupStepAtom)
+
     const fieldStyle = {
         '.card-icon': {
             'display': 'none',
@@ -78,7 +81,7 @@ export default function SignupPayment() {
 
     return (
         <div className='w-[24vw] 3xl:w-[26vw] max-h-[75vh] overflow-y-auto overflow-x-hidden px-6'>
-            <SignupHeader navName='Membership' navLink='' stepNum={4} stepName='Add your payment method' onClickNav={()=>setSingupStep(3)} />
+            <SignupHeader navName='Membership' navLink='' stepNum={stepNum} totalSteps={totalSteps} title="Payment" stepName='Add your payment method' onClickNav={()=>setSingupStep(3)} />
 
             <PayPalScriptProvider options={{clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID, components: "card-fields,buttons", enableFunding: "venmo"}}>
                 {!displayCardFields && (<>
