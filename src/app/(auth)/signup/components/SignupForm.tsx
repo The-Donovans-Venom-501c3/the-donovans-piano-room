@@ -40,7 +40,7 @@ export default function SignupForm() {
   }
   return (
     <section className='w-[24vw] 3xl:w-[26vw]'>
-        <SignupHeader navName='Home' navLink='/' stepNum={1} stepName='Create your account' />
+        <SignupHeader navName='Home' navLink='/' stepNum={1} stepName='Create your account' title="Sign Up" totalSteps={4}/>
         <form onSubmit={handleSubmit}
         className="space-y-4 md:space-y-6"
         >

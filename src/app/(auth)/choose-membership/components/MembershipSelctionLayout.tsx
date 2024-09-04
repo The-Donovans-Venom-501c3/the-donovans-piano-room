@@ -2,13 +2,13 @@ import { membershipChoiceAtom, singupStepAtom } from "@/utils/stores";
 import { useAtom, useSetAtom } from "jotai";
 import Image from "next/image";
 import Link from "next/link";
-import SignupHeader from "../signup/components/SignupHeader";
+import SignupHeader from "../../signup/components/SignupHeader";
 import Button2 from "@/components/atoms/Button2";
 import { useEffect, useState } from "react";
 import { membershipInterface } from "@/utils/interfaces/membership";
-import * as membershipAPI from "../../../utils/APIs/membershipAPIs"
+import * as membershipAPI from "../../../../utils/APIs/membershipAPIs"
 
-export default function MembershipSelctionLayout() {
+export default function MembershipSelctionLayout({stepNum, totalSteps}:{stepNum: number, totalSteps: number}) {
     const [membershipChoice, setMembershipChoice] = useAtom(membershipChoiceAtom)
     const [allMemberships, setAllMemberships] = useState<membershipInterface[]>([])
     const setSingupStep = useSetAtom(singupStepAtom)
@@ -28,7 +28,7 @@ export default function MembershipSelctionLayout() {
     }, [])
   return (
     <section className={membershipChoice ? 'absolute left-[25vw] 3xl:left-[23vw]' : ''}>
-        <SignupHeader stepName="Select your membership" stepNum={3} navLink="/" navName="Account" />
+        <SignupHeader stepName="Select your membership" stepNum={stepNum} title="Membership Setup" navLink="/" navName="Account" totalSteps={totalSteps}/>
         <form>
             {allMemberships.map((member, i)=>(
             <fieldset className="flex flex-col w-[24vw] 3xl:w-[26vw]" key={i}>
