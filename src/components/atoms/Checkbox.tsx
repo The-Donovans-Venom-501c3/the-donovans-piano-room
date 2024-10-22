@@ -1,10 +1,19 @@
 import React from 'react'
 
-export default function Checkbox({children}: {children: React.ReactNode}) {
+interface CheckboxProps{
+    children: React.ReactNode;
+    checked: boolean;
+    onChange: (checked: boolean) => void; 
+}
+
+export default function Checkbox({ children, checked, onChange }: CheckboxProps) {
   return ( 
    <div className="flex items-center">
         <label className="relative flex items-center p-3 rounded-full cursor-pointer" htmlFor="check">
-            <input type="checkbox" required
+            <input type="checkbox" 
+                required
+                checked={checked}
+                onChange={(e)=> onChange(e.target.checked)}
                 className="before:content[''] peer relative h-6 w-6 3xl:h-8 3xl:w-8  cursor-pointer appearance-none rounded-md border before:border-[#391f0f] checked:border-primary-yellow transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:opacity-0 before:transition-opacity checked:bg-primary-yellow bg-[#fef8ee] hover:before:opacity-10"
                 id="check" />
             <span

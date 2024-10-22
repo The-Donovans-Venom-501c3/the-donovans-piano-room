@@ -221,12 +221,12 @@ export default function FAQsContent() {
                     <div className='bg-[#FCF0D8] p-7 rounded-2xl w-[230px]'>
                         <Image className='mb-4' src='/about/FAQs/CatImage.svg' alt='' width={90} height={90}/>
                         <p className='font-semibold text-[13px] mb-4 text-gray-800'>Still got questions? Reach out!</p>
-                        <Link className='w-[145px] self-center text-white bg-primary-purple rounded-l-full rounded-r-full py-3 flex items-center justify-center text-xl font-bold' href=''>Contact us</Link>
+                        </div>
                     </div>
 
                 </div>
             </div>
         </div>
-    </div>
+    
   )
 }

@@ -2,17 +2,34 @@ import { useEffect, useRef, useState } from 'react'
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 import Button1 from '@/components/atoms/Button1'
 import Button2 from '@/components/atoms/Button2'
+import { profileAtom, singupStepAtom } from '@/utils/stores'
+import { useAtomValue, useSetAtom } from 'jotai'
+import {verify, refreshOTP} from '@/lib/api/authService'
 
 export default function EmailVerificationForm({setToIsVerified}: {setToIsVerified: any}) {
     const [verificationCode, setVerificationCode] = useState(Array(6).fill(''))
+    const {email} = useAtomValue(profileAtom);
+    const setSingupStep = useSetAtom(singupStepAtom)
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const newVerificationCode = [...verificationCode]
         newVerificationCode[index] = event.target.value
         setVerificationCode(newVerificationCode)
     }
-    const handleVerify = (e: any) =>{
+
+    const handleVerify = async (e: any) =>{
         e.preventDefault()
-        setToIsVerified()
+        let otp = ""
+        verificationCode.forEach((i) => otp += i.toString())
+        const {data, ok} = await verify(email, otp)
+
+        if (ok){
+            setSingupStep(prev => prev + 1)  
+            setToIsVerified()
+        }
+        else{;
+            console.log(data)
+            alert("Error: ", data)
+        }
     }
     
     const [timeLeft, setTimeLeft] = useState(600)
@@ -33,13 +50,19 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
         };
     }, [timeLeft]);
 
-    const sendNewCode = () => {
-        setTimeLeft(600)
+    const sendNewCode = async () => {
+        const {data, ok} = await refreshOTP(email)
+        if (ok){
+            setTimeLeft(600)
+        }
+        else{
+            alert("Error: ", data)
+        }
     }
 
     return (
         <section>
-            <p className='mt-4 text-white text-[13px] 2xl:text-[16px] 3xl:text-[18px] font-montserrat mb-5'>Enter the verification 6 digit-code we sent to jacks@email.com</p>
+            <p className='mt-4 text-white text-[13px] 2xl:text-[16px] 3xl:text-[18px] font-montserrat mb-5'>Enter the verification 6 digit-code we sent to {email}</p>
             <div className='w-full flex py-4 gap-4 justify-center text-center bg-[#FEF8EE] py-3 rounded-xl text-[16px] text-black font-semibold 2xl:py-5 2xl:rounded-xl'>
                 <TimerOutlinedIcon className=' text-3xl' />
                 {timeLeft > 0 ? (
