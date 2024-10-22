@@ -22,7 +22,7 @@ export default function WhosEligibleContent() {
                             <Image src='/about/scholarship/who-is-eligible/Cat.svg' alt="" width={55} height={55}/>
                         </div>
                         <div className='flex ml-6 flex-1 flex-col p-4 items-start'>
-                            <p>Learn more about out scholarships and eligibility on The Donovan&apos;s Venom: <Link href='https://www.donovansvenom.com/scholarships' className='text-primary-purple underline'>Visit the site</Link></p>
+                            <p>Learn more about out scholarships and eligibility on The Donovan&apos;s Venom: <Link href='https://www.thedonovan.org' className='text-primary-purple underline'>Visit the site</Link></p>
                         </div>
                     </div>
                 </div>
