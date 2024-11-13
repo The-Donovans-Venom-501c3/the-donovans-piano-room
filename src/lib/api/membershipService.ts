@@ -5,7 +5,7 @@ export async function getMembershipById({ memberId }: { memberId: string }) {
             throw new Error("Member ID is required.");
         }
         // Send GET request to the backend
-        const response = await fetch(`api/membership/${memberId}`, {
+        const response = await fetch(`/api/membership/${memberId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ export async function getMembershipById({ memberId }: { memberId: string }) {
 export async function getUserMembership() {
     try {
         // Send GET request to the backend
-        const response = await fetch('api/membership/user', {
+        const response = await fetch('/api/membership/user', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json', 
