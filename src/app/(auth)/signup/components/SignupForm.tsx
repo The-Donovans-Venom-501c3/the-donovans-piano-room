@@ -47,7 +47,7 @@ export default function SignupForm() {
     } 
     else{
       console.log("Failed")
-      alert(`Error: ${data}`)
+      alert(`${data.message}`);
     }
     setDiabled(!disabled)
 };
