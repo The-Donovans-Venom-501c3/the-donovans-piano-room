@@ -79,7 +79,7 @@
                     <Link href="/forgot-password" className="text-lg font-medium text-primary-yellow mt-3 2xl:mt-4 3xl:text-2xl 4xl:text-[16px]">Forgot password?</Link>
                 </div>
                 <div> 
-                    <Button1 text="Continue to verify account" type= "button" disabled={disabled} onClick={handleLogin} />
+                    <Button1 text="Log in" type= "button" disabled={disabled} onClick={handleLogin} />
                 </div>
             </form>
             <p className='w-full text-center mt-[10px] text-lg text-white bg-primary-purple py-3 rounded-3xl text-[12px] mt-9 2xl:py-5 2xl:rounded-full 3xl:text-2xl 4xl:text-[16px] 3xl:py-8'>Don&apos;t have an account? <Link href="/signup" className='text-primary-yellow underline'>Sign up</Link></p>
