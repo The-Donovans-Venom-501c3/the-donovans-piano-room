@@ -5,7 +5,7 @@ export async function getMembershipById({ memberId }: { memberId: string }) {
             throw new Error("Member ID is required.");
         }
         // Send GET request to the backend
-        const response = await fetch(`https://your-backend-domain.com/api/membership/${memberId}`, {
+        const response = await fetch(`/api/membership/${memberId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ export async function getMembershipById({ memberId }: { memberId: string }) {
 export async function getUserMembership() {
     try {
         // Send GET request to the backend
-        const response = await fetch('https://your-backend-domain.com/api/membership/user', {
+        const response = await fetch('/api/membership/user', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json', 
@@ -41,4 +41,20 @@ export async function getUserMembership() {
       throw new Error(error.message || 'An error occurred while retrieving user membership details');
     }
 }
-  
+
+export async function fetchUserMembershipDetails() {
+    try {
+        // Send GET request to the backend
+        const response = await fetch('/api/membership/user', {
+            method: 'GET',
+        });
+        // Parse response
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to retrieve user membership details');
+        }
+            return {data, ok: response.ok} // Return the membership details for the authenticated user
+        } catch (error: any) {
+          throw new Error(error.message || 'An error occurred while retrieving user membership details');
+        }
+}
