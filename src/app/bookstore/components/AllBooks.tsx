@@ -61,12 +61,21 @@ export default function AllBooks() {
   }, []);
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className="text-primary-purple font-semibold text-lg">
+        {error}
+      </div>
+    );
   }
-
+  
   if (loading) {
-    return <div>Loading books...</div>;
+    return (
+      <div className="text-primary-purple font-medium text-lg">
+        Loading books...
+      </div>
+    );
   }
+  
 
   return (
     <div className="min-h-[50.9vh] my-[6vh] flex justify-center">

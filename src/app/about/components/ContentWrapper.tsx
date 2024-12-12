@@ -1,19 +1,23 @@
-import React from 'react'
-import Footer1 from '../../../components/footers/Footer1'
-import BackgroundLayout from '../components/BackgroundLayout'
-import ContentNav from '../components/ContentNav'
+import React from "react";
+import BackgroundLayout from "../components/BackgroundLayout";
+import ContentNav from "../components/ContentNav";
 
-export default function ContentWrapper({children, page}: {children: React.ReactNode, page: string}) {
+export default function ContentWrapper({
+  children,
+  page,
+}: {
+  children: React.ReactNode;
+  page: string;
+}) {
   return (
     <>
-      <div className='flex flex-col relative items-center justify-center w-full h-[90.7vh] z-40'>
+      <div className="relative z-40 flex w-full flex-col items-center justify-center max-md:mb-10 min-h-screen">
         <ContentNav page={page} />
-        <div className='border bg-[#FEF8EE] rounded-xl border-primary-purple mt-4 h-[60%] w-[84.7%]'>
+        <div className="h-fit w-[84.7%] rounded-b-xl border border-primary-purple bg-[#FEF8EE] py-10 sm:rounded-xl">
           {children}
         </div>
       </div>
       <BackgroundLayout />
-      <Footer1 />
     </>
-  )
+  );
 }

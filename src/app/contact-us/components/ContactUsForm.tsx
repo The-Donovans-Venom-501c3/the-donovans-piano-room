@@ -40,7 +40,7 @@ export default function ContactUsForm() {
   };
 
   return (
-    <section>
+    <div className=" h-full w-full max-md2:mt-28 max-md2:mb-24">
       <div>
         {submitted && (
           <div className="my-8">
@@ -65,13 +65,13 @@ export default function ContactUsForm() {
       </div>
       <div className="mb-8 flex flex-col items-start">
         <h2 className="mb-8 text-6xl font-semibold">Get in touch</h2>
-        <p className="w-1/2 text-xl">
+        <p className="md:w-1/2 text-xl">
           Have any questions, concerns, or need assistance? Fill out the form
           below and one of our representatives will reach out to you in a timely
           manner.
         </p>
       </div>
-      <div className="flex flex-row items-start">
+      <div className="flex flex-col items-start justify-between md:flex-row">
         <div className="mb-10 w-full md:mb-0 md:mr-10 md:w-1/2">
           <form className="space-y-4" onSubmit={handleSubmit}>
             <InputForm
@@ -171,6 +171,6 @@ export default function ContactUsForm() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

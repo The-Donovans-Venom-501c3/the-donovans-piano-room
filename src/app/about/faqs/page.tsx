@@ -3,6 +3,8 @@ import { aboutNavigationPages, navigationPages } from '@/utils/general'
 import React from 'react'
 import ContentWrapper from '../components/ContentWrapper'
 import FAQsContent from './components/FAQsContent'
+import Footer1 from "../../../components/footers/Footer1";
+
 
 export default function Page() {
   return (
@@ -11,6 +13,7 @@ export default function Page() {
         <ContentWrapper page={aboutNavigationPages.FAQs}>
             <FAQsContent />
         </ContentWrapper>
+        <Footer1 />
     </>
   )
 }

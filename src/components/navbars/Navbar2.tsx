@@ -1,54 +1,80 @@
-import { navigationPages } from '@/utils/general'
-import Image from 'next/image'
-import Link from 'next/link'
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-import { SxProps } from '@mui/system';
+import { navigationPages } from "@/utils/general";
+import Image from "next/image";
+import Link from "next/link";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import { SxProps } from "@mui/system";
 
-
-
-export default function Navbar2(){
-
+export default function Navbar2() {
   const iconStyles: SxProps = {
-    fontSize: 25,  
-    '&:hover': {
-      color: '#E98427', 
+    fontSize: 25,
+    "&:hover": {
+      color: "#E98427",
     },
   };
 
   return (
     <>
-    <nav className='fixed top-0 w-full z-40 border-b-2 border-[#A135E8] backdrop-blur-sm py-2 z-50 h-[9.5vh]'>
-        <div className='absolute bg-[#601D86] h-[9.3vh] w-[24vw] pr-4 py-2 rounded-r-full top-0 flex justify-end'>
-              <Image src="/navbar/Logo2.svg" width={220} height={35} alt='The Donovan&apos;s Piano Room' />
-
+      <nav className="fixed top-0 z-50 h-[9.5vh] w-full border-b-2 border-[#A135E8] py-2 backdrop-blur-sm">
+        <div className="absolute top-0 flex h-[9.3vh] w-[24vw] justify-end rounded-r-full bg-[#601D86] py-2 pr-4">
+          <Image
+            src="/navbar/Logo2.svg"
+            width={220}
+            height={35}
+            alt="The Donovan's Piano Room"
+          />
         </div>
-        <div className='absolute flex float-right h-[9vh] p-y-50 top-[0px] right-36 gap-16 justify-center h-full'>
-            <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="/">
-             <p>HOME</p>
+        <div className=" absolute right-28 top-[0px] float-right flex h-[9.3vh] justify-center gap-16">
+          <Link
+            className="group relative flex h-full flex-col items-center justify-between text-xl font-bold text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            href="/"
+          >
+            <p className=" m-auto px-1">HOME</p>
+            <div className="h-[4px] w-full rounded-t-lg bg-[#Da6a1c] opacity-0 transition-opacity duration-200 ease-in group-focus-within:opacity-100 group-hover:opacity-100 group-hover:transition-none group-hover:delay-[0ms] group-hover:duration-[800ms]"></div>
+          </Link>
+          <Link
+            className="group relative flex h-full flex-col items-center justify-between text-xl font-bold text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            href="/about/why-choose-us"
+          >
+            <p className=" m-auto px-1">ABOUT</p>
+            <div className="h-[4px] w-full rounded-t-lg bg-[#Da6a1c] opacity-0 transition-opacity duration-200 ease-in group-focus-within:opacity-100 group-hover:opacity-100 group-hover:transition-none group-hover:delay-[0ms] group-hover:duration-[800ms]"></div>
+          </Link>
+          <Link
+            className="group relative flex h-full flex-col items-center justify-between text-xl font-bold text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            href="https://thedonovansmusicgames.netlify.app/"
+          >
+            <p className=" m-auto px-1">GAMES</p>
+            <div className="h-[4px] w-full rounded-t-lg bg-[#Da6a1c] opacity-0 transition-opacity duration-200 ease-in group-focus-within:opacity-100 group-hover:opacity-100 group-hover:transition-none group-hover:delay-[0ms] group-hover:duration-[800ms]"></div>
+          </Link>
+          <Link
+            className="group relative flex h-full flex-col items-center justify-between text-xl font-bold text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            href="/bookstore"
+          >
+            <p className=" m-auto px-1">BOOKSTORE</p>
+            <div className="h-[4px] w-full rounded-t-lg bg-[#Da6a1c] opacity-0 transition-opacity duration-200 ease-in group-focus-within:opacity-100 group-hover:opacity-100 group-hover:transition-none group-hover:delay-[0ms] group-hover:duration-[800ms]"></div>
+          </Link>
+          <Link
+            className="group relative flex h-full flex-col items-center justify-between text-xl font-bold text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            href="/contact-us"
+          >
+            <p className=" m-auto px-1">CONTACT</p>
+            <div className="h-[4px] w-full rounded-t-lg bg-[#Da6a1c] opacity-0 transition-opacity duration-200 ease-in group-focus-within:opacity-100 group-hover:opacity-100 group-hover:transition-none group-hover:delay-[0ms] group-hover:duration-[800ms]"></div>
+          </Link>
+          <div className="relative flex w-[40px] items-center justify-center 2xl:w-[60px]">
+            <Link
+              className="relative flex items-center justify-center text-xl font-bold text-primary-yellow-accent hover:text-[#E98427] 2xl:text-3xl"
+              href="/cart"
+            >
+              <ShoppingCartOutlinedIcon sx={iconStyles} />
             </Link>
-            <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="/about/why-choose-us">
-              <p>ABOUT</p>
-            </Link>
-            <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="https://thedonovansmusicgames.netlify.app/">
-              <p>GAMES</p>
-            </Link>
-            <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="/bookstore">
-             <p>BOOKSTORE</p>
-            </Link>
-            <Link className='text-primary-yellow-accent hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' href="/contact-us">
-             <p>CONTACT</p>
-            </Link>
-            <div className='relative w-[40px] 2xl:w-[60px] flex items-center justify-center'>
-              <Link className='text-primary-yellow-accent hover:text-[#E98427] text-xl 2xl:text-3xl font-bold flex items-center justify-center relative'
-                href="/cart">
-                <ShoppingCartOutlinedIcon sx={iconStyles} />
-              </Link>
-            </div>
-            <Link className='text-primary-purple bg-primary-yellow-accent rounded-l-full rounded-r-full px-20 h-16 hover:bg-[#E98427] flex items-center text-xl 2xl:text-3xl font-bold self-center' href="/signup">Log in or register</Link>
-
+          </div>
+          <Link
+            className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-yellow-accent px-7 text-xl font-bold text-primary-purple hover:bg-[#E98427] 2xl:text-3xl"
+            href="/signup"
+          >
+            Log in or register
+          </Link>
         </div>
- 
-    </nav>
+      </nav>
     </>
-  )
+  );
 }
