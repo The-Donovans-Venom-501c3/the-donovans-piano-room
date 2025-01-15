@@ -24,13 +24,13 @@ export default function Home() {
           <div className="relative w-[60%] h-[100%]">
               <Image className="w-full h-full" src="/home/map.svg" fill alt=""/>
               <Link href={"/bookstore"}>
-                  <button className="absolute font-mountains font-bold left-[11.5vw] top-[10.5vh] xl:left-[11vw] xl:top-[10.5vh] xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">Bookstore</button>
+                  <button className="absolute font-mountains font-bold left-[11.5vw] top-[10.5vh] xl:left-[14vw] xl:top-[10.5vh] xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">Bookstore</button>
               </Link>
               <Link href={"/about/why-choose-us"}>
-                  <button className="absolute font-mountains font-bold left-[28vw] top-[16vh] xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">About</button>
+                  <button className="absolute font-mountains font-bold left-[27vw] top-[16vh] xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">About</button>
               </Link>
               <Link href={"https://thedonovansmusicgames.netlify.app/"}>
-                  <button className="absolute font-mountains font-bold left-[19vw] top-[42vh] xl:text-[28px]  sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">Games</button>
+                  <button className="absolute font-mountains font-bold left-[20.5vw] top-[42vh] xl:text-[28px]  sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">Games</button>
               </Link>
           </div>
         </div>

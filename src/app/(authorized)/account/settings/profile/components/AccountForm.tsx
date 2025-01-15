@@ -20,7 +20,8 @@ export default function AccountForm() {
             if (ok){
                 setProfile(data)
             } else {
-                alert("Invalid Credentials");
+                // alert(`Error: ${data.message}`);
+                window.location.href = "/login"
             }
         }
         getProfile();
@@ -37,7 +38,8 @@ export default function AccountForm() {
             setIsDataSaved(true)
         }
         else{
-            alert("Invalid Credentials");
+            alert(`Error: ${data.message}`);
+            window.location.href = "/login"
         }
     }
     const closeSuccessPopup = () =>{

@@ -132,7 +132,8 @@ export default function ContactUsForm() {
             <p className="text-lg">FOLLOW US ON OUR SOCIAL MEDIA</p>
             <div className="mt-4 flex space-x-3">
               <Link
-                href="#"
+                href="https://twitter.com/IamTheDonovan"
+                target="_blank"
                 className="w-15 h-15 flex items-center justify-center rounded-full text-white transition duration-300 hover:bg-purple-800"
               >
                 <Image
@@ -143,7 +144,8 @@ export default function ContactUsForm() {
                 />
               </Link>
               <Link
-                href="#"
+                href="https://www.facebook.com/TheDonovansVenomINC/"
+                target="_blank"
                 className="w-15 h-15 flex items-center justify-center rounded-full text-white transition duration-300 hover:bg-purple-800"
               >
                 <Image
@@ -154,7 +156,8 @@ export default function ContactUsForm() {
                 />
               </Link>
               <a
-                href="#"
+                href="https://www.youtube.com/@thedonovansvenom2848"
+                target="_blank"
                 className="w-15 h-15 flex items-center justify-center rounded-full text-white transition duration-300 hover:bg-purple-800"
               >
                 <Image

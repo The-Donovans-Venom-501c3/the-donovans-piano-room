@@ -28,7 +28,7 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
         }
         else{;
             console.log(data)
-            alert(`Error: ${data}`)
+            alert(`Error: ${data.message}`)
         }
     }
     
@@ -56,7 +56,7 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
             setTimeLeft(600)
         }
         else{
-            alert(`Error: ${data}`)
+            alert(`Error: ${data.message}`)
         }
     }
 

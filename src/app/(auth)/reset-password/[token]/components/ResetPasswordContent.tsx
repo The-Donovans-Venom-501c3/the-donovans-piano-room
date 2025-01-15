@@ -28,7 +28,7 @@ export default function ResetPasswordContent() {
           setResetPasswordStep(2)
         }else{
           setDisabled(!disabled)
-          alert(`Error: ${data}`)
+          alert(`Error: ${data.message}`)
         }
         
     }
