@@ -28,7 +28,6 @@ export default function MembershipIncludes() {
         try {
             setIsLoading(true);
             const isValid = await validateCouponCode(membershipChoiceContent.id, discountCode);
-            console.log(isValid);
             setStatus("success");
         } catch (error) {
             setStatus("error");
@@ -78,7 +77,7 @@ export default function MembershipIncludes() {
 
 const membershipIncludes = {
     [membershipTypes["24-hours"]]: {
-        id: 1,
+        id: '001',
         title: "24 hour access",
         content: [
             ["Flexibility:", "A great way to explore all the wonderful games, tools, and resources The Donovan's Piano Room offers, without the long-term commitment."],
@@ -87,7 +86,7 @@ const membershipIncludes = {
         ]
     },
     [membershipTypes["monthly-access"]]: {
-        id: 2,
+        id: '002',
         title: "Monthly access",
         content: [
             ["Flexibility:", 'A great way to explore all the wonderful games, tools, and resources The Donovans Piano Room offers, without the long-term commitment. Members can cancel their subscription anytime.'],
@@ -96,7 +95,7 @@ const membershipIncludes = {
         ]
     },
     [membershipTypes["scholarship"]]: {
-        id: 3,
+        id: '003',
         title: "Scholarship access",
         content: [
             ["Full Access:", "Students are provided with  full access to The Donovan's Piano Room, where they can use the many games, tools, and resources, to enhance their musical education."],
@@ -104,7 +103,7 @@ const membershipIncludes = {
         ]
     },
     [membershipTypes["yearly-access"]]: {
-        id: 4,
+        id: '004',
         title: "Yearly access",
         content: [
             ["Cost savings:", "By opting for the yearly subscription, you generally receive a discounted reate compared to the monthly subscription. In this case, the yearly option offers a cost savings of $59.89 compared to paying for 12 months individually."],
