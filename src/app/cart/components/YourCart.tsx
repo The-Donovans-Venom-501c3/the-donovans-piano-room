@@ -5,29 +5,15 @@ import { addedCartItemsAtom } from "@/utils/stores";
 import EmptyCart from "./EmptyCart";
 
 export default function YourCart() {
-  const addedCartItems = useAtomValue(addedCartItemsAtom)
+  const addedCartItems = useAtomValue(addedCartItemsAtom);
   return (
-    <div className="flex justify-center items-center bg-[#f5e8ff]">
-      <div className="w-[87%] mt-[7%] bg-[#edd6fe] rounded-lg shadow-lg py-[2%] px-[4%]">    
-        <h2 className="font-montserrat text-6xl 3xl:text-7xl 4xl:text-7xl font-semibold self-start text-primary-brown mb-[1%]">Your cart</h2>
-         {addedCartItems.length ? <ItemsAddedCart /> : <EmptyCart/>}
+    <div className="flex items-center justify-center bg-[#f5e8ff]">
+      <div className="mt-[80px] w-[87%] rounded-lg bg-[#edd6fe] px-[4%] py-[2%] shadow-lg">
+        <h2 className="mb-[1%] self-start font-montserrat text-6xl font-semibold text-primary-brown 3xl:text-7xl 4xl:text-7xl">
+          Your cart
+        </h2>
+        {addedCartItems.length ? <ItemsAddedCart /> : <EmptyCart />}
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
