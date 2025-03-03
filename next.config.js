@@ -16,11 +16,11 @@ const nextConfig = {
       return config;
     },
     async rewrites() {
-      const destinationUrl  = process.env.NODE_ENV=="production"?process.env.BE_PROD_BASE_URL:process.env.BE_BASE_URL 
+      const destinationUrl  = "https://tdpr-backend-api-f8azgkcuezh6dzcv.eastus2-01.azurewebsites.net/"//process.env.NODE_ENV=="production"?process.env.BE_PROD_BASE_URL:process.env.BE_BASE_URL 
       return [
         {
           source: '/api/:path*',
-          destination: destinationUrl + '/api/:path*'
+          destination: 'http://localhost:3333/api/:path*', //destinationUrl + '/api/:path*'
           // 'http://localhost:3333/api/:path*',
         }
       ]

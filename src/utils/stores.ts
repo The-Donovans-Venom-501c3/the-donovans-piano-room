@@ -67,4 +67,4 @@ export const addedCartItemAtom = atom<null | bookInterface>(null)
 
 export const addedCartItemsAtom = atom<bookCartItemInterface[]>([]);
 
-
+export const highlightBookAtom = atom(2);

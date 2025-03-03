@@ -13,8 +13,7 @@ export default function AllBooks() {
 
     const fetchBooks = async () => {
       try {
-        const response = await getAllBooks(); 
-
+        const response = await getAllBooks();
         let booksList: [bookInterface[], bookInterface[], bookInterface[]] = [[], [], []];
 
         response.forEach((category: any) => {
@@ -33,13 +32,13 @@ export default function AllBooks() {
             };
 
             switch (mappedBook.type) {
-              case "Soft cover":
+              case "Soft Cover Books":
                 booksList[0].push(mappedBook);
                 break;
-              case "E-book":
+              case "E-Books":
                 booksList[1].push(mappedBook);
                 break;
-              case "Audio book":
+              case "Audio Books":
                 booksList[2].push(mappedBook);
                 break;
               default:
