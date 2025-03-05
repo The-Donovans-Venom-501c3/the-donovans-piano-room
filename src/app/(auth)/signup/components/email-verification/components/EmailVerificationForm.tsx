@@ -4,56 +4,47 @@ import Button1 from '@/components/atoms/Button1'
 import Button2 from '@/components/atoms/Button2'
 import { profileAtom, singupStepAtom } from '@/utils/stores'
 import { useAtomValue, useSetAtom } from 'jotai'
-import {verify, refreshOTP} from '@/lib/api/authService'
+// import {verify, refreshOTP} from '@/lib/api/authService'
+
+
+
+import {useTimer} from '../hooks/useTimer'
+import { useOTPValidation } from '../hooks/useOTPValidation'
+import {sendVerificationCode, requestNewOTP} from '../Services/emailVerificationAPI'
+
+import VerificationCodeInput from './VerificationCodeInput'
 
 export default function EmailVerificationForm({setToIsVerified}: {setToIsVerified: any}) {
     const [verificationCode, setVerificationCode] = useState(Array(6).fill(''))
     const {email} = useAtomValue(profileAtom);
     const setSingupStep = useSetAtom(singupStepAtom)
-    const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-        const newVerificationCode = [...verificationCode]
-        newVerificationCode[index] = event.target.value
-        setVerificationCode(newVerificationCode)
-    }
+
+    const {timeLeft, resetTimer} = useTimer(600)
+
+    const {isValidOTP, error} = useOTPValidation(verificationCode.join(''))
 
     const handleVerify = async (e: any) =>{
         e.preventDefault()
-        let otp = ""
-        verificationCode.forEach((i) => otp += i.toString())
-        const {data, ok} = await verify(email, otp)
+        const otp = verificationCode.join('');
+
+        if(!isValidOTP){
+            alert(error || 'Invalid OTP. Please try again.');
+            return;
+        }
+        const {data, ok} = await sendVerificationCode(email, otp)
 
         if (ok){
             setSingupStep(prev => prev + 1)  
             setToIsVerified()
         }
-        else{;
-            console.log(data)
+        else{
             alert(`Error: ${data.message}`)
         }
     }
-    
-    const [timeLeft, setTimeLeft] = useState(600)
-    const timeCounterRef = useRef<NodeJS.Timeout | null>(null)
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft((prevTime) => {
-                if(prevTime-1 <= 0 && timeCounterRef.current ){
-                    clearInterval(timeCounterRef.current)
-                }
-                return prevTime - 1
-            });
-        }, 1000);
-
-        timeCounterRef.current = timer
-        return () => {
-            clearInterval(timer);
-        };
-    }, [timeLeft]);
-
     const sendNewCode = async () => {
-        const {data, ok} = await refreshOTP(email)
+        const {data, ok} = await requestNewOTP(email)
         if (ok){
-            setTimeLeft(600)
+            resetTimer()
         }
         else{
             alert(`Error: ${data.message}`)
@@ -73,19 +64,10 @@ export default function EmailVerificationForm({setToIsVerified}: {setToIsVerifie
             </div>
             <form className="mt-8 mb-7 w-full">
                 <p className='text-primary-yellow text-lg 3xl:text-2xl mb-3'>Enter the 6 digit code</p>
-                <div className='flex align-center gap-2 w-full justify-between mb-7'>
-                    {verificationCode.map((code, index) => (
-                        <input
-                            key={index}
-                            maxLength={1}
-                            type='text'
-                            value={code}
-                            onChange={(event) => handleChange(index, event)}
-                            className='focus:bg-white text-center text-2xl 3xl:text-4xl rounded-lg bg-[#FEF8EE] outline-none focus:border-primary-brown border border-primary-brown border 2xl:w-20 4xl:w-24 4xl:h-28 w-16 p-5'
-                            required
-                        />
-                    ))}
-                </div>
+                <VerificationCodeInput 
+                    verificationCode={verificationCode}
+                    setVerificationCode={setVerificationCode}
+                />
                 <Button1 text="Verify" onClick={handleVerify}/>
             </form>
             <Button2 text='Send a new code' onClick={sendNewCode}/>
