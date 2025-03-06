@@ -57,13 +57,19 @@ export default function Navbar4Left({
           style={{ width: isNavOpen ? "80%" : "50%" }}
         >
           <div className="relative h-[8vh] w-[8vh]">
-            <Image src={profile.imageSrc} fill alt="" />
+            <Image src={profile.picture} fill alt="" />
           </div>
           <p
             className="mt-[1vh] text-center font-montserrat text-4xl font-bold text-white 3xl:text-5xl 4xl:text-6xl"
             style={{ textAlign: isNavOpen ? "start" : "center" }}
           >
-            {isNavOpen ? profile.fullName : profile.fullName[0]}
+            {
+              (() => {
+                const hasSpace = profile.fullName.indexOf(" ") !== -1;
+                const str = profile.fullName[0] + (hasSpace ? " " + profile.fullName[profile.fullName.indexOf(" ") + 1] : "");
+                return isNavOpen ? profile.fullName : str;
+              })()
+            }
           </p>
           <p
             className="mt-[0.5vh] text-xl font-bold text-white 3xl:text-2xl 4xl:text-3xl"

@@ -15,6 +15,9 @@ const nextConfig = {
 
     return config;
   },
+  images: {
+    domains: ['t3.ftcdn.net'],  // Add the image domain here
+  },
   async rewrites() {
     const destinationUrl  = process.env.NODE_ENV=="production"?process.env.BE_PROD_BASE_URL:process.env.BE_BASE_URL 
     return [

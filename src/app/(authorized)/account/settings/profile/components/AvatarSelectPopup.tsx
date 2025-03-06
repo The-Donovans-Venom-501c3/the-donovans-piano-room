@@ -1,13 +1,15 @@
 import Button3 from '@/components/atoms/Button3';
 import { profileAtom } from '@/utils/stores';
 import CloseIcon from '@mui/icons-material/Close';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { updateUser } from '@/lib/api/userService';
 
 export default function AvatarSelectPopup({avatar, setAvatar, closeSelectingAvatar}: {avatar: string, setAvatar: any, closeSelectingAvatar: any}) {
   const [selectedAvatar, setSelectedAvatar] = useState(avatar)
   const setProfile = useSetAtom(profileAtom)
+  const profile = useAtomValue(profileAtom)
   const popupRef = useRef<HTMLDivElement>(null)
   const handleClickOutside = (e: any) => {
     if (!!popupRef.current && !popupRef.current.contains(e.target)) {
@@ -20,11 +22,14 @@ export default function AvatarSelectPopup({avatar, setAvatar, closeSelectingAvat
       document.removeEventListener('click', handleClickOutside);
     };
   });
-  const submitNewAvatar = () => {
-    setProfile((prev: any) => {
-      const newProfile = {...prev, imageSrc: selectedAvatar} 
-      return newProfile
-    })
+  const submitNewAvatar = async() => {
+    const {data, ok} = await updateUser({picture: selectedAvatar, email: profile.email});
+    if(ok){
+      setProfile((prev: any) => {
+        const newProfile = {...prev, picture: selectedAvatar} 
+        return newProfile
+      })
+    }
     closeSelectingAvatar()
   }
   return (

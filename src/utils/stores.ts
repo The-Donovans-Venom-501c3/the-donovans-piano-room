@@ -1,5 +1,7 @@
 import {bookCartItemInterface, bookInterface} from "../interfaces/bookInterface";
 import { atom } from "jotai";
+import {atomWithStorage} from "jotai/utils"
+import { profileInterface } from "@/interfaces/profileInterface";
 
 
 
@@ -29,14 +31,18 @@ export const resetPasswordStepAtom = atom(1)
 //*****Auth*******//
 //****************//
 
-export const profileAtom = atom({
+export const profileAtom = atomWithStorage<profileInterface>("profile", {
+    id: "",
     fullName: "",
-    imageSrc: "",
-    pronouns: "",
+    displayName: "",
     email: "",
-    DOB: "",
     phoneNumber: "",
-    displayName: ""
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    picture: "",
+    DOB: "",
+    pronouns: "",
 })
 
 //////////////

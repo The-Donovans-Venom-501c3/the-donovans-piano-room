@@ -1,4 +1,8 @@
+import { profileAtom } from "@/utils/stores"
+import { useSetAtom } from "jotai"
+
 export const signup  = async (fullName: string, email: string, password: string) =>{
+    fullName = fullName.trim()
     const response = await fetch('/api/auth/signup', {
         method: 'POST', 
         headers: {

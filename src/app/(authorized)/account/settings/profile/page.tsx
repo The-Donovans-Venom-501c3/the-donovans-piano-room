@@ -1,14 +1,16 @@
 "use client"
-import { authorizedWrapperTitles, profile, settingsNavigation } from "@/utils/general";
+import { authorizedWrapperTitles, settingsNavigation } from "@/utils/general";
+import { profileAtom } from "@/utils/stores";
 import AccountForm from "./components/AccountForm"
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import { useState } from "react";
 import AvatarSelectPopup from "./components/AvatarSelectPopup";
 import Calender from "./components/Calender";
+import { useAtomValue } from "jotai";
 export default function Page() {
-
-  const [avatar, setAvatar] = useState(profile.imageSrc)
+  const profile = useAtomValue(profileAtom)
+  const [avatar, setAvatar] = useState(profile.picture)
   const [selectingAvatar, setSelectingAvatar] = useState(false)
   const closeSelectingAvatar = () => {
     setSelectingAvatar(false)
@@ -19,7 +21,7 @@ export default function Page() {
         <div className="w-full h-[85%] mt-[1%]">
           <div className="flex w-full justify-between">
             <AccountForm />
-            {selectingAvatar && <AvatarSelectPopup avatar={avatar} setAvatar={setAvatar} closeSelectingAvatar={closeSelectingAvatar} />}
+            {/* {selectingAvatar && <AvatarSelectPopup avatar={avatar} setAvatar={setAvatar} closeSelectingAvatar={closeSelectingAvatar} />} */}
             <Calender highlightedDays={['2024-07-30', '2024-07-03', '2024-07-04', '2024-07-15', '2024-07-16', '2024-07-17', '2024-07-18']}/>
           </div>
         </div>

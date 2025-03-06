@@ -1,7 +1,7 @@
 "use client"
 import { authorizedWrapperTitles, profile } from "@/utils/general";
 import { nav4leftLinks, profileAtom } from "@/utils/stores";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
 import FirstLesson from "./components/FirstLesson";
 import GamesHighlights from "./components/GamesHighlights";
@@ -11,24 +11,7 @@ import AuthorizedWrapper2 from "@/components/ContentWrappers/authorized-1/Author
 import { getUser } from "@/lib/api/userService";
 
 export default function Page() {
-    const [profile, setProfile] = useAtom(profileAtom)
-    const fetchUserData = async () =>{
-        try{
-            const {data, ok} = await getUser()
-            if(ok){
-                setProfile(data)
-            }
-            else{
-                window.location.href = "/login"
-            }
-        }catch(e){
-            console.log(e)
-        }
-        
-    }
-     useEffect(() =>{
-        fetchUserData()
-     }) 
+    const profile = useAtomValue(profileAtom)
   return (
     <AuthorizedWrapper2 pageTitle={authorizedWrapperTitles.Dashboard} openedLink={nav4leftLinks.dashboard}>
         <div className="relative flex h-[75vh] mt-[1.5%] overflow-y-auto z-[30] gap-[8%]">

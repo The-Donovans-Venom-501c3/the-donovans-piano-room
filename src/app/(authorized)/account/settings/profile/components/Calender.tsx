@@ -67,7 +67,7 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
     const [selectedYear, setSelectedYear] = useState(today.year());
 
     const profile = useAtomValue(profileAtom)
-    const [avatar, setAvatar] = useState(profile.imageSrc)
+    const [avatar, setAvatar] = useState(profile.picture)
     const [selectingAvatar, setSelectingAvatar] = useState(false)
     const closeSelectingAvatar = () => {
         setSelectingAvatar(false)
@@ -78,7 +78,7 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
             {selectingAvatar && <AvatarSelectPopup avatar={avatar} setAvatar={setAvatar} closeSelectingAvatar={closeSelectingAvatar} />}
             <div className='flex justify-center'>
                 <div className="relative flex justify-center mb-4 h-[8vh] w-[8vh]">
-                    <Image src={profile.imageSrc} fill alt="Default Profile Picture" />
+                    <Image src={profile.picture} fill alt="Default Profile Picture" />
                     <div className="absolute bottom-0 right-0 h-[3vh] w-[3vh]">
                         <Image className="cursor-pointer" src="/profile/Pencil.svg" fill alt="Edit Profile" onClick={() => setSelectingAvatar(true)} />
                     </div>

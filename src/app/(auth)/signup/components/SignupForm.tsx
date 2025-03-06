@@ -10,6 +10,7 @@ import Button1 from "@/components/atoms/Button1";
 import TermsandCondition from "./TermsandCondition";
 import Checkbox from "@/components/atoms/Checkbox";
 import { signup } from "@/lib/api/authService";
+import { profileInterface } from "@/interfaces/profileInterface";
 
 export default function SignupForm() {
   const [fullName, setFullName] = useState("");
@@ -40,7 +41,7 @@ export default function SignupForm() {
     setDiabled(!disabled);
     const { data, ok } = await signup(fullName, email, password);
     if (ok) {
-      setProfileAtom((obj) => ({
+      setProfileAtom((obj: profileInterface) => ({
         ...obj,
         fullName: fullName,
         email: email,

@@ -19,7 +19,7 @@ export default function AuthorizedWrapper1({children, pageTitle, openedLink=""}:
             <h1 className="text-5xl 3xl:text-6xl 4xl:text-7xl font-montserrat font-medium">{pageTitle}</h1>
             <div className="bg-[#FED2AA] p-3 rounded-full flex items-center gap-[.5vw]">
               <div className="relative h-[3vh] w-[3vh]">
-                <Image src={profile.imageSrc} fill alt=""/>
+                <Image src={profile.picture} fill alt=""/>
               </div>
               <p className="text-2xl 3xl:text-3xl 4xl:text-4xl font-medium">{profile.fullName}</p>
             </div>

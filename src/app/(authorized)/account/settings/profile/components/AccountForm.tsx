@@ -14,18 +14,6 @@ export default function AccountForm() {
     const [profile, setProfile] = useAtom(profileAtom)
     const [isDataSaved, setIsDataSaved] = useState(false)
 
-    useEffect(()=>{
-        const getProfile = async () =>{
-            const {data, ok} = await getUser();
-            if (ok){
-                setProfile(data)
-            } else {
-                // alert(`Error: ${data.message}`);
-                window.location.href = "/login"
-            }
-        }
-        getProfile();
-    })
 
     const onChange = (e: any) => {
         setProfile({...profile, [e.target.name]: e.target.value})
@@ -33,7 +21,7 @@ export default function AccountForm() {
     const submitChanges = async (e: any) => {
         e.preventDefault()
         const {fullName, displayName, email, phoneNumber, pronouns, DOB} = profile;
-        const {data, ok} = await updateUser(fullName, displayName, email, phoneNumber, pronouns, DOB);
+        const {data, ok} = await updateUser({fullName, displayName, email, phoneNumber, pronouns, DOB});
         if (ok){
             setIsDataSaved(true)
         }
@@ -50,7 +38,7 @@ export default function AccountForm() {
         <h1 className='text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-montserrat font-medium mt-[3vh]'>Your profile</h1>
         <p className='text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl w-[90%]'>Update your profile information to ensure your account reflects the latest details about you.</p>
         <div className='mt-[5vh] mb-[5vh] bg-[#FED2AA] h-1'></div>
-        <form className='flex flex-col flex gap-[4%]' onSubmit={submitChanges}>
+        <form className='flex flex-col gap-[4%]' onSubmit={submitChanges}>
             <div className='flex gap-[2vh]'>
 
                 <div className='w-[49%] flex flex-col gap-[1vw]'>

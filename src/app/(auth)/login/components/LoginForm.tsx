@@ -6,18 +6,42 @@
     import { useState, useEffect } from "react";
     import Button1 from '@/components/atoms/Button1'
     import { login } from "@/lib/api/authService" 
+    import { getUser } from "@/lib/api/userService";
+    import { useSetAtom } from "jotai";
+    import { profileAtom } from "@/utils/stores";
     // import { useRouter } from 'next/router';
 
     export default function LoginForm() {
+        const setProfile = useSetAtom(profileAtom)
         const [email, setEmail] = useState("")
         const [password, setPassword] = useState('')
         const [disabled, setDiabled] = useState(false)
-        // const router = useRouter(); 
 
-        const handleLogin = async (e: any) =>{
+        const fetchUserData = async () =>{
+            try{
+                console.log("Fetching user data");
+                const {data, ok} = await getUser()
+                if(ok){
+                    setProfile(data)
+                    return true
+                }else{
+                    return false
+                }
+            }catch(e){
+                console.log(e)
+            }
+        }
+
+        const handleLogin = async (e: React.FormEvent) =>{
+            e.preventDefault()
             const {data, ok} = await login(email, password)
             if (ok){
-                window.location.href = '/dashboard';
+                if(await fetchUserData()){
+                    window.location.href = '/dashboard';
+                }
+                else{
+                    alert(`Error: Cannot get Profile information`);
+                }
             }
             else{
                 alert(`Error: ${data.message}`);
