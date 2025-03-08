@@ -6,16 +6,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import { bookInterface } from "@/interfaces/bookInterface";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAtom, useSetAtom } from "jotai";
-import { addedCartItemAtom, addedCartItemsAtom } from "@/utils/stores";
+import { addedCartItemAtom, addedCartItemsAtom, useCartOperations } from "@/store/cartStore";
+
 
 export default function BookItem({ book }: { book: bookInterface }) {
   const [loading, setLoading] = useState(false);
-  const [addedCartItems, setAddedCartItems] = useAtom(addedCartItemsAtom);
+  const [addedCartItems] = useAtom(addedCartItemsAtom);
+  const { addToCart } = useCartOperations();
   const setAddedCartItem = useSetAtom(addedCartItemAtom);
-  const addToCart = () => {
+  const handleAddToCart = () => {
     setLoading(true);
     setTimeout(() => {
-      setAddedCartItems([...addedCartItems, { ...book, quantity: 1 }]);
+      addToCart(book, 1);
       setLoading(false);
       setAddedCartItem(book);
     }, 2000);
@@ -83,7 +85,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
         <Button3
           text="Add to cart"
           style={{ fontSize: "12px" }}
-          onClick={addToCart}
+          onClick={handleAddToCart}
         />
       )}
     </div>

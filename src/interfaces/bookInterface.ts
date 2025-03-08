@@ -1,24 +1,24 @@
 export interface bookInterface {
-    id: number,
+    id: string,
     title: string,
     color: string,
     imageSrc: string,
     coverImageSrc: string,
     titleColor: string,
     type: string,
-    price: string,
+    price: number,
     description: string,  
 }
 
 export interface bookCartItemInterface {
-    id: number,
+    id: string,
     title: string,
     color: string,
     imageSrc: string,
     coverImageSrc: string,
     titleColor: string,
     type: string,
-    price: string,
+    price: number,
     description: string,  
     quantity: number
 }

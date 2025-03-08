@@ -2,8 +2,8 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
 import { useAtom } from "jotai";
-import { addedCartItemAtom } from "@/utils/stores";
 import Link from "next/link";
+import { addedCartItemAtom } from "@/store/cartStore";
 
 export default function AddedToCartPopup() {
   const [addedCartItem, setAddedCartItem] = useAtom(addedCartItemAtom);

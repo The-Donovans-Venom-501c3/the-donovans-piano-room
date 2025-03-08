@@ -1,8 +1,8 @@
 import React from "react";
 import ItemsAddedCart from "./ItemsAddedCart";
 import { useAtom, useAtomValue } from "jotai";
-import { addedCartItemsAtom } from "@/utils/stores";
 import EmptyCart from "./EmptyCart";
+import { addedCartItemsAtom } from "@/store/cartStore";
 
 export default function YourCart() {
   const addedCartItems = useAtomValue(addedCartItemsAtom);
