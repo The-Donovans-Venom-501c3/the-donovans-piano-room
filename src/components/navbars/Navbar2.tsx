@@ -1,17 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import { SxProps } from "@mui/system";
 import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWithBadge";
 
 export default function Navbar2() {
-  const iconStyles: SxProps = {
-    fontSize: 25,
-    "&:hover": {
-      color: "#E98427",
-    },
-  };
-
 
   return (
     <>
