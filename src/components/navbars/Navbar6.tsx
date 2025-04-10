@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { SxProps } from "@mui/system";
+import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWithBadge";
 
 export default function Navbar6({ page }: { page: string }) {
   const highlightLink = { color: "#DA6A1C" };
@@ -74,7 +75,7 @@ export default function Navbar6({ page }: { page: string }) {
             style={navigationPages.cart === page ? highlightLink : {}}
             href="/cart"
           >
-            <ShoppingCartOutlinedIcon sx={iconStyles} />
+            <ShoppingCartIconWithBadge />
             {navigationPages.cart === page && displayBorder()}
           </Link>
           <Link

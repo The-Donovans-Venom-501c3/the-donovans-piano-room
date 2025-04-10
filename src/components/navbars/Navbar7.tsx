@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { SxProps } from "@mui/system";
+import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWithBadge";
 
 export default function Navbar7({ page }: { page: string }) {
   const highlightLink = { color: "#DA6A1C" };
@@ -73,7 +74,7 @@ export default function Navbar7({ page }: { page: string }) {
             className="flex items-center text-primary-purple hover:text-[#E98427]"
             href="#"
           >
-            <ShoppingCartOutlinedIcon sx={iconStyles} />
+            <ShoppingCartIconWithBadge />
           </Link>
           <Link
             className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
