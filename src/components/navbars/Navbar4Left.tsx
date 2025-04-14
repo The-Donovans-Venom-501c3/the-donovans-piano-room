@@ -1,3 +1,4 @@
+import { logout } from "@/lib/api/authService";
 import { IsNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
 import { useAtom, useAtomValue } from "jotai";
 import Image from "next/image";
@@ -12,6 +13,11 @@ export default function Navbar4Left({
   const profile = useAtomValue(profileAtom);
   const linkDynamicSyle = { justifyContent: isNavOpen ? "start" : "center" };
   const toggleOpenNav = () => setIsNavOpen((state) => !state);
+  const handleLogout = async () => {
+    const response = await logout();
+    window.location.replace('/');
+  }
+
   return (
     <div
       className="relative z-50 h-[100vh]"
@@ -376,7 +382,7 @@ export default function Navbar4Left({
       </div>
       <div className="flex h-[9vh] w-full items-center justify-center rounded-br-[20px] bg-[#601d86]">
         <div style={{ width: isNavOpen ? "80%" : "50%" }}>
-          <button className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl">
+          <button className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl" onClick={handleLogout}>
             {isNavOpen && (
               <p className="mr-[.3vw] mt-1 text-center text-primary-yellow-accent 3xl:mt-[4px] 3xl:text-2xl 4xl:text-3xl">
                 Log out

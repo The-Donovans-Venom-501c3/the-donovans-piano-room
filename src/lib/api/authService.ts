@@ -79,6 +79,23 @@ export const login = async (email: string, password: string) => {
     return {data, ok: response.ok}
 }
 
+export const logout = async ()=>{
+    try{
+        const response = await fetch('/api/auth/logout',{
+            method: 'POST',
+            credentials: 'include'
+        });
+        if(!response.ok){
+            throw new Error('Logout Failed');
+        }
+        const data = await response.json();
+        return data;
+    }catch(error){
+        console.log('There is a problem logging out');
+        return {error};
+    }
+}
+
 export const forgotPassword = async (email: string) =>{
     const response = await fetch('/api/auth/forgot-password',{
         method: 'POST',

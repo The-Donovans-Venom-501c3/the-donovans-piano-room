@@ -1,84 +1,85 @@
 "use client";
-    import InputForm from "@/components/atoms/form-input";
-    import PasswordInput from "@/components/auth/password-input";
-    import Image from "next/image";
-    import Link from "next/link";
-    import { useState, useEffect } from "react";
-    import Button1 from '@/components/atoms/Button1'
-    import { login } from "@/lib/api/authService" 
-    import { getUser } from "@/lib/api/userService";
-    import { useSetAtom } from "jotai";
-    import { profileAtom } from "@/utils/stores";
-    // import { useRouter } from 'next/router';
+import InputForm from "@/components/atoms/form-input";
+import PasswordInput from "@/components/auth/password-input";
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import Button1 from '@/components/atoms/Button1'
+import { login } from "@/lib/api/authService"
+import { getUser } from "@/lib/api/userService";
+import { useSetAtom } from "jotai";
+import { profileAtom } from "@/utils/stores";
+import { useRouter } from 'next/navigation';
 
-    export default function LoginForm() {
-        const setProfile = useSetAtom(profileAtom)
-        const [email, setEmail] = useState("")
-        const [password, setPassword] = useState('')
-        const [disabled, setDiabled] = useState(false)
+export default function LoginForm() {
+    const setProfile = useSetAtom(profileAtom)
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState('')
+    const [disabled, setDiabled] = useState(false);
+    const router = useRouter();
 
-        const fetchUserData = async () =>{
-            try{
-                console.log("Fetching user data");
-                const {data, ok} = await getUser()
-                if(ok){
-                    setProfile(data)
-                    return true
-                }else{
-                    return false
-                }
-            }catch(e){
-                console.log(e)
+    const fetchUserData = async () => {
+        try {
+            console.log("Fetching user data");
+            const { data, ok } = await getUser()
+            if (ok) {
+                setProfile(data)
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault()
+        const { data, ok } = await login(email, password)
+        if (ok) {
+            if (await fetchUserData()) {
+                router.push('/dashboard');
+            }
+            else {
+                alert(`Error: Cannot get Profile information`);
             }
         }
-
-        const handleLogin = async (e: React.FormEvent) =>{
-            e.preventDefault()
-            const {data, ok} = await login(email, password)
-            if (ok){
-                if(await fetchUserData()){
-                    window.location.href = '/dashboard';
-                }
-                else{
-                    alert(`Error: Cannot get Profile information`);
-                }
-            }
-            else{
-                alert(`Error: ${data.message}`);
-            }
+        else {
+            alert(`Error: ${data.message}`);
         }
-        useEffect(() =>{
-            setDiabled( !(email && password))
-        },[ email, password])
+    }
+    useEffect(() => {
+        setDiabled(!(email && password))
+    }, [email, password])
 
-        return (
-            <div className="w-[24vw] 3xl:w-[26vw]">
-                <Link href="/" className="text-primary-yellow text-xl font-bold flex relative w-[15%] mb-5"><Image src="/YellowBackIcon.svg" width={30} height={30} alt=""/><p className="mt-2">Home</p></Link>
+    return (
+        <div className="w-[24vw] 3xl:w-[26vw]">
+            <Link href="/" className="text-primary-yellow text-xl font-bold flex relative w-[15%] mb-5"><Image src="/YellowBackIcon.svg" width={30} height={30} alt="" /><p className="mt-2">Home</p></Link>
             <h1 className="text-7xl font-bold leading-tight tracking-tight text-white font-montserrat mb-5">
-            Log In
+                Log In
             </h1>
             <div className='mb-5 2xl:mt-5 2xl:mb-[20px]'>
                 <p className='text-white text-xl'>Log in with your The Donovan&apos;s piano room account.</p>
             </div>
-                <form className="flex flex-col gap-4">
-                    
-                    <InputForm
-                        field={{
-                            type: "email",
-                            name: "email",
-                            label: "Email",
-                        }}
-                        onChange={(e: any) => setEmail(e.target.value)}
-                        text={email}
-                        error={""}
-                    />
-                    <PasswordInput
-                        onChange={(e: any) => setPassword(e.target.value)}
-                        name='password'
-                        label='Password'
-                        error={""}
-                        inputValue={password}
-                    />
+            <form className="flex flex-col gap-4">
+
+                <InputForm
+                    field={{
+                        type: "email",
+                        name: "email",
+                        label: "Email",
+                    }}
+                    onChange={(e: any) => setEmail(e.target.value)}
+                    text={email}
+                    error={""}
+                />
+                <PasswordInput
+                    onChange={(e: any) => setPassword(e.target.value)}
+                    name='password'
+                    label='Password'
+                    error={""}
+                    inputValue={password}
+                />
                 <div className="flex justify-between w-full">
 
                     <div className="flex items-center">
@@ -101,12 +102,12 @@
                     </div>
                     <Link href="/forgot-password" className="text-lg font-medium text-primary-yellow mt-3 2xl:mt-4 3xl:text-2xl 4xl:text-[16px]">Forgot password?</Link>
                 </div>
-                <div> 
-                    <Button1 text="Log In" type= "button" disabled={disabled} onClick={handleLogin} />
+                <div>
+                    <Button1 text="Log In" type="button" disabled={disabled} onClick={handleLogin} />
                 </div>
             </form>
             <p className='w-full text-center mt-[10px] text-lg text-white bg-primary-purple py-3 rounded-3xl text-[12px] mt-9 2xl:py-5 2xl:rounded-full 3xl:text-2xl 4xl:text-[16px] 3xl:py-8'>Don&apos;t have an account? <Link href="/signup" className='text-primary-yellow underline'>Sign up</Link></p>
-        
-            </div>
-        )
-    }
+
+        </div>
+    )
+}
