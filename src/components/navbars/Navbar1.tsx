@@ -1,20 +1,14 @@
 import { navigationPages } from "@/utils/general";
 import Image from "next/image";
 import Link from "next/link";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import { SxProps } from "@mui/system";
+import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWithBadge";
 
 export default function Navbar1({ page }: { page: string }) {
   const highlightLink = { color: "#DA6A1C" };
   const displayBorder = () => (
     <div className="absolute bottom-0 h-[3px] w-full rounded-tl-xl rounded-tr-xl bg-tertiary-orange xl:h-[4px] 2xl:h-[5px]"></div>
   );
-  const iconStyles: SxProps = {
-    fontSize: 25,
-    "&:hover": {
-      color: "#E98427",
-    },
-  };
+
   return (
     <>
       <div className="fixed top-0 z-40 h-[8.8vh] w-[100vw] bg-[#fbf7ff] backdrop-blur-sm"></div>
@@ -74,7 +68,7 @@ export default function Navbar1({ page }: { page: string }) {
             style={navigationPages.cart === page ? highlightLink : {}}
             href="/cart"
           >
-            <ShoppingCartOutlinedIcon sx={iconStyles} />
+            <ShoppingCartIconWithBadge />
             {navigationPages.cart === page && displayBorder()}
           </Link>
           <Link

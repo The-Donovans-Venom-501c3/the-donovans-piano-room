@@ -1,16 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import { SxProps } from "@mui/system";
+import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWithBadge";
 
 export default function Navbar2() {
-  const iconStyles: SxProps = {
-    fontSize: 25,
-    "&:hover": {
-      color: "#E98427",
-    },
-  };
-
 
   return (
     <>
@@ -64,7 +56,7 @@ export default function Navbar2() {
               className="relative flex items-center justify-center text-xl font-bold text-primary-yellow-accent hover:text-[#E98427] 2xl:text-3xl"
               href="/cart"
             >
-              <ShoppingCartOutlinedIcon sx={iconStyles} />
+              <ShoppingCartIconWithBadge />
             </Link>
           </div>
           <Link
