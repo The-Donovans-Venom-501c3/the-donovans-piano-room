@@ -418,7 +418,9 @@ export default function FAQsContent() {
               </p>
               <div className=" flex w-full justify-center">
                 <button className=" rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white">
-                  Contact us
+                  <a href="/contact-us">
+                    Contact us
+                  </a>
                 </button>
               </div>
             </div>
