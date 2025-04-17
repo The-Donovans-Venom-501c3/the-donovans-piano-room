@@ -405,7 +405,7 @@ export default function FAQsContent() {
             ))}
           </div>
           <div>
-            <div className="w-[230px] rounded-2xl bg-[#FCF0D8] p-7">
+            <div className="w-[240px] rounded-2xl bg-[#FCF0D8] p-7 justify-items-center">
               <Image
                 className="mb-4"
                 src="/about/FAQs/CatImage.svg"
