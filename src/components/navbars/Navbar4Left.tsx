@@ -226,7 +226,7 @@ export default function Navbar4Left({
                 )}
               </div>
             </Link>
-            <Link href="">
+            <Link href="/music-tools">
               <div
                 className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
                 style={
