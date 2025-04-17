@@ -108,7 +108,7 @@ const membershipIncludes = {
         title: "Yearly access",
         content: [
             ["Cost savings:", "By opting for the yearly subscription, you generally receive a discounted reate compared to the monthly subscription. In this case, the yearly option offers a cost savings of $59.89 compared to paying for 12 months individually."],
-            ["Long-term commitment:", "Choosing the yearly subscription shows a commitment to the program, which cab be beneficial if you have a positive experience and intend to use it consistently throughout the year."]
+            ["Long-term commitment:", "Choosing the yearly subscription shows a commitment to the program, which can be beneficial if you have a positive experience and intend to use it consistently throughout the year."]
         ]
     }
 
