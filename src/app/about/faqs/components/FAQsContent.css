@@ -11,3 +11,11 @@
     background: #6F219E;
     border-radius: 5px;
   }
+  
+summary {
+    list-style: none;
+  }
+  
+summary::-webkit-details-marker {
+    display: none;
+}
