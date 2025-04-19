@@ -46,12 +46,13 @@ export default function VerificationCodeInput({
     const handlePaste = (index: number, event: React.ClipboardEvent<HTMLInputElement>) => {
         event.preventDefault();
         const pastedData = event.clipboardData.getData('text/plain').trim();
-        const digits = pastedData.split("").filter((char: string) => !isNaN(Number(char))).slice(0, inputRefs.current.length);
+        const digits = pastedData.split("").filter((char: string) => !isNaN(Number(char))).slice(0, verificationCode.length);
         const newVerificationCode = [...verificationCode];
         digits.forEach((digit: string, i: number) => {
             newVerificationCode[i] = digit;
-            if (inputRefs.current[i]) {
-                inputRefs.current[i].value = digit;
+            const inputref = inputRefs.current[i];
+            if (inputref) {
+                inputref.value = digit;
             }
         });
         setVerificationCode(newVerificationCode);
