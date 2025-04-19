@@ -50,7 +50,8 @@ export default function SignupForm() {
     } 
     else{
       console.log("Failed")
-      alert(`Error: ${data.message}`)
+      const errorMessage = data?.message || "An unexpected error occurred. Please try again."
+      alert(`Error: ${errorMessage}`)
     }
     setDiabled(!disabled);
   };
