@@ -28,59 +28,29 @@ export default function Navbar5({ page }: { page: string }) {
           />
         </div>
 
-        <div className="p-y-50 absolute right-28 top-[0px] float-right flex h-[8.8vh] justify-center gap-16">
-          <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
-            style={navigationPages.home === page ? highlightLink : {}}
-            href="/"
-          >
-            <p>HOME</p>
-            {navigationPages.home === page && displayBorder()}
-          </Link>
-          <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
-            style={navigationPages.about === page ? highlightLink : {}}
-            href="/about/why-choose-us"
-          >
-            <p>ABOUT</p>
-            {navigationPages.about === page && displayBorder()}
-          </Link>
-          <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
-            style={navigationPages.games === page ? highlightLink : {}}
-            href="/games"
-          >
-            <p>GAMES</p>
-            {navigationPages.games === page && displayBorder()}
-          </Link>
-          <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
-            style={navigationPages.bookstore === page ? highlightLink : {}}
-            href="/bookstore"
-          >
-            <p>BOOKSTORE</p>
-            {navigationPages.bookstore === page && displayBorder()}
-          </Link>
-          <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
-            style={navigationPages.contact === page ? highlightLink : {}}
-            href="#"
-          >
-            <p>CONTACT</p>
-            {navigationPages.contact === page && displayBorder()}
-          </Link>
-          <Link
-            className="flex items-center text-primary-purple hover:text-[#E98427]"
-            href="#"
-          >
-            <ShoppingCartOutlinedIcon sx={iconStyles} />
-          </Link>
-          <Link
-            className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
-            href="/signup"
-          >
-            Log in or register
-          </Link>
+        <div className='absolute flex float-right h-[8.8vh] p-y-50 top-[0px] right-36 gap-16 justify-center h-full'>
+            <Link className='text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative'style={navigationPages.home === page ? highlightLink: {}} href="/">
+             <p>HOME</p>
+             {navigationPages.home === page && displayBorder()}
+            </Link>
+            <Link className='text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' style={navigationPages.about === page ? highlightLink : {}} href="/about/why-choose-us">
+              <p>ABOUT</p>
+              {navigationPages.about === page && displayBorder()}
+            </Link>
+            <Link className='text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' style={navigationPages.games === page ? highlightLink: {}} href="https://thedonovansmusicgames.netlify.app/">
+              <p>GAMES</p>
+              {navigationPages.games === page && displayBorder()}
+            </Link>
+            <Link className='text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' style={navigationPages.bookstore === page ? highlightLink: {}} href="/bookstore">
+             <p>BOOKSTORE</p>
+             {navigationPages.bookstore === page && displayBorder()}
+            </Link>
+            <Link className='text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' style={navigationPages.contact === page ? highlightLink: {}} href="/contact-us">
+             <p>CONTACT</p>
+             {navigationPages.contact === page && displayBorder()}
+            </Link>
+            <Link className='text-primary-purple hover:text-[#E98427] flex items-center' href="#"><ShoppingCartOutlinedIcon sx={iconStyles} /></Link>
+            <Link className='text-white bg-primary-purple rounded-l-full rounded-r-full px-20 h-16 hover:bg-[#E98427] flex items-center text-xl 2xl:text-3xl font-bold self-center' href="/signup">Log in or register</Link>
         </div>
       </nav>
     </>
