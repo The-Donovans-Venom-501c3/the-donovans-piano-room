@@ -42,6 +42,23 @@ export async function getUserMembership() {
     }
 }
  
+export async function fetchUserMembershipDetails() {
+    try {
+        // Send GET request to the backend
+        const response = await fetch('/api/membership/user', {
+            method: 'GET',
+        });
+        // Parse response
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to retrieve user membership details');
+        }
+            return {data, ok: response.ok} // Return the membership details for the authenticated user
+        } catch (error: any) {
+          throw new Error(error.message || 'An error occurred while retrieving user membership details');
+        }
+}
+
 export async function validateCouponCode(memberId: number, couponCode: string) {
     try {
         // Send GET request to the backend
