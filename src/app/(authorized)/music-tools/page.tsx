@@ -39,10 +39,11 @@ const MusicToolCard = ({ tool, onClick }: { tool: MusicToolProps; onClick: () =>
                         className="object-contain h-[163px] w-[318px]"
                     />
                 </div>
-                <div className="flex justify-center">
+                <h3 className="text-[20px] font-semibold text-primary-brown mb-2">{tool.title}</h3>
+                <div className="flex justify-between items-center">
                     <div>
-                        <h3 className="text-xl font-semibold text-primary-brown mb-2">{tool.title}</h3>
-                        <p className="text-sm text-gray-700">{tool.description}</p>
+
+                        <p className="text-lg text-gray-700">{tool.description}</p>
                     </div>
                     <button className="px-4 py-2 bg-blue-500 text-white rounded-lg">
                         <span>learn more</span>
@@ -127,20 +128,20 @@ export default function MusicToolsPage() {
     const musicTools: MusicToolProps[] = [
         {
             title: "Virtual Piano",
-            description: "Drive into ",
-            imageSrc: "/virtual-piano/ShortPiano.svg",
+            description: "Drive into infinite melodies with our Virtual Piano.",
+            imageSrc: "/music_tools/Home/piano.svg",
             id: "virtual-piano"
         },
         {
             title: "Metronome",
             description: "Keep time and improve your rhythm with our easy-to-use metronome.",
-            imageSrc: "/MetronomeMelody.svg",
+            imageSrc: "/music_tools/Home/virtualmetronome.svg",
             id: "metronome"
         },
         {
             title: "Time Tracker",
             description: "Track your practice time and set goals to improve your dedication.",
-            imageSrc: "/MetronomeTime_3.svg",
+            imageSrc: "/music_tools/Home/timetracker.svg",
             id: "time-tracker"
         },
         {
@@ -184,7 +185,7 @@ export default function MusicToolsPage() {
                                     Explore, compose, and play with these Virtual Music Tools!
                                 </p>
                             </div>
-                            <div className="ml-auto">
+                            <div className="ml-auto mr-2">
                                 <Image
                                     src="/auth/smilingcharacter.svg"
                                     alt="Smiling Character"
