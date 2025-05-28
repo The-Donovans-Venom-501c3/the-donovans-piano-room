@@ -18,7 +18,7 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <div className="z-50 grid">
+      <div className="grid">
         <FrequentlyPurchasedTogether />
       </div>
 

@@ -29,7 +29,7 @@ export default function FrequentlyPurchasedTogether() {
   ];
 
   return (
-    <div className="z-50 my-[10vh] flex items-center justify-center">
+    <div className="z-20 my-[10vh] flex items-center justify-center">
       <div className="w-[84.7%]">
         <div className="text-4xl font-semibold text-primary-brown max-sm:text-center">
           Frequently purchased together
