@@ -13,7 +13,7 @@ export default function CatalogItems() {
   };
   const highlightedBook = { backgroundColor: "#6F219E", width: "3vw" };
   return (
-    <div className="relative z-50 flex w-[50%] max-sm:min-h-96 items-center">
+    <div className="relative z-5 flex w-[50%] max-sm:min-h-96 items-center">
       <div className="w-[5%]">
         <div className="flex h-[2.5vw] w-[2.5vw] items-center justify-center rounded-full bg-secondary-purple">
           <div
@@ -30,11 +30,11 @@ export default function CatalogItems() {
           style={
             highlightBook === 1
               ? {
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  zIndex: 30,
-                  top: "-21vh",
-                }
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 30,
+                top: "-21vh",
+              }
               : highlightBook === 2
                 ? { left: "5vw", top: "-19vh", height: "35vh" }
                 : { right: "5vw", top: "-19vh", height: "35vh" }
@@ -47,11 +47,11 @@ export default function CatalogItems() {
           style={
             highlightBook === 3
               ? {
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  zIndex: 30,
-                  top: "-21vh",
-                }
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 30,
+                top: "-21vh",
+              }
               : highlightBook === 1
                 ? { left: "5vw", top: "-19vh", height: "35vh" }
                 : { right: "5vw", top: "-19vh", height: "35vh" }
@@ -64,11 +64,11 @@ export default function CatalogItems() {
           style={
             highlightBook === 2
               ? {
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  zIndex: 30,
-                  top: "-21vh",
-                }
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 30,
+                top: "-21vh",
+              }
               : highlightBook === 3
                 ? { left: "5vw", top: "-19vh", height: "35vh" }
                 : { right: "5vw", top: "-19vh", height: "35vh" }

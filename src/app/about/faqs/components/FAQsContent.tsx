@@ -405,7 +405,8 @@ export default function FAQsContent() {
             ))}
           </div>
           <div>
-            <div className="w-[230px] rounded-2xl bg-[#FCF0D8] p-7">
+            <div className="w-[240px] rounded-2xl bg-[#FCF0D8] p-7 justify-items-center">
+             <div className="flex w-full justify-center">
               <Image
                 className="mb-4"
                 src="/about/FAQs/CatImage.svg"
@@ -413,13 +414,14 @@ export default function FAQsContent() {
                 width={90}
                 height={90}
               />
+              </div>
               <p className="mb-4 text-[14px] font-semibold text-gray-800">
                 Still got questions? Reach out!
               </p>
               <div className=" flex w-full justify-center">
-                <button className=" rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white">
+                <Link className=" button rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white" href="/contact-us">
                   Contact us
-                </button>
+                </Link>
               </div>
             </div>
           </div>

@@ -6,11 +6,11 @@ import { useAtomValue } from "jotai";
 import SelectInput from '@/components/atoms/select-input-2';
 import AvatarSelectPopup from "./AvatarSelectPopup";
 
-const getStartOfMonth = (month: string, year: number) => {
-    return dayjs(`${year}-${month}-01`).format('d')
+const getStartOfMonth = (month: number, year: number) => {
+    return dayjs(new Date(year, month, 1)).day();
 };
-const getDaysInMonth = (month: string, year: number): number => {
-    return dayjs(`${year}-${month}-01`).daysInMonth();
+const getDaysInMonth = (month: number, year: number): number => {
+    return dayjs(new Date(year, month, 1)).daysInMonth();
 };
 
 const convertHighlightDaysToStreaks = (highlightedDays: string[]) => {
@@ -65,6 +65,8 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
 
     const [selectedMonth, setSelectedMonth] = useState(months[today.month()]);
     const [selectedYear, setSelectedYear] = useState(today.year());
+
+    const monthIndex = months.indexOf(selectedMonth);
 
     const profile = useAtomValue(profileAtom)
     const [avatar, setAvatar] = useState(profile.picture)
@@ -127,11 +129,12 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
                         {Array.from({ length: 6 }, (_, i) => (
                             <tr key={i}>
                                 {Array.from({ length: 7 }, (_, j) => {
-                                    const day = i * 7 + j - Number(getStartOfMonth(selectedMonth, selectedYear));
-                                    if (day < 0 || day >= getDaysInMonth(selectedMonth, selectedYear)) {
+                                    const day = i * 7 + j - Number(getStartOfMonth(monthIndex, selectedYear));
+                                    if (day < 0 || day >= getDaysInMonth(monthIndex, selectedYear)) {
                                         return <td key={j}></td>
                                     }
-                                    const date = dayjs(`${selectedYear}-${selectedMonth}-${day + 1}`).format('YYYY-MM-DD');
+                                    const date = dayjs(new Date(selectedYear, monthIndex, day + 1))
+                                        .format('YYYY-MM-DD');
                                     return (
                                         <td key={j} className={getDayClass(date, streaks)}>
                                             <div className="relative">{day + 1}</div>

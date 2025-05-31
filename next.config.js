@@ -21,7 +21,7 @@ const nextConfig = {
       {
         source: '/api/:path*',
         destination: destinationUrl + '/api/:path*'
-        // 'http://localhost:3333/api/:path*',
+        //destination: 'http://localhost:3333/api/:path*',
       }
     ]
   }

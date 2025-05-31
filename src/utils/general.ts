@@ -61,6 +61,7 @@ export const pronouns = [
 
 export const authorizedWrapperTitles = {
     AccountAndSettings: "Account & Settings",
+    Lessons: "Lessons",
     Dashboard: "Dashboard"
 }
 
