@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image"
 import ReaderPortal from "./ReaderPortal";
+import Card from "@/components/atoms/Card";
 
 
 const ebooks = [
@@ -24,6 +25,28 @@ const ebooks = [
         imgsrc: "/bookstore/books/book-3.svg"
     }
 ]
+interface CardProps {
+    width?: number;
+    height?: number;
+    children: React.ReactNode;
+}
+function SelectedCard({ width = 350, height = 380, children }: CardProps) {
+    return (
+        <div
+            className={`group bg-primary-purple w-[${width}px] border-2 rounded-3xl flex pb-[10px]
+             border-primary-purple cursor-pointer`}
+        >
+            <div
+                className={` min-h-[${height}px] rounded-3xl flex flex-col p-8
+                bg-secondary-purple`}
+            >
+                {children}
+            </div>
+        </div>
+    )
+}
+
+
 function EbooksComponent() {
     const [selected, setSelected] = useState<number>(0);
     const [read, setRead] = useState(false);
@@ -39,18 +62,38 @@ function EbooksComponent() {
                 E-books
             </h2>
             <div className={`${read ? "hidden" : ""}`}>
-                <div className="flex gap-10 mb-10">
-                    {
-                        ebooks.map((book, i) => {
-                            return (
-                                <div key={book.id} className="w-[250px] h-[350px]">
-                                    <Image
-                                        className="cursor-pointer"
-                                        onClick={() => setSelected(i)} src={book.imgsrc}
-                                        alt="ebook image" width={250} height={250} objectFit="contain" />
-                                </div>)
-                        })
-                    }
+                <div className="flex gap-10 mb-10 items-center">
+                    {ebooks.map((book, i) => (
+                        <div
+                            key={book.id}
+                            className={`
+                                relative 
+                                transition-all duration-300
+                                
+                            `}
+                            style={{ cursor: "pointer" }}
+                            onClick={() => setSelected(i)}
+                        >
+                            {
+                                selected==i?<SelectedCard width={210} height={210}>
+                                <Image
+                                    className="object-contain w-[210px] h-[210px] transition-all duration-300"
+                                    src={book.imgsrc}
+                                    alt="ebook image"
+                                    width={210}
+                                    height={210}
+                                />
+                            </SelectedCard>:<Image
+                                    className="object-contain w-[210px] h-[210px] transition-all duration-300"
+                                    src={book.imgsrc}
+                                    alt="ebook image"
+                                    width={210}
+                                    height={210}
+                                />
+                            }
+                            
+                        </div>
+                    ))}
                 </div>
                 <div className="flex gap-8 p-10 bg-secondary-purple items-center rounded-lg">
                     <div className="min-w-[160px]">
