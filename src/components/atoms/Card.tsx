@@ -8,13 +8,6 @@ interface CardProps {
 
 function Card({ width = 350, height = 380, children }: CardProps) {
     return (
-
-        // <div className={`bg-secondary-purple w-[${width}px] border-2 rounded-3xl flex pb-5
-        //  border-secondary-purple hover:bg-primary-purple hover:border-primary-purple cursor-pointer`}>
-        //     <div className={`bg-white min-h-[${height}px] rounded-3xl hover:bg-secondary-purple flex flex-col p-8 `}>
-        //         {children}
-        //     </div>
-        // </div>
         <div
             className={`group bg-secondary-purple w-[${width}px] border-2 rounded-3xl flex pb-[10px]
              border-secondary-purple hover:bg-primary-purple hover:border-primary-purple cursor-pointer`}
