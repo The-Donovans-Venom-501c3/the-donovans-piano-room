@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'; 
 import Card from '@/components/atoms/Card';
+import Image from 'next/image';
 
 function LiveSessionsComponent() {
     const [isSessionJoined, setIsSessionJoined] = useState(false);
@@ -42,7 +43,11 @@ function LiveSessionsComponent() {
                     ></iframe>
                 </div>*/
 
-                <div className="bg-secondary-purple rounded-2xl shadow-lg p-2 border-2 border-secondary-purple cursor-pointer w-full flex flex-col">
+                <div className="rounded-2xl cursor-pointer w-full flex flex-col">
+                    <button onClick={()=>setIsSessionJoined(false)} className='self-start flex items-center mb-4'>
+                        <Image src="/lessons/Videos/Left Chevron Arrow.svg" width="24" height="24" alt="back arrow" />
+                        <span className="text-xl ml-2 text-purple-700 font-semibold" style={{ lineHeight: '24px' }}>Back</span>
+                     </button>
                     <div className="relative w-full h-0 pb-[40%] rounded-lg overflow-hidden">
                         <iframe
                             src={process.env.REACT_APP_LIVE_STREAM_URL || "https://www.youtube.com/embed/-MAPZS1mP6U"}
