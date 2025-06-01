@@ -62,7 +62,7 @@ export default function Page() {
     useEffect(()=>{
         // setProfile(profile)
         initNotifications(dummyNoticationsData)
-    })
+    },[])
     const deleteItem = (index: number, section: number) => {
       let temp: [notification[], notification[]] = [...displayedNotifications]
       if(temp[section][index].unread){ setUnreadsNumber(prev => prev-=1)}
