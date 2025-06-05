@@ -2,7 +2,7 @@ import InputForm from "@/components/atoms/form-input";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
-import { set } from "zod";
+import { set } from "zod"; 
 
 export default function ContactUsForm() {
   const [fullName, setFullName] = useState("");
