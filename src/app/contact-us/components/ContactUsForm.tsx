@@ -2,7 +2,7 @@ import InputForm from "@/components/atoms/form-input";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
-import { set } from "zod";
+import {contactUs} from "@/lib/api/userService";
 
 export default function ContactUsForm() {
   const [fullName, setFullName] = useState("");
@@ -16,19 +16,12 @@ export default function ContactUsForm() {
     e.preventDefault();
     try {
       setError("");
-      const res = await fetch("/api/contact-us", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: fullName, email, message }),
-      });
-      const data = await res.json();
+      const {data, ok} = await contactUs(fullName, email, message);
       if (data.status === 400) {
         setError(data.error);
         return;
       }
-      if (res.ok) {
+      if (ok) {
         setFullName("");
         setEmail("");
         setMessage("");
