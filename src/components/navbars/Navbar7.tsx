@@ -58,7 +58,7 @@ export default function Navbar7({ page }: { page: string }) {
           <Link
             className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.contact === page ? highlightLink : {}}
-            href="#"
+            href="/contact-us"
           >
             <p>CONTACT</p>
             {navigationPages.contact === page && displayBorder()}
