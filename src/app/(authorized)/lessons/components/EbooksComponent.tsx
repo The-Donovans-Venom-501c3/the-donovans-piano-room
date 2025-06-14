@@ -67,7 +67,7 @@ function EbooksComponent() {
                             className="bg-primary-purple text-white text-xl block mx-auto my-4 px-10 py-3 rounded-3xl"
                             onClick={handleRead}
                         >
-                            Read & practise
+                            Read & Practice
                         </button>
                     </div>
 
