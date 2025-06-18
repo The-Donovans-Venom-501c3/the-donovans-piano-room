@@ -3,8 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { set } from "zod";
+import { IsNavOpenAtom } from '@/utils/stores'
+import { useAtomValue } from 'jotai'
 
 export default function Contact() {
+  const isNavOpen = useAtomValue(IsNavOpenAtom)
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -40,6 +43,10 @@ export default function Contact() {
   };
 
   return (
+      <div
+      className="relative w-[45vw] h-[60vh]" 
+      style={isNavOpen ? { width: '68vw', height: '60vh' } : { width: '90vw', height: '55vh' }} 
+    >
     <div className=" h-full w-full max-md2:mt-28 max-md2:mb-24">
       <div>
         {submitted && (
@@ -173,6 +180,7 @@ export default function Contact() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

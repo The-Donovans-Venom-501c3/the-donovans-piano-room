@@ -7,7 +7,8 @@ import Image from 'next/image'
 export default function FirstLesson() {
     const isNavOpen = useAtomValue(IsNavOpenAtom)
   return (
-        <div className="relative w-[45vw] h-[60vh]" style={isNavOpen ? {width: "38vw", height: "55vh"} : {}}>
+        <div 
+        className="relative w-[45vw] h-[60vh]" style={isNavOpen ? {width: "38vw", height: "55vh"} : {}}>
             <div className="absolute w-[80%] h-[90%] z-30 left-[10%] top-[10%]">
                 <div className="flex justify-between select-none mt-[4%] mb-[3%]">
                     <div className="flex gap-[10%] items-center">
