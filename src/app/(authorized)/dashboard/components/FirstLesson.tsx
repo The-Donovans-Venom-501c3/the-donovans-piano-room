@@ -6,17 +6,16 @@ import Image from 'next/image'
 
 export default function FirstLesson() {
     const isNavOpen = useAtomValue(IsNavOpenAtom)
-    return (
-        <div
-            className="relative w-[45vw] h-[60vh]" style={isNavOpen ? { width: "38vw", height: "55vh" } : {}}>
+  return (
+        <div className="relative w-[45vw] h-[60vh]" style={isNavOpen ? {width: "38vw", height: "55vh"} : {}}>
             <div className="absolute w-[80%] h-[90%] z-30 left-[10%] top-[10%]">
                 <div className="flex justify-between select-none mt-[4%] mb-[3%]">
                     <div className="flex gap-[10%] items-center">
-                        <span className="relative h-[3vh] w-[3vh]"><Image src="/dashboard/book-icon.svg" fill alt="" /></span>
+                        <span className="relative h-[3vh] w-[3vh]"><Image src="/dashboard/book-icon.svg" fill alt=""/></span>
                         <p className="text-primary-brown text-xl 3xl:text-2xl 4xl:text-3xl font-semibold">Lessons</p>
                     </div>
                     <div className="bg-[#FFEBD5] flex items-center p-2 rounded-xl">
-                        <span className="relative h-[2.3vh] w-[2.3vh]"><Image src="/dashboard/checkmark.svg" fill alt="" /></span>
+                        <span className="relative h-[2.3vh] w-[2.3vh]"><Image src="/dashboard/checkmark.svg" fill alt=""/></span>
                         <p className="text-primary-brown text-xl 3xl:text-2xl 4xl:text-3xl font-semibold ml-3">Every Monday and Thursday</p>
                     </div>
                 </div>
@@ -27,11 +26,11 @@ export default function FirstLesson() {
                         <p className="">Join our next live session on</p>
                         <p className="font-semibold">March 18, at 2:00 pm EST.</p>
                     </div>
-                    <Button3 text="Add to calendar" style={{ width: "30%", height: "80%" }} />
+                    <Button3 text="Add to calendar" style={{width: "30%", height: "80%"}}/>
                 </div>
             </div>
             <div className="relative w-full h-full">
-                <Image src="/dashboard/lesson-bg.svg" fill alt="" />
+                <Image src="/dashboard/lesson-bg.svg" fill alt=""/>
             </div>
         </div>
     )
