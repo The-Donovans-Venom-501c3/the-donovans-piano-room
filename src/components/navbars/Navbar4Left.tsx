@@ -36,7 +36,7 @@ export default function Navbar4Left({
         )}
         {isNavOpen ? (
           <div
-            className="absolute left-[15.5vw] top-[6vh] cursor-pointer"
+            className="relative left-[2vw] top-[4vh] cursor-pointer"
             onClick={toggleOpenNav}
           >
             <div className="relative h-[8vh] w-[3vw]">
