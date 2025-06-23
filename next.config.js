@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 't3.ftcdn.net',
+    },
+  ],
+},
   webpack(config, options) {
     config.module.rules.push({
       test: /\.(mp3|wav|m4a)$/,
@@ -20,8 +28,8 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: destinationUrl + '/api/:path*'
-        //destination: 'http://localhost:3333/api/:path*',
+        //destination: destinationUrl + '/api/:path*'
+        destination: 'http://localhost:3333/api/:path*',
       }
     ]
   }

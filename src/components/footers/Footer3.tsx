@@ -4,7 +4,7 @@ import React from 'react'
 
 export default function Footer3() {
   return (
-    <div className='fixed flex justify-center items-center bottom-0 w-full border-t-2 border-[#A135E8] z-40 backdrop-blur-sm' style={{height: '70px'}}>
+    <div className='fixed flex justify-center items-center bottom-5 w-full border-t-2 border-[#A135E8] z-40 backdrop-blur-sm' style={{height: '70px'}}>
         <div className='flex justify-between h-[28px]' style={{width: '84.7%'}}>
             <h2 className='text-black'
             style={{width: '290px'}}

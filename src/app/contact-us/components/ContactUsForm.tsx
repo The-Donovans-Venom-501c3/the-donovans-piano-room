@@ -116,7 +116,7 @@ export default function ContactUsForm() {
             </div>
           </form>
         </div>
-        <div className="relative -top-20 w-full rounded-2xl bg-yellow-500 text-primary-brown md:w-1/3">
+        <div className="relative bottom-[5vh] w-full rounded-2xl bg-yellow-500 text-primary-brown md:w-1/3">
           <div className="p-5 font-medium">
             <div className="mb-5 flex">
               <Image src="/Info.svg" width={25} height={100} alt="Info" />
