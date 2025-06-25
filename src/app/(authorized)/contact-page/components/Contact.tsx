@@ -45,7 +45,7 @@ export default function Contact() {
   return (
     <div
       className="relative w-[45vw] h-[60vh]"
-      style={isNavOpen ? { width: '50vw', height: '55vh' } : { width: '80vw', height: '50vh' }}
+      style={isNavOpen ? { width: '50vw', height: '60vh' } : { width: '80vw', height: '55vh' }}
     >
       <div className=" h-full w-full max-md2:mt-28 max-md2:mb-24">
         <div>
