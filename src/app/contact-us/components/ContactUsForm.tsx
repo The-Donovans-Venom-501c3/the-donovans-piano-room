@@ -64,11 +64,11 @@ export default function ContactUsForm() {
         {error && <p>{error}</p>}
       </div>
       <div className="flex flex-col items-end justify-center md:flex-row">
-        <div className="mb-10 w-full md:mb-0 md:mr-10 md:w-1/2">
+        <div className="mb-10 w-full md:mb-0 md:mr-10 md:w-1/4">
 
           <div className="mb-8 flex flex-col items-start">
             <h2 className="mb-8 text-6xl font-semibold">Get in touch</h2>
-            <p className="md:w-2/3 text-xl">
+            <p className="md:w-full text-xl">
               Have any questions, concerns, or need assistance? Fill out the form
               below and one of our representatives will reach out to you in a timely
               manner.
@@ -116,7 +116,7 @@ export default function ContactUsForm() {
             </div>
           </form>
         </div>
-        <div className="relative bottom-[5vh] w-full rounded-2xl bg-yellow-500 text-primary-brown md:w-1/3">
+        <div className="relative bottom-[6vh] w-full rounded-2xl bg-yellow-500 text-primary-brown md:w-1/5">
           <div className="p-5 font-medium">
             <div className="mb-5 flex">
               <Image src="/Info.svg" width={25} height={100} alt="Info" />

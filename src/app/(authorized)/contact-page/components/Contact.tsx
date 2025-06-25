@@ -45,7 +45,7 @@ export default function Contact() {
   return (
     <div
       className="relative w-[45vw] h-[60vh]"
-      style={isNavOpen ? { width: '68vw', height: '60vh' } : { width: '90vw', height: '55vh' }}
+      style={isNavOpen ? { width: '50vw', height: '55vh' } : { width: '80vw', height: '50vh' }}
     >
       <div className=" h-full w-full max-md2:mt-28 max-md2:mb-24">
         <div>
@@ -72,11 +72,11 @@ export default function Contact() {
         </div>
 
         <div className="flex flex-col items-end justify-center md:flex-row">
-          <div className="relative bottom-[8vh] mb-10 w-full md:mb-0 md:mr-10 md:w-1/2">
+          <div className="relative bottom-[5vh] mb-10 w-[384px] md:mb-0 md:mr-10">
 
             <div className="mb-8 flex flex-col items-start">
               <h2 className="mb-8 text-6xl font-semibold">Get in touch</h2>
-              <p className="md:w-2/3 text-xl">
+              <p className="md:w-full text-xl">
                 Have any questions, concerns, or need assistance? Fill out the form
                 below and one of our representatives will reach out to you in a timely
                 manner.
@@ -124,7 +124,7 @@ export default function Contact() {
               </div>
             </form>
           </div>
-          <div className="relative bottom-[15vh] w-full rounded-2xl bg-yellow-500 text-primary-brown md:w-1/3">
+          <div className="relative bottom-[10vh] w-[355px] rounded-2xl bg-yellow-500 text-primary-brown">
             <div className="p-5 font-medium">
               <div className="mb-5 flex">
                 <Image src="/Info.svg" width={25} height={100} alt="Info" />
