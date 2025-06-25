@@ -45,13 +45,13 @@ export default function Contact() {
   return (
     <div
       className="relative w-[45vw] h-[60vh]"
-      style={isNavOpen ? { width: '50vw', height: '60vh' } : { width: '80vw', height: '55vh' }}
+      style={isNavOpen ? { width: '70vw', height: '57vh' } : { width: '80vw', height: '55vh' }}
     >
       <div className=" h-full w-full max-md2:mt-28 max-md2:mb-24">
         <div>
           {submitted && (
             <div className="my-8">
-              <div className="flex items-center rounded-md bg-secondary-yellow p-3 shadow-md">
+              <div className="relative bottom-40 flex items-center rounded-md bg-secondary-yellow p-3 shadow-md">
                 <Image
                   src="/about/membership/Icon-include.svg"
                   width={20}
