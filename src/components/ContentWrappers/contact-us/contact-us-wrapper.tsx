@@ -10,17 +10,17 @@ export default function ContactUsContentWrapper({children, openedLink = ""}: {ch
       <Navbar4Left openedLink={nav4leftLinks.contactUs} />
 
       {/* Main content area */}
-      <div className="w-full relative">
-        {/* Background between yellow and children */}
-        <div className="absolute inset-0 z-0">
-          <BackgroundContactUs />
-        </div>
-
-        <div className="h-[80.8vh] flex justify-center items-end relative z-10 pt-16"> {/* Add padding-top */}
+      <div className="w-full relative z-10">
+        <div className="h-[80.8vh] flex justify-center items-end pt-16">
           <div className="w-[84.7%] relative">
             {children}
           </div>
         </div>
+      </div>
+
+      {/* Background fixed to right side of screen */}
+      <div className="absolute top-0 right-0 bottom-0 w-full z-0 pointer-events-none">
+        <BackgroundContactUs />
       </div>
     </div>
   );
