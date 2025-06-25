@@ -16,11 +16,6 @@ export default function ContactUs() {
     </div> */
 
     <div className="flex w-screen h-screen">
-      {/* Sidebar */ }
-      <div className="w-[80px] bg-purple-700">
-        <Navbar4Left openedLink={nav4leftLinks.contactUs} />
-      </div>
-
       {/* Main Content Wrapper with styling */ }
       <div className="flex-1 flex flex-col">
         {/* Top Content Section */ }
