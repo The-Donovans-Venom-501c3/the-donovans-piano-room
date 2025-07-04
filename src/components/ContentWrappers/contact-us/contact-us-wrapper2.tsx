@@ -2,7 +2,7 @@ import React from 'react'
 import BackgroundContactUs from './background-contact-us'
 import { nav4leftLinks } from "@/utils/stores";
 import Navbar4Left from "../../navbars/Navbar4Left";
-import Footer3 from "@/components/footers/Footer3";
+import Footer5 from "@/components/footers/Footer5";
 
 export default function ContactUsContentWrapper({ children, openedLink = "" }: { children: React.ReactNode, openedLink?: string }) {
   return (
@@ -15,11 +15,11 @@ export default function ContactUsContentWrapper({ children, openedLink = "" }: {
         <div className="h-[80.8vh] flex justify-center items-end pt-16">
           <div className="w-full relative">
             {children}
- {/* Footer */ }
-        <div className="bg-yellow-400">
-          <Footer3 />
-        </div>
           </div>
+        </div>
+        {/* Footer */ }
+        <div className="absolute bottom-0 w-full">
+          <Footer5 />
         </div>
       </div>
 
