@@ -7,21 +7,27 @@ import { bookInterface } from "@/interfaces/bookInterface";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAtom, useSetAtom } from "jotai";
 import { addedCartItemAtom, addedCartItemsAtom, useCartOperations } from "@/store/cartStore";
-
+import { addCart } from "@/lib/api/orderService";
 
 export default function BookItem({ book }: { book: bookInterface }) {
   const [loading, setLoading] = useState(false);
   const [addedCartItems] = useAtom(addedCartItemsAtom);
   const { addToCart } = useCartOperations();
   const setAddedCartItem = useSetAtom(addedCartItemAtom);
-  const handleAddToCart = () => {
-    setLoading(true);
-    setTimeout(() => {
-      addToCart(book, 1);
-      setLoading(false);
-      setAddedCartItem(book);
-    }, 2000);
-  };
+  const handleAddToCart = async () => {
+  setLoading(true);
+  try {
+    await addCart({ items: [{ id: book.id, quantity: 1 }] }); 
+    addToCart(book, 1);
+    setAddedCartItem(book);
+  } catch (error) {
+    console.error("Add to cart failed:", error);
+    alert("Failed to add to cart. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+  
   const isAdded = useMemo(
     () => addedCartItems.find((item) => item.id === book.id),
     [book, addedCartItems],
