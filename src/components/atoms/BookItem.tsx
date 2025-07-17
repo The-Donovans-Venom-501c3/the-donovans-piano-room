@@ -7,26 +7,53 @@ import { bookInterface } from "@/interfaces/bookInterface";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAtom, useSetAtom } from "jotai";
 import { addedCartItemAtom, addedCartItemsAtom, useCartOperations } from "@/store/cartStore";
-import { addCart } from "@/lib/api/orderService";
+import { addCart, getCart } from "@/lib/api/orderService";
 
 export default function BookItem({ book }: { book: bookInterface }) {
   const [loading, setLoading] = useState(false);
   const [addedCartItems] = useAtom(addedCartItemsAtom);
   const { addToCart } = useCartOperations();
   const setAddedCartItem = useSetAtom(addedCartItemAtom);
-  const handleAddToCart = async () => {
-  setLoading(true);
-  try {
-    await addCart({ items: [{ id: book.id, quantity: 1 }] }); 
-    addToCart(book, 1);
-    setAddedCartItem(book);
-  } catch (error) {
-    console.error("Add to cart failed:", error);
-    alert("Failed to add to cart. Please try again.");
-  } finally {
-    setLoading(false);
+  interface CartItem {
+    id: string;
+    quantity: number;
   }
-};
+
+  interface Cart {
+    items: CartItem[];
+  }
+
+  const handleAddToCart = async () => {
+    setLoading(true);
+    try {
+      let currentCart: Cart = { items: [] };
+
+      try {
+        const cartRes = await getCart();
+        currentCart = (cartRes.cart ?? { items: [] }) as Cart;
+      } catch (e) {
+        currentCart = { items: [] };
+      }
+
+      const existingItemIndex = currentCart.items.findIndex(item => item.id === book.id);
+
+      if (existingItemIndex !== -1) {
+        currentCart.items[existingItemIndex].quantity += 1;
+      } else {
+        currentCart.items.push({ id: book.id, quantity: 1 });
+      }
+
+      await addCart({ cart: currentCart });
+
+      addToCart(book, 1);
+      setAddedCartItem(book);
+    } catch (error) {
+      console.error("Add to cart failed:", error);
+      alert("Failed to add to cart. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const isAdded = useMemo(
     () => addedCartItems.find((item) => item.id === book.id),

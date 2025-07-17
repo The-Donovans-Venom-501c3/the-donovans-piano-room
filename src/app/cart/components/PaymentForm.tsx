@@ -3,7 +3,9 @@
 import { useState } from "react";
 import ShippingForm from "./ShippingForm";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { createOrder, captureOrder, addCart } from "@/lib/api/orderService";
+import { createOrder, captureOrder } from "@/lib/api/orderService";
+import { useAtomValue } from "jotai";
+import { addedCartItemsAtom } from "@/store/cartStore";
 
 export default function PaymentPage({ onBillingAddressFilled }: { onBillingAddressFilled: (billing: any) => void }) {
   const [billing, setBilling] = useState({
@@ -16,6 +18,7 @@ export default function PaymentPage({ onBillingAddressFilled }: { onBillingAddre
     zip: "",
   });
 
+  const cartItems = useAtomValue(addedCartItemsAtom);
   const [isShippingValid, setIsShippingValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -121,36 +124,27 @@ export default function PaymentPage({ onBillingAddressFilled }: { onBillingAddre
           {/* ✅ Show PayPal button only after billing info is filled */}
           {hasBillingInput && (
             <PayPalButtons
-              style={{ layout: "vertical", color: "gold", shape: "pill", label: "pay", height: 45 }}
               createOrder={async () => {
-                setIsLoading(true);
                 try {
-                  await addCart({ billing }); // Optional pre-check
-
-                  const order = await createOrder(billing);
-                  return order.id; // Return the orderId to PayPal
+                  const order = await createOrder({ cart: cartItems });
+                  return order.id;
                 } catch (err) {
                   console.error("Failed to create order:", err);
-                  alert("Failed to create order. Please try again later.");
-                  return ""; // Prevent error from propagating
-                } finally {
-                  setIsLoading(false);
+                  alert("Failed to create order");
+                  return "";
                 }
               }}
               onApprove={async (data) => {
-                setIsLoading(true);
                 try {
-                  const result = await captureOrder(data.orderID);
-                  console.log("Order successfully captured:", result);
-                  onBillingAddressFilled(billing); // You can redirect or show success here
+                  await captureOrder(data.orderID);
+                  alert("Payment successful!");
                 } catch (err) {
-                  console.error("Order capture failed:", err);
-                  alert("Payment failed. Please contact support.");
-                } finally {
-                  setIsLoading(false);
+                  console.error("Capture failed:", err);
+                  alert("Payment capture failed");
                 }
               }}
             />
+
           )}
 
         </div>
