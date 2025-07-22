@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useMemo, useState } from "react";
 import Button3 from "@/components/atoms/Button3";
 import { useAtomValue } from "jotai";
@@ -8,11 +6,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import InputForm from "@/components/atoms/form-input";
 import { createOrder, captureOrder } from "@/lib/api/orderService";
 
-export default function PaymentCard({
-  onCheckoutPayPalClick,
-}: {
-  onCheckoutPayPalClick: () => void;
-}) {
+export default function PaymentCard() {
   const addedCartItems = useAtomValue(addedCartItemsAtom);
   const [showPayPalButtons, setShowPayPalButtons] = useState(false);
   const [bookCoupon, setBookCoupon] = useState("");
@@ -24,11 +18,6 @@ export default function PaymentCard({
     });
     return total;
   }, [addedCartItems]);
-
-  const handleCheckOutWithPayPalClick = () => {
-    setShowPayPalButtons(true);
-    onCheckoutPayPalClick();
-  };
 
   return (
     <div className="flex flex-col rounded-[12px] bg-white p-[32px] gap-[1vh] shadow-md tablet:w-full laptop:w-[45%] h-full mt-6">
@@ -81,7 +70,7 @@ export default function PaymentCard({
               </div>
             }
             style={{ height: "40px", fontSize: "1.5rem" }}
-            onClick={handleCheckOutWithPayPalClick}
+            onClick={() => setShowPayPalButtons(true)}
           />
         ) : (
           <PayPalScriptProvider
