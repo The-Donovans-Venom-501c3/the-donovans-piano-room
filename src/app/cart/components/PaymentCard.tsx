@@ -92,12 +92,12 @@ export default function PaymentCard({
           >
             <PayPalButtons
               style={{
-    shape: "pill",
-    color: "gold",
-    layout: "vertical",
-    label: "paypal",
-    height: 40,
-  }}
+                shape: "pill",
+                color: "gold",
+                layout: "vertical",
+                label: "paypal",
+                height: 40,
+              }}
               createOrder={async () => {
                 const order = await createOrder({
                   items: addedCartItems,

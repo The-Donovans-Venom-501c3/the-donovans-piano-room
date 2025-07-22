@@ -21,7 +21,7 @@
     "@libsql/client": "^0.4.3",
     "@mui/icons-material": "^5.15.14",
     "@mui/material": "^5.15.14",
-    "@paypal/react-paypal-js": "^8.8.3",
+    "@paypal/react-paypal-js": "^8.5.0",
     "dayjs": "^1.11.12",
     "drizzle-orm": "^0.29.3",
     "file-loader": "^6.2.0",
