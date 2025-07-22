@@ -15,63 +15,58 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface; index: n
     <div className="w-full tablet:w-full laptop:w-full rounded-[12px] p-8">
       <div className="flex flex-row items-center gap-6 h-auto tablet:h-auto laptop:h-auto">
         {/* Image Section */}
-         <div className="relative h-[28vh] w-[14vw] overflow-hidden">
-        <Image
-          src={book.imageSrc}
-          alt="Book Cover"
-          fill
-          className="absolute w-full h-full left-0 top-0 rounded-[12px]"
-          style={{ objectFit: "cover", margin: 0, padding: 0 }}
-        />
-      </div>
-
-
+        <div className="relative h-[28vh] w-[14vw] overflow-hidden">
+          <Image
+            src={book.imageSrc}
+            alt="Book Cover"
+            fill
+            className="absolute w-full h-full left-0 top-0 rounded-[12px]"
+            style={{ objectFit: "cover", margin: 0, padding: 0 }}
+          />
+        </div>
 
         {/* Text and Details Section */}
         <div className="flex flex-col justify-between flex-grow h-full">
-          {/* 标题和选择区域 */}
           <div className="flex flex-row justify-between items-start w-full mb-48">
             {/* Title Section */}
-                    <div className="flex flex-col gap-[15px]">
-  <h3 className="font-montserrat font-bold text-2xl 3xl:text-3xl 4xl:text-7xl text-primary-brown">
-    The Donovan <br />
-    <span className="whitespace-nowrap">
-      Piano Room {book.title}
-    </span>
-  </h3>
-   <span className="font-roboto font-semibold text-xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
-    ${book.price}.00
-  </span>
-</div>
-
+            <div className="flex flex-col gap-[15px]">
+              <h3 className="font-montserrat font-bold text-2xl 3xl:text-3xl 4xl:text-7xl text-primary-brown">
+                The Donovan <br />
+                <span className="whitespace-nowrap">
+                  Piano Room {book.title}
+                </span>
+              </h3>
+              <span className="font-roboto font-semibold text-xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
+                ${book.price}.00
+              </span>
+            </div>
 
             {/* Quantity + Price Section */}
-<div className="flex flex-row items-start gap-6 justify-end w-full">
-  {/* Quantity Dropdown */}
-  <select
-    value={book.quantity}
-    onChange={(e) => updateQuantity(book.id, Number(e.target.value))}
-    className="border-2 border-primary-purple rounded-[8px] px-3 py-1 font-roboto font-bold text-lg text-primary-purple cursor-pointer w-[54px] h-[44px]"
-  >
-    {Array.from({ length: 10 }, (_, i) => (
-      <option key={i + 1} value={i + 1}>
-        {i + 1}
-      </option>
-    ))}
-  </select>
+            <div className="flex flex-row items-start gap-6 justify-end w-full">
+              {/* Quantity*/}
+              <select
+                value={book.quantity}
+                onChange={(e) => updateQuantity(book.id, Number(e.target.value))}
+                className="border-2 border-primary-purple rounded-[8px] px-3 py-1 font-roboto font-bold text-lg text-primary-purple cursor-pointer w-[54px] h-[44px]"
+              >
+                {Array.from({ length: 10 }, (_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
 
-  {/* Price */}
-<div className="flex flex-col items-end p-2 w-[60px] h-[68px]">
-  <span className="font-roboto font-semibold text-2xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
-    ${book.price}.00
-  </span>
-</div>
-
-</div>
+              {/* Price */}
+              <div className="flex flex-col items-end p-2 w-[60px] h-[68px]">
+                <span className="font-roboto font-semibold text-2xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
+                  ${book.price}.00
+                </span>
+              </div>
+            </div>
 
           </div>
 
-          {/* 底部按钮区域 */}
+          {/* bottom button */}
           <div className="flex flex-row items-center gap-10">
             <div
               className="flex flex-row items-center gap-2 cursor-pointer"
@@ -87,7 +82,7 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface; index: n
 
             <div
               className="flex flex-row items-center gap-2 cursor-pointer"
-              // onClick={saveForLater} 
+            // onClick={saveForLater} 
             >
               <span className="font-roboto font-bold text-xl 3xl:text-2xl 4xl:text-3xl text-primary-purple underline">
                 Save for Later
