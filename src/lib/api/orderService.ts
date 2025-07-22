@@ -1,16 +1,16 @@
-
-export async function createOrder(billingData: any) {
+export async function createOrder(cart: { items: any[], total: number }) {
   const res = await fetch("/api/orders/cart/order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ billing: billingData }),
+    body: JSON.stringify({ cart }),
   });
   if (!res.ok) {
     throw new Error("Failed to create order");
   }
   const data = await res.json();
-  return data; 
+  return data;
 }
+
 
 export async function captureOrder(orderId: string) {
   const res = await fetch(`/api/orders/cart/${orderId}/capture`, {

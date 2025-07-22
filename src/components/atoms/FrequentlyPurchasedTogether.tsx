@@ -7,7 +7,7 @@ export default function FrequentlyPurchasedTogether() {
     {
       "id": "b001",
       "title": "BOOK I",
-      "price": 15,
+      "price": 25,
       "color": "#F6AD69",
       "titleColor": "#B5511A",
       "imageSrc": "https://raw.githubusercontent.com/The-Donovans-Venom-501c3/svg-image-server/main/tdpr/books/with-bg/softCover-books/softCover-Book-1.svg",
@@ -18,7 +18,7 @@ export default function FrequentlyPurchasedTogether() {
     {
       "id": "b002",
       "title": "BOOK II",
-      "price": 15,
+      "price": 25,
       "color": "#F9D867",
       "titleColor": "#BC8212",
       "imageSrc": "https://raw.githubusercontent.com/The-Donovans-Venom-501c3/svg-image-server/main/tdpr/books/with-bg/softCover-books/softCover-Book-2.svg",

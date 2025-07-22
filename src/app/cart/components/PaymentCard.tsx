@@ -2,17 +2,20 @@
 
 import React, { useMemo, useState } from "react";
 import Button3 from "@/components/atoms/Button3";
-import Button4 from "@/components/atoms/Button4";
 import { useAtomValue } from "jotai";
 import { addedCartItemsAtom } from "@/store/cartStore";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import InputForm from "@/components/atoms/form-input";
+import { createOrder, captureOrder } from "@/lib/api/orderService";
 
 export default function PaymentCard({
-  onCheckoutCreditCardClick,
+  onCheckoutPayPalClick,
 }: {
-  onCheckoutCreditCardClick: () => void;
+  onCheckoutPayPalClick: () => void;
 }) {
   const addedCartItems = useAtomValue(addedCartItemsAtom);
-  const [checkoutStarted, setCheckoutStarted] = useState(false);
+  const [showPayPalButtons, setShowPayPalButtons] = useState(false);
+  const [bookCoupon, setBookCoupon] = useState("");
 
   const cartItemsPrice = useMemo(() => {
     let total = 0.0;
@@ -22,14 +25,16 @@ export default function PaymentCard({
     return total;
   }, [addedCartItems]);
 
-  const handleCreditCardClick = () => {
-    setCheckoutStarted(true);
-    onCheckoutCreditCardClick();
+  const handleCheckOutWithPayPalClick = () => {
+    setShowPayPalButtons(true);
+    onCheckoutPayPalClick();
   };
 
   return (
-    <div className="flex flex-col rounded-[12px] bg-white p-[32px] gap-[1vh] shadow-md tablet:w-full laptop:w-[45%] h-full">
-      <h4 className="font-roboto text-4xl font-semibold leading-[28px] text-[#59371D]">Order Summary</h4>
+    <div className="flex flex-col rounded-[12px] bg-white p-[32px] gap-[1vh] shadow-md tablet:w-full laptop:w-[45%] h-full mt-6">
+      <h4 className="font-roboto text-4xl font-semibold leading-[28px] text-[#59371D]">
+        Order Summary
+      </h4>
 
       <div className="flex flex-col gap-[1vh]">
         <div className="flex justify-between">
@@ -47,23 +52,71 @@ export default function PaymentCard({
         </div>
       </div>
 
-      <div className="flex flex-col gap-[16px] mt-[6%]">
-        {!checkoutStarted ? (
-          <>
-            <Button3
-              text="Check out with Credit Card"
-              style={{ height: "40px", fontSize: "1.5rem" }}
-              onClick={handleCreditCardClick}
+      <div className="flex flex-col gap-[16px] mt-8">
+        <div className="flex flex-row items-center gap-[24px] w-full mb-8">
+          <div className="flex-1">
+            <InputForm
+              field={{ label: "Coupon code", name: "coupon-field", type: "text" }}
+              onChange={(e: any) => setBookCoupon(e.target.value)}
+              text={bookCoupon}
+              error=""
             />
-            <Button4 text="Check out with PayPal" style={{ height: "40px", fontSize: "1.5rem" }} />
-            <Button4 text="Check out with Venmo" style={{ height: "40px", fontSize: "1.5rem" }} />
-          </>
-        ) : (
+          </div>
+
           <button
-            className="px-6 py-2 rounded-full text-[1.5rem] font-bold bg-purple-800 text-white transition-colors duration-200"
+            type="button"
+            onClick={() => console.log("Apply Coupon:", bookCoupon)}
+            className="text-[#6F219E] text-[1.6rem] underline font-bold hover:text-[#4E0B76] transition-colors"
           >
-            Proceed to checkout
+            Apply Coupon
           </button>
+        </div>
+
+        {!showPayPalButtons ? (
+          <Button3
+            text={
+              <div className="flex items-center justify-center gap-3">
+                <span>Check out with PayPal</span>
+                <img src="/cart/payPal_icon.svg" alt="PayPal" className="h-8 w-auto" />
+              </div>
+            }
+            style={{ height: "40px", fontSize: "1.5rem" }}
+            onClick={handleCheckOutWithPayPalClick}
+          />
+        ) : (
+          <PayPalScriptProvider
+            options={{
+              clientId:
+                "AQTLR4qk4C3cDL7oMT6GN8oxoQ-pySBWicypWAAAELk1f5YD8Yx1dt5DXSVQJX9raTMWx3va9ebXhREW",
+            }}
+          >
+            <PayPalButtons
+              style={{
+    shape: "pill",
+    color: "gold",
+    layout: "vertical",
+    label: "paypal",
+    height: 40,
+  }}
+              createOrder={async () => {
+                const order = await createOrder({
+                  items: addedCartItems,
+                  total: cartItemsPrice + 3,
+                });
+                return order.id;
+              }}
+              onApprove={async (data, actions) => {
+                try {
+                  const result = await captureOrder(data.orderID);
+                  alert("Payment successful!");
+                  console.log("Captured result:", result);
+                } catch (error) {
+                  console.error("Capture failed:", error);
+                  alert("Something went wrong during payment capture.");
+                }
+              }}
+            />
+          </PayPalScriptProvider>
         )}
       </div>
     </div>
