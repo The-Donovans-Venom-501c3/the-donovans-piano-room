@@ -1,7 +1,9 @@
 export async function createOrder(cart: { items: any[], total: number }) {
+  console.log("📤 Sending to backend:", JSON.stringify({ cart }, null, 2));//check Json
   const res = await fetch("/api/orders/cart/order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ cart }),
   });
   if (!res.ok) {
@@ -27,6 +29,7 @@ export async function addCart(cartData: any) {
   const res = await fetch("/api/cart/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(cartData),
   });
   if (!res.ok) {

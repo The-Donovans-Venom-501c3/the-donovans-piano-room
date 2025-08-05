@@ -4,7 +4,7 @@ import { useAtomValue } from "jotai";
 import { addedCartItemsAtom } from "@/store/cartStore";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import InputForm from "@/components/atoms/form-input";
-import { createOrder, captureOrder } from "@/lib/api/orderService";
+import { createOrder, captureOrder, addCart, getCart } from "@/lib/api/orderService";
 
 export default function PaymentCard() {
   const addedCartItems = useAtomValue(addedCartItemsAtom);
@@ -76,7 +76,7 @@ export default function PaymentCard() {
           <PayPalScriptProvider
             options={{
               clientId:
-                "AQTLR4qk4C3cDL7oMT6GN8oxoQ-pySBWicypWAAAELk1f5YD8Yx1dt5DXSVQJX9raTMWx3va9ebXhREW",
+                "Ab-ZnNpCpMapofNSWLngt911ZgzpZMAZ2BozOp8Wj0V83OGyu2Ypui6zYGYT5PWSrAQNxZunuRFYr35F",
             }}
           >
             <PayPalButtons
@@ -87,14 +87,25 @@ export default function PaymentCard() {
                 label: "paypal",
                 height: 40,
               }}
-              createOrder={async () => {
-                const order = await createOrder({
-                  items: addedCartItems,
-                  total: cartItemsPrice + 3,
-                });
-                return order.id;
-              }}
-              onApprove={async (data, actions) => {
+                createOrder={async () => {
+                  const simplifiedItems = addedCartItems.map((item) => ({
+                    product_id: item.id,
+                    name: item.title,
+                    quantity: item.quantity,
+                    price: item.price,
+                  }));
+
+                  const cartData = {
+                    items: simplifiedItems,
+                    total: parseFloat((cartItemsPrice + 3).toFixed(2)),
+                  };
+
+                  await addCart({ cart: cartData });
+                  await getCart(); 
+                  const order = await createOrder(cartData);
+                  return order.id;
+                }}
+                onApprove={async (data, actions) => {
                 try {
                   const result = await captureOrder(data.orderID);
                   alert("Payment successful!");
