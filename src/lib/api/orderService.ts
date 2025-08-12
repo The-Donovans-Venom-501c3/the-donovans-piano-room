@@ -39,12 +39,15 @@ export async function addCart(cartData: any) {
 }
 
 export async function getCart() {
-  const res = await fetch("/api/cart/get");
+  const res = await fetch("/api/cart/get", {
+    credentials: "include", 
+  });
   if (!res.ok) {
     throw new Error("Failed to get cart");
   }
   return await res.json();
 }
+
 
 export async function mergeCart(guestCartData: any) {
   const res = await fetch("/api/cart/merge", {

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import Button3 from "@/components/atoms/Button3";
-import { useAtomValue } from "jotai";
-import { addedCartItemsAtom } from "@/store/cartStore";
+import { useAtom, useAtomValue } from "jotai";
+import { addedCartItemsAtom, paymentSuccessAtom, orderIdAtom } from "@/store/cartStore";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import InputForm from "@/components/atoms/form-input";
 import { createOrder, captureOrder, addCart, getCart } from "@/lib/api/orderService";
@@ -11,12 +11,11 @@ export default function PaymentCard() {
   const [showPayPalButtons, setShowPayPalButtons] = useState(false);
   const [bookCoupon, setBookCoupon] = useState("");
 
+  const [, setPaymentSuccess] = useAtom(paymentSuccessAtom);
+  const [, setOrderId] = useAtom(orderIdAtom);
+
   const cartItemsPrice = useMemo(() => {
-    let total = 0.0;
-    addedCartItems.forEach((item) => {
-      total += item.price * item.quantity;
-    });
-    return total;
+    return addedCartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   }, [addedCartItems]);
 
   return (
@@ -75,8 +74,8 @@ export default function PaymentCard() {
         ) : (
           <PayPalScriptProvider
             options={{
-              clientId:
-                "Ab-ZnNpCpMapofNSWLngt911ZgzpZMAZ2BozOp8Wj0V83OGyu2Ypui6zYGYT5PWSrAQNxZunuRFYr35F",
+              clientId: "Ab-ZnNpCpMapofNSWLngt911ZgzpZMAZ2BozOp8Wj0V83OGyu2Ypui6zYGYT5PWSrAQNxZunuRFYr35F",
+            "enable-funding": "venmo,card",
             }}
           >
             <PayPalButtons
@@ -87,28 +86,28 @@ export default function PaymentCard() {
                 label: "paypal",
                 height: 40,
               }}
-                createOrder={async () => {
-                  const simplifiedItems = addedCartItems.map((item) => ({
-                    product_id: item.id,
-                    name: item.title,
-                    quantity: item.quantity,
-                    price: item.price,
-                  }));
+              createOrder={async () => {
+                const simplifiedItems = addedCartItems.map((item) => ({
+                  product_id: item.id,
+                  name: item.title,
+                  quantity: item.quantity,
+                  price: item.price,
+                }));
 
-                  const cartData = {
-                    items: simplifiedItems,
-                    total: parseFloat((cartItemsPrice + 3).toFixed(2)),
-                  };
+                const cartData = {
+                  items: simplifiedItems,
+                  total: parseFloat((cartItemsPrice + 3).toFixed(2)),
+                };
 
-                  await addCart({ cart: cartData });
-                  await getCart(); 
-                  const order = await createOrder(cartData);
-                  return order.id;
-                }}
-                onApprove={async (data, actions) => {
+                await addCart({ cart: cartData });
+                const order = await createOrder(cartData);
+                return order.id;
+              }}
+              onApprove={async (data) => {
                 try {
                   const result = await captureOrder(data.orderID);
-                  alert("Payment successful!");
+                  setOrderId(result.id);       
+                  setPaymentSuccess(true);    
                   console.log("Captured result:", result);
                 } catch (error) {
                   console.error("Capture failed:", error);
@@ -116,6 +115,16 @@ export default function PaymentCard() {
                 }
               }}
             />
+             <PayPalButtons
+      fundingSource="venmo"
+      style={{
+        shape: "pill",
+        color: "blue",
+        layout: "vertical",
+        label: "venmo",
+        height: 40,
+      }}
+      />
           </PayPalScriptProvider>
         )}
       </div>
