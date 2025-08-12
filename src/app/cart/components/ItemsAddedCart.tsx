@@ -1,5 +1,5 @@
 import React from "react";
-import PaymentCard from "./PaymentCard";
+import LogInCard from "./LogInCard";
 import ListedItemCard from "./ListedItemCard";
 import { useAtom } from "jotai";
 import { addedCartItemsAtom } from "@/store/cartStore";
@@ -28,7 +28,7 @@ export default function ItemsAddedCart() {
           </div>
         </div>
       </div>
-      <PaymentCard />
+      <LogInCard />
     </div>
   );
 }
