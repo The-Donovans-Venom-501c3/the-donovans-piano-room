@@ -13,14 +13,14 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface; index: n
 
   return (
     <div className="w-full tablet:w-full laptop:w-full rounded-[12px] p-8">
-      <div className="flex flex-row items-center gap-6 h-auto tablet:h-auto laptop:h-auto">
+      <div className="flex flex-row items-center gap-10 h-auto tablet:h-auto laptop:h-auto">
         {/* Image Section */}
-        <div className="relative h-[28vh] w-[14vw] overflow-hidden">
+        <div className="relative h-[24vh] w-[8vw]">
           <Image
-            src={book.imageSrc}
+            src={book.coverImageSrc}
             alt="Book Cover"
             fill
-            className="absolute w-full h-full left-0 top-0 rounded-[12px]"
+            className="absolute w-full h-full rounded-[12px]"
             style={{ objectFit: "cover", margin: 0, padding: 0 }}
           />
         </div>

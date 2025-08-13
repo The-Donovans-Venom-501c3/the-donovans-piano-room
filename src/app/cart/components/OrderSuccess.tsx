@@ -44,14 +44,12 @@ export default function OrderSuccess({ orderId }: { orderId: string }) {
           />
         </div>
         <div className="flex justify-center items-center gap-8 mt-12">
-          <div className="flex justify-center items-center gap-8">
-            <div className="aspect-[3/4] w-64 overflow-hidden rounded-[12px]">
+          <div className="flex w-[10%] justify-center items-center gap-8">
               <img
-                src={product.imageSrc}
+                src={product.coverImageSrc}
                 alt={product.title}
                 className="w-full h-full object-cover scale-105"
               />
-            </div>
           </div>
           <div className="text-left">
             <p className="font-bold text-2xl text-[#4B2A16] mb-2">

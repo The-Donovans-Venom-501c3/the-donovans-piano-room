@@ -74,7 +74,7 @@ export default function PaymentCard() {
         ) : (
           <PayPalScriptProvider
             options={{
-              clientId: "Ab-ZnNpCpMapofNSWLngt911ZgzpZMAZ2BozOp8Wj0V83OGyu2Ypui6zYGYT5PWSrAQNxZunuRFYr35F",
+              clientId: "AQU1gu7Wg-9FB2ehd5J4VmBEWwwkdoakf_h2iR7VZSLeI0RpaJNSMJbQ0bsAoD7erBM6ZsfOIN00kec1",
             "enable-funding": "venmo,card",
             }}
           >
@@ -115,16 +115,6 @@ export default function PaymentCard() {
                 }
               }}
             />
-             <PayPalButtons
-      fundingSource="venmo"
-      style={{
-        shape: "pill",
-        color: "blue",
-        layout: "vertical",
-        label: "venmo",
-        height: 40,
-      }}
-      />
           </PayPalScriptProvider>
         )}
       </div>
