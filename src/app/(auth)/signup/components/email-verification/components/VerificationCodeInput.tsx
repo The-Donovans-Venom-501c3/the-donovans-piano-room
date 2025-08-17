@@ -1,6 +1,6 @@
 // src/app/signup/email-verification/components/VerificationCodeInput.tsx
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface VerificationCodeInputProps {
     verificationCode: string[];
@@ -16,32 +16,53 @@ export default function VerificationCodeInput({
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const newVerificationCode = [...verificationCode]
         const value = event.target.value
-        console.log(value)
-        if(/^\d?$/.test(value)){
+        console.log(value, 'value')
+        if (/^\d?$/.test(value)) {
             newVerificationCode[index] = value
             setVerificationCode(newVerificationCode)
 
-            if(value !== '' && index < inputRefs.current.length - 1){
+            if (value !== '' && index < inputRefs.current.length - 1) {
                 inputRefs.current[index + 1]?.focus()
             }
             console.log(newVerificationCode)
         }
-        
+
     }
-    const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) =>{
-        if(event.key ==='Backspace'){
+    const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Backspace') {
             console.log("Index ", index)
             const newVerificationCode = [...verificationCode];
-            if(newVerificationCode[index] === ''){
-                if (index >0){
+            if (newVerificationCode[index] === '') {
+                if (index > 0) {
                     inputRefs.current[index - 1]?.focus()
                 }
-            }else {
+            } else {
                 newVerificationCode[index] = ''
                 setVerificationCode(newVerificationCode)
             }
         }
     }
+
+    const handlePaste = (index: number, event: React.ClipboardEvent<HTMLInputElement>) => {
+        event.preventDefault();
+        const pastedData = event.clipboardData.getData('text/plain').trim();
+        const digits = pastedData.split("").filter((char: string) => !isNaN(Number(char))).slice(0, verificationCode.length);
+        const newVerificationCode = [...verificationCode];
+        digits.forEach((digit: string, i: number) => {
+            newVerificationCode[i] = digit;
+            const inputref = inputRefs.current[i];
+            if (inputref) {
+                inputref.value = digit;
+            }
+        });
+        setVerificationCode(newVerificationCode);
+        const nextIndex = digits.length < verificationCode.length ? digits.length : verificationCode.length - 1;
+        inputRefs.current[nextIndex]?.focus();
+
+    }
+    useEffect(() => {
+        inputRefs.current[0]?.focus();
+    }, [])
 
     return (
         <div className='flex gap-2 w-full justify-between mb-7'>
@@ -53,7 +74,8 @@ export default function VerificationCodeInput({
                     type='text'
                     value={code}
                     onChange={(e) => handleChange(index, e)}
-                    onKeyDown={(e) => handleKeyDown(index, e) }
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={(e) => handlePaste(index, e)}
                     className='focus:bg-white text-center text-2xl 3xl:text-4xl rounded-lg bg-[#FEF8EE] outline-none focus:border-primary-brown border border-primary-brown border 2xl:w-20 4xl:w-24 4xl:h-28 w-16 p-5'
                     required
                 />
