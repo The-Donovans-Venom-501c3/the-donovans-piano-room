@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button3 from "@/components/atoms/Button3";
 import InputForm from "@/components/atoms/form-input";
 import PaymentCard from "./PaymentCard";
@@ -7,11 +7,9 @@ import { login } from "@/lib/api/authService";
 import { getUser } from "@/lib/api/userService";
 import { useSetAtom } from "jotai";
 import { profileAtom } from "@/utils/stores";
-import { useRouter } from 'next/navigation';
 
 export default function LogInCard() {
   const setProfile = useSetAtom(profileAtom);
-  const router = useRouter();
 
   const [showSignIn, setShowSignIn] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -20,9 +18,25 @@ export default function LogInCard() {
   const [disabled, setDisabled] = useState(true);
 
   // Control button disabled state based on email and password input
-  React.useEffect(() => {
+  useEffect(() => {
     setDisabled(!(email && password));
   }, [email, password]);
+
+  // check if user is log in
+  useEffect(() => {
+    async function checkLogin() {
+      try {
+        const { data, ok } = await getUser();
+        if (ok && data?.id) {
+          setProfile(data);
+          setShowPayment(true); 
+        }
+      } catch (err) {
+        console.error("Failed to check login:", err);
+      }
+    }
+    checkLogin();
+  }, [setProfile]);
 
   // Fetch user profile data after login
   const fetchUserData = async () => {
@@ -51,8 +65,7 @@ export default function LogInCard() {
       if (ok) {
         const success = await fetchUserData();
         if (success) {
-          // Login successful, show payment page instead of redirecting
-          setShowPayment(true);
+          setShowPayment(true); 
         } else {
           alert("Unable to retrieve user information");
         }
@@ -76,7 +89,6 @@ export default function LogInCard() {
     setShowPayment(true);
   };
 
-  // Show PaymentCard component after successful login
   if (showPayment) {
     return <PaymentCard />;
   }
