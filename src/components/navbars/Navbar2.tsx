@@ -1,13 +1,28 @@
-"use client"
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWithBadge";
 import { profileAtom } from "@/utils/stores";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import Profile from "@/components/atoms/ProfileHome";
+import { getUser } from "@/lib/api/userService";
+import { useEffect } from "react";
 
 export default function Navbar2() {
 const profile = useAtomValue(profileAtom);
+ const setProfile = useSetAtom(profileAtom);
+
+ useEffect(() => {
+    // Function to check login status by fetching user data
+    async function checkLogin() {
+        const { data, ok } = await getUser(); 
+        if (ok && data?.id) {
+          setProfile(data);
+        } 
+    }
+    checkLogin();
+  }, [setProfile]);
+
   return (
     <>
       <nav className="fixed top-0 z-50 h-[9.5vh] w-full border-b-2 border-[#A135E8] py-2 backdrop-blur-sm">
@@ -67,7 +82,7 @@ const profile = useAtomValue(profileAtom);
             <Profile />
           ) : (
             <Link
-              className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
+              className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-yellow-accent px-7 text-xl font-bold text-purple-800 hover:bg-[#E98427] 2xl:text-3xl"
               href="/signup"
             >
               Log in or register

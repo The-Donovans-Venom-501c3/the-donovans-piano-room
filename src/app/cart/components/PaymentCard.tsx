@@ -75,7 +75,7 @@ export default function PaymentCard() {
           <PayPalScriptProvider
             options={{
               clientId: "AQU1gu7Wg-9FB2ehd5J4VmBEWwwkdoakf_h2iR7VZSLeI0RpaJNSMJbQ0bsAoD7erBM6ZsfOIN00kec1",
-            "enable-funding": "venmo,card",
+            "enable-funding": "venmo,card,applepay",
             }}
           >
             <PayPalButtons
