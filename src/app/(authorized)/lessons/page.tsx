@@ -1,7 +1,7 @@
 "use client";
-import AuthorizedWrapper2 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper2"
+import AuthorizedWrapper2 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper2";
 import { authorizedWrapperTitles } from "@/utils/general";
-import { nav4leftLinks } from "@/utils/stores";
+import { guestUser, modalShow, nav4leftLinks } from "@/utils/stores";
 import EbooksComponent from "./components/EbooksComponent";
 import VideosComponent from "./components/VideosComponent";
 import LiveSessionsComponent from "./components/LiveSessionsComponent";
@@ -11,27 +11,27 @@ import VideoDetail from "./components/VideoDetailPage";
 import { useSearchParams } from "next/navigation";
 
 interface NavItem {
-    name: string;
-    id: string;
-    element: React.ReactNode
+  name: string;
+  id: string;
+  element: React.ReactNode;
 }
 
 const sections: NavItem[] = [
-    {
-        name: "E-books",
-        id: "ebooks",
-        element: <EbooksComponent />
-    },
-    {
-        name: "Videos",
-        id: "videos",
-        element: null as any
-    },
-    {
-        name: "Live sessions",
-        id: "live-sessions",
-        element: <LiveSessionsComponent />
-    }
+  {
+    name: "E-books",
+    id: "ebooks",
+    element: <EbooksComponent />,
+  },
+  {
+    name: "Videos",
+    id: "videos",
+    element: null as any,
+  },
+  {
+    name: "Live sessions",
+    id: "live-sessions",
+    element: <LiveSessionsComponent />,
+  },
 ];
 
 function LessonsPageContent() {
@@ -107,7 +107,7 @@ const NavBar = ({ items, activeItem, onItemClick }: {
                 </button>
             ))}
         </div>
-    );
-};
+    )
+}
 
 export default LessonsPage;
