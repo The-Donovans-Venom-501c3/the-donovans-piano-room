@@ -4,11 +4,11 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.(mp3|wav|m4a)$/,
       use: {
-        loader: 'file-loader',
+        loader: "file-loader",
         options: {
-          publicPath: '/_next/static/sounds/',
-          outputPath: 'static/sounds/',
-          name: '[name].[ext]',
+          publicPath: "/_next/static/sounds/",
+          outputPath: "static/sounds/",
+          name: "[name].[ext]",
         },
       },
     });
@@ -16,15 +16,18 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const destinationUrl  = process.env.NODE_ENV=="production"?process.env.BE_PROD_BASE_URL:process.env.BE_BASE_URL 
+    const destinationUrl = process.env.BE_PROD_BASE_URL;
+    // process.env.NODE_ENV == "production"
+    //   ? process.env.BE_PROD_BASE_URL
+    //   : process.env.BE_BASE_URL;
     return [
       {
-        source: '/api/:path*',
-        destination: destinationUrl + '/api/:path*'
-        //destination: 'http://localhost:3333/api/:path*',
-      }
-    ]
-  }
+        source: "/api/:path*",
+        destination: destinationUrl + "/api/:path*",
+        // destination: "api/:path*",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
