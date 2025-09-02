@@ -66,7 +66,7 @@ export default function Contact() {
                   <Image src="/Close.svg" width={20} height={20} alt="Close" />
                 </button>
               </div>
-            </div>
+                          </div>
           )}
           {error && <p>{error}</p>}
         </div>
@@ -74,7 +74,7 @@ export default function Contact() {
         <div className="flex flex-col items-end justify-center md:flex-row">
           <div className="relative bottom-[5vh] mb-10 w-[384px] md:mb-0 md:mr-10">
 
-            <div className="mb-8 flex flex-col items-start">
+            <div className="mb-8 flex flex-col items-start text-white">
               <h2 className="mb-8 text-6xl font-semibold">Get in touch</h2>
               <p className="md:w-full text-xl">
                 Have any questions, concerns, or need assistance? Fill out the form
@@ -124,29 +124,29 @@ export default function Contact() {
               </div>
             </form>
           </div>
-          <div className="relative bottom-[10vh] w-[355px] rounded-2xl bg-yellow-500 text-primary-brown">
+          <div className="relative bottom-[10vh] w-[355px] rounded-2xl bg-[#6F219E] text-white">
             <div className="p-5 font-medium">
               <div className="mb-5 flex">
                 <Image src="/Info.svg" width={25} height={100} alt="Info" />
-                <h3 className="ml-4 text-4xl font-semibold">Contact info</h3>
+                <h3 className="ml-4 text-4xl font-semibold text-[#F0D454]">Contact info</h3>
               </div>
-              <hr className="mb-5 h-1 border-primary-brown" />
+              <hr className="mb-5 h-1 border-[#734920]" />
               <p className="text-lg">SEND YOUR LETTERS OR DONATIONS TO</p>
               <p className="mb-4 text-lg">P.O. Box 452 Redan Georgia 30074</p>
               <p className="text-lg">CALL US TO</p>
               <p className="mb-4 text-lg">+1 678.369.3748</p>
               <p className="text-lg">EMAIL US AT:</p>
               <p className="mb-5 text-lg">info@theDonovan.org</p>
-              <hr className="mb-5 h-1 border-primary-brown" />
+              <hr className="mb-5 h-1 border-[#734920]" />
               <p className="text-lg">FOLLOW US ON OUR SOCIAL MEDIA</p>
               <div className="mt-4 flex space-x-3">
                 <Link
                   href="https://twitter.com/IamTheDonovan"
                   target="_blank"
-                  className="w-15 h-15 flex items-center justify-between rounded-full text-white transition duration-300 hover:bg-purple-800"
+                  className="w-12 h-13 flex items-center justify-between rounded-full text-white transition duration-300 hover:bg-purple-800"
                 >
                   <Image
-                    src="/footer/Twitter.svg"
+                    src="/footer/Instagram.svg"
                     width={40}
                     height={40}
                     alt="Twitter"

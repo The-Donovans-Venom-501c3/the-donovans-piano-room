@@ -8,22 +8,22 @@ export default function Footer3() {
         <div className='flex justify-between h-[28px]' style={{width: '84.7%'}}>
             <h2 className='text-black'
             style={{width: '290px'}}
-            >Copyright © 2025 The Donovan&apos;s Piano Room. Powered by <Link className='text-primary-purple underline' target='_blank' href='https://www.thedonovan.org/'>The Donovan&apos;s Venom</Link>, a 501(c)(3) nonprofit organization.</h2>
+            >Copyright © 2025 The Donovan&apos;s Piano Room. Powered by <Link className='text-purple-900 underline' target='_blank' href='https://www.thedonovan.org/'>The Donovan&apos;s Venom</Link>, a 501(c)(3) nonprofit organization.</h2>
             <div className='flex gap-8'>
 
-            <div className="relative h-[3.5vh] w-[3.5vh]">
+            <div className="relative h-[4vh] w-[5vh]">
                 <Link href="https://x.com/iamthedonovan?s=11" target="_blank">
-                 <Image src="/footer/Twitter.svg" fill alt='Twitter' />
+                 <Image src="/footer/Instagram.svg" fill alt='Twitter' />
                 </Link>
             </div>
 
-            <div className="relative h-[3.5vh] w-[3.5vh]">
+            <div className="relative h-[4vh] w-[5vh]">
                 <Link href="https://www.facebook.com/TheDonovansVenomINC/" target="_blank">
                  <Image src="/footer/Facebook.svg" fill alt='Facebook' />
                 </Link>
             </div>
 
-            <div className="relative h-[3.5vh] w-[3.5vh]">
+            <div className="relative h-[4vh] w-[5vh]">
                 <Link href="https://www.youtube.com/@thedonovansvenom2848" target="_blank">
                  <Image src="/footer/Youtube.svg" fill alt='Youtube' />
                 </Link>
