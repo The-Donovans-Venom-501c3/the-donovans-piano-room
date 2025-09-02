@@ -51,7 +51,7 @@ export default function Contact() {
         <div>
           {submitted && (
             <div className="my-8">
-              <div className="relative bottom-40 flex items-center rounded-md bg-secondary-yellow p-3 shadow-md">
+             <div className="relative bottom-40 flex items-center justify-center rounded-md bg-secondary-yellow p-3 shadow-md max-w-[60vw] mx-auto">
                 <Image
                   src="/about/membership/Icon-include.svg"
                   width={20}
@@ -66,7 +66,7 @@ export default function Contact() {
                   <Image src="/Close.svg" width={20} height={20} alt="Close" />
                 </button>
               </div>
-                          </div>
+            </div>
           )}
           {error && <p>{error}</p>}
         </div>
