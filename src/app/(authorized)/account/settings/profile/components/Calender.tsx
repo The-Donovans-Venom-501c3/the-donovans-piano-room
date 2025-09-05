@@ -137,15 +137,7 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
                                         .format('YYYY-MM-DD');
                                     return (
                                         <td key={j} className={getDayClass(date, streaks)}>
-                                            <div className="relative">
-                                                {dayjs(date).isSame(dayjs(), 'day') ? (
-                                                    <div className="inline-flex items-center justify-center rounded-full bg-[#f4e89d] w-11 h-11">
-                                                        {day + 1}
-                                                    </div>
-                                                ) : (
-                                                    <div>{day + 1}</div>
-                                                )}
-                                            </div>
+                                            <div className="relative">{day + 1}</div>
                                         </td>
                                     )
                                 })}
