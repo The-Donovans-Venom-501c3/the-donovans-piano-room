@@ -4,7 +4,7 @@ import Navbar4Left from "../../navbars/Navbar4Left";
 import Image from "next/image";
 import Profile from "@/components/atoms/Profile";
 import { guestUser, nav4leftLinks } from "@/utils/stores";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 // import { useRouter } from "next/router";
 import { useRouter } from "next/navigation";
 
@@ -17,27 +17,6 @@ export default function AuthorizedWrapper2({
   pageTitle: string;
   openedLink?: string;
 }) {
-  const [guest_user, setGuestUser] = useAtom(guestUser);
-  console.log("pageTitle: ", pageTitle);
-  const router = useRouter();
-
-  useEffect(() => {
-    (async () => {
-      const response = await fetch("/api/membership/user");
-      console.log("data from /api/membership/user API", response.status);
-      if (response.status === 410) {
-        setGuestUser(true);
-        console.log("should go back");
-        if (pageTitle === "Lessons") {
-          router.push("/dashboard");
-        }
-        // setShowModal(true);
-      } else {
-        setGuestUser(false);
-      }
-    })();
-  }, [router, pageTitle, setGuestUser]);
-  // }, []);
   return (
     <div className="flex h-[100vh] w-[100vw] bg-[#F5E8FF]">
       {/* {showNotification && <NotificationPopup />} */}

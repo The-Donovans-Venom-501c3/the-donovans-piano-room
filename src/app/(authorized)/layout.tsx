@@ -2,8 +2,9 @@
 
 import { guestUser, modalShow, profileAtom } from "@/utils/stores";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import FullScreenMessage from "@/components/non_member/FullScreenMessage";
 
 export default function AuthorizedLayout({
   children,
@@ -12,12 +13,16 @@ export default function AuthorizedLayout({
 }) {
   const setGuestUser = useSetAtom(guestUser);
   const setShowModal = useSetAtom(modalShow);
-  const isGuest = useAtomValue(guestUser);
   const profile = useAtomValue(profileAtom);
   const router = useRouter();
   const pathname = usePathname();
 
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
+
   useEffect(() => {
+    let isMounted = true;
+
     (async () => {
       try {
         const res = await fetch(`/api/membership/user?userId=${profile.id}`, {
@@ -26,36 +31,59 @@ export default function AuthorizedLayout({
         });
 
         if (res.status === 410) {
-          setGuestUser(true); // guest = true
+          if (!isMounted) return;
+          setGuestUser(true);
+          if (pathname.includes("/lessons") || pathname.includes("/games")) {
+            setShowModal(true);
+            router.replace("/dashboard");
+          }
           return;
         }
 
         if (!res.ok) {
-          setGuestUser(true); // guest = true
+          if (!isMounted) return;
+          setGuestUser(true);
           return;
         }
 
         const data = await res.json();
         console.log("Membership info:", data);
-        setGuestUser(false); // guest = false → valid member
+
+        if (isMounted) {
+          setGuestUser(false);
+          setAuthorized(true);
+        }
       } catch (err) {
         console.error("Error checking membership:", err);
-        setGuestUser(true);
-        router.replace("/login");
+        if (isMounted) {
+          setGuestUser(true);
+          router.replace("/login");
+        }
+      } finally {
+        if (isMounted) setLoading(false);
       }
     })();
-  }, [setGuestUser, profile.id, router]);
 
-  // 🚨 Extra restriction: Guests cannot access /lessons or /games
-  useEffect(() => {
-    if (
-      isGuest &&
-      (pathname.includes("/lessons") || pathname.includes("/games"))
-    ) {
-      setShowModal(true);
-      router.replace("/dashboard");
-    }
-  }, [isGuest, pathname, router, setShowModal]);
+    return () => {
+      isMounted = false;
+    };
+  }, [profile.id, pathname, router, setGuestUser, setShowModal]);
 
-  return <div>{children}</div>;
+  if (loading && (pathname.includes("/lessons") || pathname.includes("/games")))
+    return (
+      <FullScreenMessage
+        title="Access Denied"
+        message="🚫 You must be a member to access this page."
+      />
+    );
+
+  // If not authorized and on protected path, don't render anything
+  if (
+    !authorized &&
+    (pathname.includes("/lessons") || pathname.includes("/games"))
+  ) {
+    return <></>;
+  }
+
+  return <>{children}</>;
 }

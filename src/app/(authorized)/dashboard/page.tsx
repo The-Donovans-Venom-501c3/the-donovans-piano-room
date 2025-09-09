@@ -24,30 +24,6 @@ export default function Page() {
 
   const [profile, setProfile] = useAtom(profileAtom);
   const [greeting, setGreeting] = useState("");
-  const searchParams = useSearchParams();
-  useEffect(() => {
-    const paymentPending = searchParams.get("paymentPending"); // Get the query parameter
-
-    if (paymentPending === "true") {
-      setShowModal(true); // Set showModal to true when the query parameter is "true"
-    }
-  }, [searchParams, setShowModal]);
-
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const response = await fetch("/api/membership/user");
-  //       console.log("data from /api/membership/user API", response.status);
-  //       if (response.status === 410) {
-  //         // setGuestUser(false);
-  //         setGuestUser(true);
-  //       } else {
-  //         setGuestUser(false);
-  //       }
-  //       console.log("guest User: ", guestUser);
-  //     } catch (e) {}
-  //   })();
-  // }, [setGuestUser]);
 
   const updateGreeting = () => {
     const currentHour = new Date().getHours();
