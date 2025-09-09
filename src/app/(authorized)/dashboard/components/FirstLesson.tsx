@@ -16,7 +16,7 @@ export default function FirstLesson() {
         style={isNavOpen ? { width: "38vw", height: "55vh" } : {}}
       >
         {guest_user && (
-          <BlurComp section={"Home"} className={"mt-5 h-[95%] w-[100%]"} />
+          <BlurComp section={"Home"} className={"mt-5 h-full w-full"} />
         )}
         <div className="absolute left-[10%] top-[10%] z-30 h-[90%] w-[80%]">
           <div className="mb-[3%] mt-[4%] flex select-none justify-between">

@@ -11,13 +11,18 @@ import { profileInterface } from "@/interfaces/profileInterface";
 ///////////////
 export const singupStepAtom = atom(1);
 //Membership//
-export const membershipChoiceAtom = atom("");
+export type MembershipType =
+  | "24-hours"
+  | "yearly-access"
+  | "monthly-access"
+  | "scholarship";
+export const membershipChoiceAtom = atom<MembershipType>("24-hours");
 
-export const membershipTypes = {
-  "24-hours": "24-hours",
-  "yearly-access": "yearly-access",
-  "monthly-access": "monthly-access",
-  scholarship: "scholarship",
+export type membershipTypes = {
+  "24-hours": "24-hours";
+  "yearly-access": "yearly-access";
+  "monthly-access": "monthly-access";
+  scholarship: "scholarship";
 };
 
 //forgot-password//

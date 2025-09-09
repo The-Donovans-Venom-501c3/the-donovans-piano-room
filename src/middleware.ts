@@ -41,28 +41,24 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    const response = await fetch(`${BACKEND_BASE_URL}/api/membership/user`);
-    let guestUser = false;
+    // const response = await fetch(`${BACKEND_BASE_URL}/api/membership/user`);
+    // let guestUser = false;
 
-    if (response.status === 410) {
-      guestUser = true; // Set the guestUser flag to true
-    }
+    // if (response.status === 410) {
+    //   guestUser = true; // Set the guestUser flag to true
+    // }
 
-    // Logic for redirecting guest users
-    if (guestUser) {
-      // Guest users should only be allowed to visit /dashboard, /login, and /account
-      if (
-        !pathname.startsWith("/dashboard") &&
-        !pathname.startsWith("/login") &&
-        !pathname.startsWith("/account") &&
-        !pathname.startsWith("/_next") // Ensure _next assets are allowed
-      ) {
-        // Redirect guest users to the dashboard with a query parameter to show the modal
-        const redirectUrl = new URL("/dashboard", request.url);
-        redirectUrl.searchParams.set("paymentPending", "true"); // Add query parameter
-        return NextResponse.redirect(redirectUrl);
-      }
-    }
+    // // Logic for redirecting guest users
+    // if (guestUser) {
+    //   console.log("Seeing it working everytime anta");
+    //   // Guest users should only be allowed to visit /dashboard, /login, and /account
+    //   if (pathname.includes("/lessons") || pathname.includes("/games")) {
+    //     // Redirect guest users to the dashboard with a query parameter to show the modal
+    //     const redirectUrl = new URL("/dashboard", request.url);
+    //     redirectUrl.searchParams.set("paymentPending", "true"); // Add query parameter
+    //     return NextResponse.redirect(redirectUrl);
+    //   }
+    // }
   } catch (error) {
     console.error("Error verifying session:", error);
     return NextResponse.redirect(new URL("/login", request.url));
@@ -72,5 +68,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/account/settings/:path*", "/lessons/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/account/settings/:path*",
+    "/lessons/:path*",
+    "/games/:path*",
+  ],
 };
