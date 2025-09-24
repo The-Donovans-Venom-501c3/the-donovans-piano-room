@@ -20,19 +20,20 @@ export async function middleware(request: NextRequest) {
   }
 
     const accessToken = request.cookies.get('access_token')?.value;
-    if (!accessToken) {
+    const refreshToken = request.cookies.get('refresh_token')?.value;
+    if (!accessToken) {      
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    try {
+    try {       
         const verifyResponse = await fetch(`${BACKEND_BASE_URL}/api/user/`, {
           method: 'GET',
           headers: {
-            Cookie: `access_token=${accessToken}`,
+            Cookie: `access_token=${accessToken}; refresh_token=${refreshToken}`,
           },
           credentials: 'include',
-        });
-        if (verifyResponse.status !==200) {
+        });         
+        if (verifyResponse.status !==200) {           
           return NextResponse.redirect(new URL('/login', request.url));
         }
     
