@@ -17,14 +17,16 @@ export default function Page() {
   }
   return (
     <AuthorizedWrapper1 pageTitle={authorizedWrapperTitles.AccountAndSettings}>
-      <AccountAndSettingsNav currentPage={settingsNavigation.profile}/>
-        <div className="w-full h-[85%] mt-[1%]">
+      <div className="h-[80.8vh] overflow-y-auto">
+        <AccountAndSettingsNav currentPage={settingsNavigation.profile}/>
+        <div className="w-full mt-[1%]">
           <div className="flex w-full justify-between">
             <AccountForm />
             {/* {selectingAvatar && <AvatarSelectPopup avatar={avatar} setAvatar={setAvatar} closeSelectingAvatar={closeSelectingAvatar} />} */}
             <Calender highlightedDays={['2024-07-30', '2024-07-03', '2024-07-04', '2024-07-15', '2024-07-16', '2024-07-17', '2024-07-18']}/>
           </div>
         </div>
+      </div>
     </AuthorizedWrapper1>
   )
 }
