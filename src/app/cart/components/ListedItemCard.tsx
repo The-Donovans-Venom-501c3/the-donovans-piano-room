@@ -1,83 +1,97 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import Button4 from "@/components/atoms/Button4";
-import InputForm from '@/components/atoms/form-input';
 import { bookCartItemInterface } from '@/interfaces/bookInterface';
 import { useSetAtom } from 'jotai';
 import { addedCartItemsAtom, useCartOperations } from '@/store/cartStore';
 
-const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: number }) => {
-  const setAddedCartItems = useSetAtom(addedCartItemsAtom)
+const ListedItemCard = ({ book, index }: { book: bookCartItemInterface; index: number }) => {
+  const setAddedCartItems = useSetAtom(addedCartItemsAtom);
   const { updateQuantity, removeFromCart } = useCartOperations();
-  const [bookCoupon, setBookCoupon] = useState("")
-  const increaseQuantity = () => updateQuantity(book.id, book.quantity + 1);
-  const removeItem = () => removeFromCart(book.id);
-  const decreaseQuantity = () => updateQuantity(book.id, book.quantity - 1);
-  return (
-    <div className="flex flex-row  items-center p-8 gap-6 w-[62%] h-full tablet:w-full tablet:h-[72%] laptop:w-full laptop:h-[75%] bg-white rounded-[12px] shadow-md">
-      {/* Image Section */}
-      <div className="relative h-[28vh] w-[14vw]">
-        <Image
-          src={book.imageSrc}
-          alt="Book Cover"
-          fill
-          className="absolute w-full h-full left-0 top-0 rounded-[12px]"
-          style={{ objectFit: "cover", boxShadow: "2px 2px 4px 0px #AC7A2280", margin: 0, padding: 0 }}
-        />
-      </div>
 
-      {/* Text and Details Section */}
-      <div className="flex flex-col justify-between w-full h-[26%]">
-        {/* Title */}
-        <div className="flex flex-col gap-[15px]">
-          <h3 className="font-montserrat font-bold text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown">
-            The Donovan Piano Room {book.title}
-          </h3>
-          <p>Format: {book.type}</p>
+  const removeItem = () => removeFromCart(book.id);
+  // const saveForLater = () => { };
+
+  return (
+    <div className="w-full tablet:w-full laptop:w-full rounded-[12px] p-8">
+      <div className="flex flex-row items-center gap-10 h-auto tablet:h-auto laptop:h-auto">
+        {/* Image Section */}
+        <div className="relative h-[24vh] w-[8vw]">
+          <Image
+            src={book.coverImageSrc}
+            alt="Book Cover"
+            fill
+            className="absolute w-full h-full rounded-[12px]"
+            style={{ objectFit: "cover", margin: 0, padding: 0 }}
+          />
         </div>
 
-        {/* Quantity and Remove */}
-        <div className="flex flex-row justify-between items-center">
-          <div className="flex flex-row items-start gap-[32px]">
-            <div className="flex flex-row items-center gap-[4px] w-[80px] h-[24px] cursor-pointer" onClick={removeItem}>
-              <span className="font-roboto font-bold text-xl 3xl:text-2xl 4xl:text-3xl text-primary-purple">
-                Remove
+        {/* Text and Details Section */}
+        <div className="flex flex-col justify-between flex-grow h-full">
+          <div className="flex flex-row justify-between items-start w-full mb-48">
+            {/* Title Section */}
+            <div className="flex flex-col gap-[15px]">
+              <h3 className="font-montserrat font-bold text-2xl 3xl:text-3xl 4xl:text-7xl text-primary-brown">
+                The Donovan <br />
+                <span className="whitespace-nowrap">
+                  Piano Room {book.title}
+                </span>
+              </h3>
+              <span className="font-roboto font-semibold text-xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
+                ${book.price}.00
               </span>
-              <div className="relative w-[5vw] h-[5vw]">
-                <Image src="/delete.svg" alt="" fill />
+            </div>
+
+            {/* Quantity + Price Section */}
+            <div className="flex flex-row items-start gap-6 justify-end w-full">
+              {/* Quantity*/}
+              <select
+                value={book.quantity}
+                onChange={(e) => updateQuantity(book.id, Number(e.target.value))}
+                className="border-2 border-primary-purple rounded-[8px] px-3 py-1 font-roboto font-bold text-lg text-primary-purple cursor-pointer w-[54px] h-[44px]"
+              >
+                {Array.from({ length: 10 }, (_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+
+              {/* Price */}
+              <div className="flex flex-col items-end p-2 w-[60px] h-[68px]">
+                <span className="font-roboto font-semibold text-2xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
+                  ${book.price}.00
+                </span>
               </div>
             </div>
 
-            <div className="flex flex-row items-center justify-center gap-[9px] w-[72px] h-[26px] border-2 border-primary-purple rounded">
-              <button onClick={decreaseQuantity} className="font-roboto text-2xl 3xl:text-3xl 4xl:text-4xl text-primary-purple font-bold">
-                -
-              </button>
-              <span className="font-roboto font-bold text-xl 3xl:text-2xl 4xl:text-3xl text-primary-purple">
-                {book.quantity}
+          </div>
+
+          {/* bottom button */}
+          <div className="flex flex-row items-center gap-10">
+            <div
+              className="flex flex-row items-center gap-2 cursor-pointer"
+              onClick={removeItem}
+            >
+              <span className="font-roboto font-bold text-xl 3xl:text-2xl 4xl:text-3xl text-primary-purple underline">
+                Remove
               </span>
-              <button onClick={increaseQuantity} className="font-roboto text-2xl 3xl:text-3xl 4xl:text-4xl text-primary-purple font-bold">
-                +
-              </button>
+              <div className="relative w-[1.5vw] h-[1.5vw]">
+                <Image src="/delete.svg" alt="delete" fill style={{ objectFit: 'contain' }} />
+              </div>
+            </div>
+
+            <div
+              className="flex flex-row items-center gap-2 cursor-pointer"
+            // onClick={saveForLater} 
+            >
+              <span className="font-roboto font-bold text-xl 3xl:text-2xl 4xl:text-3xl text-primary-purple underline">
+                Save for Later
+              </span>
+              <div className="relative w-[1.5vw] h-[1.5vw]">
+                <Image src="/HeartIcon.svg" alt="save" fill style={{ objectFit: 'contain' }} />
+              </div>
             </div>
           </div>
-
-          {/* Price Section */}
-          <div className="flex flex-col items-end p-2 w-[123px] h-[68px] bg-[#F5E8FF] rounded-[12px] 4xl:mt-[2%]">
-            <span className="font-roboto font-bold text-2xl 3xl:text-3xl 4xl:text-4xl text-[#714B2D]">
-              Price
-            </span>
-            <span className="font-roboto font-semibold text-3xl 3xl:text-4xl 4xl:text-5xl text-[#1C1A1A]">
-              {book.price}
-            </span>
-          </div>
-        </div>
-
-        {/* Coupon Section */}
-        <div className="flex flex-row items-center gap-[24px] w-full mt-[4%]">
-          <InputForm field={{ label: "Coupon code", name: "coupon-field", type: "text" }} onChange={(e: any) => setBookCoupon(e.target.value)} text={bookCoupon} error='' />
-          <Button4 text="Apply Coupon"
-            style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingLeft: '24px', paddingRight: '24px', paddingTop: '8px', paddingBottom: '8px', width: '200px', height: '40px', border: '1px solid #6F219E', borderRadius: '31px', fontFamily: 'Roboto, sans-serif', fontWeight: 'bold', fontSize: '14px', color: '#6F219E' }}
-          />
         </div>
       </div>
     </div>
@@ -85,22 +99,3 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
 };
 
 export default ListedItemCard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

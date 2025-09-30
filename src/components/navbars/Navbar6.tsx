@@ -2,8 +2,12 @@ import { navigationPages } from "@/utils/general";
 import Image from "next/image";
 import Link from "next/link";
 import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWithBadge";
+import { profileAtom } from "@/utils/stores";
+import { useAtomValue } from "jotai";
+import Profile from "@/components/atoms/ProfileHome";
 
 export default function Navbar6({ page }: { page: string }) {
+  const profile = useAtomValue(profileAtom);
   const highlightLink = { color: "#DA6A1C" };
   const displayBorder = () => (
     <div className="absolute bottom-0 h-[3px] w-full rounded-tl-xl rounded-tr-xl bg-tertiary-orange xl:h-[4px] 2xl:h-[5px]"></div>
@@ -71,12 +75,16 @@ export default function Navbar6({ page }: { page: string }) {
             <ShoppingCartIconWithBadge />
             {navigationPages.cart === page && displayBorder()}
           </Link>
-          <Link
-            className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
-            href="/signup"
-          >
-            Log in or register
-          </Link>
+          {profile.id ? (
+            <Profile />
+          ) : (
+            <Link
+              className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
+              href="/signup"
+            >
+              Log in or register
+            </Link>
+          )}
         </div>
       </nav>
     </>

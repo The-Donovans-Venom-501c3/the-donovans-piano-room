@@ -3,8 +3,9 @@ import { atom, useAtom } from 'jotai';
 
 export const addedCartItemAtom = atom<null | bookInterface>(null) 
 
-
 export const addedCartItemsAtom = atom<bookCartItemInterface[]>([]);
+export const paymentSuccessAtom = atom(false);
+export const orderIdAtom = atom('');
 
 export function useCartOperations() {
     const [cartItems, setCartItems] = useAtom(addedCartItemsAtom);

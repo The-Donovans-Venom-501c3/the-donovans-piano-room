@@ -27,11 +27,16 @@ export default function Navbar4Left({
       <div className="flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
         {isNavOpen ? (
           <div className="relative h-[60%] w-[80%]">
-            <Image src="/navbar/Logo2.svg" fill alt="" />
+            <Link href="/">
+              <Image src="/navbar/Logo2.svg" fill alt="Logo" />
+
+            </Link>
           </div>
         ) : (
           <div className="relative h-[60%] w-[60%]">
-            <Image src="/navbar/MiniLogo.svg" fill alt="" />
+            <Link href="/">
+              <Image src="/navbar/MiniLogo.svg" fill alt="Mini Logo" />
+            </Link>
           </div>
         )}
         {isNavOpen ? (
