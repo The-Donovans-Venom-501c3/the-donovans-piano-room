@@ -5,9 +5,10 @@ import { nav4leftLinks } from "@/utils/stores";
 import EbooksComponent from "./components/EbooksComponent";
 import VideosComponent from "./components/VideosComponent";
 import LiveSessionsComponent from "./components/LiveSessionsComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { lessons, Lesson } from "./components/Lesson";
 import VideoDetail from "./components/VideoDetailPage";
+import { useSearchParams } from "next/navigation";
 
 interface NavItem {
     name: string;
@@ -53,6 +54,16 @@ const LessonsPage = () => {
             onNext={() => nextLesson && setSelectedVideoId(nextLesson)}  />
             : < VideosComponent onSelectVideo={setSelectedVideoId} /> : sections.find(s => s.id === activeSection)?.element;
     
+    // Get url params
+    const tabFromURL = useSearchParams().get("tab");
+    
+    // Set the active tab based on url params
+    useEffect(() => {
+        if (tabFromURL && sections.some(sec => sec.id === tabFromURL)) {
+            setActiveSection(tabFromURL);
+        }
+    }, [tabFromURL]);
+
     // Main Component
     
     return (
