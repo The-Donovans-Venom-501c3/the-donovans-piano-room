@@ -41,18 +41,26 @@ export default function FirstLesson() {
         startDate,
         endDate,
     }: EventDetails) => {
-        const icsContent = `BEGIN:VCALENDAR
-                            VERSION:2.0
-                            BEGIN:VEVENT
-                            SUMMARY:${title}
-                            DESCRIPTION:${description}
-                            LOCATION:${location}
-                            DTSTART:${startDate}
-                            DTEND:${endDate}
-                            END:VEVENT
-                            END:VCALENDAR`;
+        const domain = window.location.hostname || "TheDonovan'sPianoRoom";
+        const uid = `${Date.now()}@${domain}`;
+        const CRLF = "\r\n";
+        
+        const icsContent =
+            "BEGIN:VCALENDAR" + CRLF +
+            "VERSION:2.0" + CRLF +
+            `PRODID:-//${domain}//EN` + CRLF +
+            "BEGIN:VEVENT" + CRLF +
+            `UID:${uid}` + CRLF +
+            `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z` + CRLF +
+            `SUMMARY:${title}` + CRLF +
+            `DESCRIPTION:${description}` + CRLF +
+            `LOCATION:${location}` + CRLF +
+            `DTSTART:${startDate}` + CRLF +
+            `DTEND:${endDate}` + CRLF +
+            "END:VEVENT" + CRLF +
+            "END:VCALENDAR" + CRLF;
 
-        const blob = new Blob([icsContent], { type: "text/calendar" });
+        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
