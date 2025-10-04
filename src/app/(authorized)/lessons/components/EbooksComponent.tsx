@@ -10,19 +10,19 @@ const ebooks = [
         id: "1",
         title: "Book I",
         url: process.env.NEXT_PUBLIC_EBOOK1,
-        imgsrc: "/bookstore/books/book-1.svg"
+        imgsrc: "/lessons/Book 1 - ebook.png"
     },
     {
         id: "2",
         title: "Book II",
         url: process.env.NEXT_PUBLIC_EBOOK2,
-        imgsrc: "/bookstore/books/book-2.svg"
+        imgsrc: "/lessons/Book 2 - ebook.png"
     },
     {
         id: "3",
         title: "Book III",
         url: process.env.NEXT_PUBLIC_EBOOK3,
-        imgsrc: "/bookstore/books/book-3.svg"
+        imgsrc: "/lessons/Book 3 - ebook.png"
     }
 ]
 interface CardProps {
