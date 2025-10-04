@@ -110,13 +110,13 @@ export default function FirstLesson() {
                                   <li>
                                       <Button3
                                           text='Google Calendar'
-                                          onClick={handleAddToCalendar(event)}
+                                          onClick={() => handleAddToCalendar(event)}
                                       />
                                   </li>
                                   <li>
                                       <Button3
                                           text='Download ICS'
-                                          onClick={handleDownloadICS(event)}
+                                          onClick={() => handleDownloadICS(event)}
                                       />
                                   </li>
                               </ul>
