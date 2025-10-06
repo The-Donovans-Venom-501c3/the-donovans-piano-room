@@ -51,21 +51,36 @@ export default function UpgradePage() {
     (async () => {
       try {
         setLoading(true);
-        const [m, free, day, month, year] = await Promise.all([
-          getUserMembership(),
+        
+        // Load plans first
+        const [free, day, month, year] = await Promise.all([
           getPlanInfo(MembershipLevelId.FREE),
           getPlanInfo(MembershipLevelId.DAY),
           getPlanInfo(MembershipLevelId.MONTH),
           getPlanInfo(MembershipLevelId.YEAR),
         ]);
+        
         if (!isMounted) return;
-        setMembership(m);
+        
         setPlans({
           [MembershipLevelId.FREE]: free,
           [MembershipLevelId.DAY]: day,
           [MembershipLevelId.MONTH]: month,
           [MembershipLevelId.YEAR]: year,
         });
+        
+        // Try to get user membership
+        try {
+          const m = await getUserMembership();
+          if (isMounted) {
+            setMembership(m);
+          }
+        } catch (membershipError: any) {
+          // User has no membership - this is fine for the upgrade page
+          if (isMounted) {
+            setMembership(null);
+          }
+        }
       } catch (e: any) {
         if (!isMounted) return;
         setError(e?.message || "Failed to load plans");
