@@ -32,7 +32,7 @@ export default function UpgradePage() {
 
   const handleScholarshipApply = () => {
     // Redirect to The Donovan organization website
-    const scholarshipFormUrl = "https://www.thedonovan.org";
+    const scholarshipFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSczYBC5tnRZcjjTBN4J4BXEDxO-8NuM1ZuNlfR4z9heXk3T6w/viewform";
     window.open(scholarshipFormUrl, '_blank', 'noopener,noreferrer');
     setShowScholarshipPopup(false);
   };
