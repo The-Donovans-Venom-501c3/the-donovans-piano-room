@@ -77,35 +77,47 @@ export default function UpgradeConfirmationPage() {
     (async () => {
       try {
         setLoading(true);
-        const [userMembership, planDetails, paymentMethodsData] = await Promise.all([
-          getUserMembership(),
+        
+        // Load plan details and payment methods first
+        const [planDetails, paymentMethodsData] = await Promise.all([
           getPlanInfo(levelId),
           getPaymentMethods()
         ]);
         
         if (!isMounted) return;
         
-        setMembership(userMembership);
         setSelectedPlan({ 
           ...planDetails, 
           isCurrent: false, // This is a selected plan, not current
           isPopular: planDetails.levelId === MembershipLevelId.YEAR,
           yearlyPrice: (planDetails.price * getYearlyPriceMultiplier(levelId)).toFixed(2)
         });
+        
+        // Try to get user membership
+        let userMembership: UserMembership | null = null;
+        try {
+          userMembership = await getUserMembership();
+          if (isMounted) {
+            setMembership(userMembership);
+            
+            // if user already has the target membership level, redirect to membership page
+            if (userMembership?.levelId === levelId) {
+              setTimeout(() => {
+                router.push('/account/membership');
+              }, 1000);
+              return;
+            }
 
-        // Check if user already has the target membership level (successful upgrade)
-        if (userMembership.levelId === levelId) {
-          // User already has this membership level, likely from a recent successful upgrade
-          // Redirect them to the membership page instead of showing upgrade options
-          setTimeout(() => {
-            router.push('/account/membership');
-          }, 1000);
-          return;
-        }
-
-        // Check if user is switching from scholarship plan
-        if (userMembership.levelId === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
-          setShowScholarshipWarningPopup(true);
+            // Check if user is switching from scholarship plan
+            if (userMembership?.levelId === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
+              setShowScholarshipWarningPopup(true);
+            }
+          }
+        } catch (membershipError: any) {
+          // User has no membership, fine for new subscriptions
+          if (isMounted) {
+            setMembership(null);
+          }
         }
         
         // Set payment methods and select default
@@ -114,8 +126,8 @@ export default function UpgradeConfirmationPage() {
         const defaultMethod = methods.find((method: PaymentMethod) => method.isDefault) || methods[0];
         setSelectedPaymentMethod(defaultMethod);
         
-        // Get switch preview if we have the required data
-        if (planDetails?.levelId) {
+        // Get switch preview if user has existing membership
+        if (planDetails?.levelId && userMembership) {
           const memberIdMap = {
             [MembershipLevelId.FREE]: '003',
             [MembershipLevelId.DAY]: '001', 
