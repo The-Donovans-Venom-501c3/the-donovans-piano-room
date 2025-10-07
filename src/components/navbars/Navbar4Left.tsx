@@ -1,7 +1,9 @@
+"use client";
 import { logout } from "@/lib/api/authService";
 import { IsNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
 import { Skeleton } from "@mui/material";
 import { useAtom, useAtomValue } from "jotai";
+import {useRef} from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -12,6 +14,7 @@ export default function Navbar4Left({
 }) {
   const [isNavOpen, setIsNavOpen] = useAtom(IsNavOpenAtom);
   const profile = useAtomValue(profileAtom);
+  const timerRef = useRef<any>(null);
   const linkDynamicSyle = { justifyContent: isNavOpen ? "start" : "center" };
   const toggleOpenNav = () => setIsNavOpen((state) => !state);
   const handleLogout = async () => {
@@ -19,9 +22,22 @@ export default function Navbar4Left({
     window.location.replace('/');
   }
 
+  const handleMouseOver = ()=>{
+    if(timerRef.current){
+      clearTimeout(timerRef.current);
+    }
+    setIsNavOpen(true);
+  }
+
+  const handleMouseLeave = ()=>{
+    timerRef.current = setTimeout(()=>{
+      setIsNavOpen(false);
+    },800)
+  }
+
   return (
     <div
-      className="relative z-50 h-[100vh]"
+      className="relative z-50 h-[100vh] transition-all duration-300 ease-in-out "
       style={{ width: isNavOpen ? "20vw" : "8vw" }}
     >
       <div className="flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
@@ -39,9 +55,10 @@ export default function Navbar4Left({
             </Link>
           </div>
         )}
+        
         {isNavOpen ? (
           <div
-            className="absolute left-[15.5vw] top-[6vh] cursor-pointer"
+            className="absolute left-[15.5vw] top-[6vh] cursor-pointer transition-all duration-300 ease-in-out"
             onClick={toggleOpenNav}
           >
             <div className="relative h-[8vh] w-[3vw]">
@@ -54,7 +71,7 @@ export default function Navbar4Left({
           </div>
         ) : (
           <div
-            className="absolute left-[6vw] top-[6vh] cursor-pointer"
+            className="absolute left-[6vw] top-[6vh] cursor-pointer transition-all duration-300 ease-in-out"
             onClick={toggleOpenNav}
           >
             <div className="relative h-[8vh] w-[3vw]">
@@ -105,10 +122,12 @@ export default function Navbar4Left({
           }
 
 
-          <div className="mt-[1vh] flex flex-col gap-[1vh]">
+          <div className="mt-[1vh] flex flex-col gap-[1vh]" onMouseOver={handleMouseOver}
+                onMouseLeave={handleMouseLeave}>
             <Link href="/dashboard">
               <div
                 className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
+
                 style={
                   openedLink === nav4leftLinks.dashboard
                     ? {
@@ -120,6 +139,7 @@ export default function Navbar4Left({
                 }
               >
                 <div
+                
                   className="relative h-[4vh] w-[4vh]"
                   style={isNavOpen ? { marginLeft: "1vw" } : {}}
                 >
@@ -156,6 +176,7 @@ export default function Navbar4Left({
             <Link href="/lessons">
               <div
                 className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
+                
                 style={
                   openedLink === nav4leftLinks.lessons
                     ? {
@@ -167,6 +188,7 @@ export default function Navbar4Left({
                 }
               >
                 <div
+                  
                   className="relative h-[4vh] w-[4vh]"
                   style={isNavOpen ? { marginLeft: "1vw" } : {}}
                 >
@@ -203,6 +225,7 @@ export default function Navbar4Left({
             <Link href="/games">
               <div
                 className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
+                
                 style={
                   openedLink === nav4leftLinks.games
                     ? {
@@ -250,6 +273,7 @@ export default function Navbar4Left({
             <Link href="">
               <div
                 className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
+                
                 style={
                   openedLink === nav4leftLinks.musicTools
                     ? {
@@ -301,6 +325,7 @@ export default function Navbar4Left({
             <Link href="">
               <div
                 className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
+                
                 style={
                   openedLink === nav4leftLinks.planner
                     ? {
@@ -348,6 +373,7 @@ export default function Navbar4Left({
             <Link href="/contact-page">
               <div
                 className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
+                
                 style={
                   openedLink === nav4leftLinks.contactUs
                     ? {
@@ -397,13 +423,14 @@ export default function Navbar4Left({
       </div>
       <div className="flex h-[9vh] w-full items-center justify-center rounded-br-[20px] bg-[#601d86]">
         <div style={{ width: isNavOpen ? "80%" : "50%" }}>
-          <button className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl" onClick={handleLogout}>
+          <button onMouseOver={handleMouseOver}
+                onMouseLeave={handleMouseLeave} className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl" onClick={handleLogout}>
             {isNavOpen && (
               <p className="mr-[.3vw] mt-1 text-center text-primary-yellow-accent 3xl:mt-[4px] 3xl:text-2xl 4xl:text-3xl">
                 Log out
               </p>
             )}
-            <div className="relative h-[3vh] w-[3vh]">
+            <div className="relative h-[3vh] w-[3vh]" >
               <Image src="/navbar/Logout.svg" fill alt="" />
             </div>
           </button>
