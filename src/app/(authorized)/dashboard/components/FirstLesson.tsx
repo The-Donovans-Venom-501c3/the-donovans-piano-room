@@ -79,6 +79,17 @@ export default function FirstLesson() {
         endDate: "20250318T190000Z",
     };
 
+    const handleClickOutside = (e: React.FocusEvent<HTMLDivElement>) => {
+        // Check if the newly focused element is outside the dropdown
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsOpen(false);
+        }
+    }
+
+    const toggleDropdown = () => {
+        setIsOpen((prev) => !prev);
+    }
+
   return (
         <div className="relative aspect-[704/472] w-[45vw]" style={isNavOpen ? { width: "38vw" } : {}}>
             <div className="absolute w-[80%] h-[90%] z-30 left-[10%] top-[10%]">
@@ -103,11 +114,11 @@ export default function FirstLesson() {
                     </div>
                     
                   <div className="relative inline-block text-left"
-                      onMouseEnter={() => setIsOpen(true)}
-                      onMouseLeave={() => setIsOpen(false)}
                       style={{ width: "30%", height: "80%" }}
+                      onBlur={(e) => handleClickOutside(e)}
                   >
-                      <Button3 text="Add to Calendar ▼" />
+                      <Button3  text={`Add to Calendar ${isOpen ? "▲" : "▼"}`}
+                                onClick={toggleDropdown} />
 
                       {/* Dropdown menu */}
                       {isOpen && (
@@ -118,13 +129,13 @@ export default function FirstLesson() {
                                   <li>
                                       <Button3
                                           text='Google Calendar'
-                                          onClick={() => handleAddToCalendar(event)}
+                                          onClick={() => { handleAddToCalendar(event); setIsOpen(false); }}
                                       />
                                   </li>
                                   <li>
                                       <Button3
                                           text='Download ICS'
-                                          onClick={() => handleDownloadICS(event)}
+                                          onClick={() => { handleDownloadICS(event); setIsOpen(false); }}
                                       />
                                   </li>
                               </ul>
