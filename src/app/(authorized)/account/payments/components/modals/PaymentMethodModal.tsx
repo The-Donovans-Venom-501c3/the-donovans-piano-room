@@ -83,7 +83,7 @@ export default function PaymentMethodModal({
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [brand, setBrand] = useState<Brand>("OTHER");
-  const [billingSame, setBillingSame] = useState(true);
+  const [billingSame, setBillingSame] = useState(false);
   const [billingFirstName, setBillingFirstName] = useState("");
   const [billingLastName, setBillingLastName] = useState("");
   const [billingAddress, setBillingAddress] = useState("");
@@ -109,7 +109,7 @@ export default function PaymentMethodModal({
     setExpiry("");
     setCvv("");
     setBrand("OTHER");
-    setBillingSame(true);
+    setBillingSame(false);
     setBillingFirstName("");
     setBillingLastName("");
     setBillingAddress("");
@@ -192,29 +192,27 @@ export default function PaymentMethodModal({
       }
 
       let billingInfo: BillingAddress | undefined = undefined;
-      if (!billingSame) {
-        const requiredBilling = [
-          billingFirstName,
-          billingLastName,
-          billingAddress,
-          billingCity,
-          billingState,
-          billingZip,
-          billingCountry,
-        ];
-        if (requiredBilling.some((field) => !field.trim())) {
-          return onError("Please complete all billing address fields.");
-        }
-        billingInfo = {
-          first_name: billingFirstName,
-          last_name: billingLastName,
-          address_line_1: billingAddress,
-          admin_area_2: billingCity,
-          admin_area_1: billingState,
-          postal_code: billingZip,
-          country_code: billingCountry,
-        };
+      const requiredBilling = [
+        billingFirstName,
+        billingLastName,
+        billingAddress,
+        billingCity,
+        billingState,
+        billingZip,
+        billingCountry,
+      ];
+      if (requiredBilling.some((field) => !field.trim())) {
+        return onError("Please complete all billing address fields.");
       }
+      billingInfo = {
+        first_name: billingFirstName,
+        last_name: billingLastName,
+        address_line_1: billingAddress,
+        admin_area_2: billingCity,
+        admin_area_1: billingState,
+        postal_code: billingZip,
+        country_code: billingCountry,
+      };
 
       const cardPayload: CardData = {
         number: number.replace(/\s/g, ""),
