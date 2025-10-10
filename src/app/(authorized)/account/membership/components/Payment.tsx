@@ -19,6 +19,7 @@ interface PaymentProps {
   errorMessage?: string; // for displaying error messages
   transactionId?: string; // for displaying transaction ID with error
   onRetry?: () => void; // for retry functionality
+  hasNoPaymentMethods?: boolean; // for showing add payment method option
 }
 
 export default function Payment({
@@ -35,6 +36,7 @@ export default function Payment({
   errorMessage,
   transactionId,
   onRetry,
+  hasNoPaymentMethods,
 }: PaymentProps) {
   const router = useRouter();
   const formattedDate = formatRenewalDate(nextRenewalAt);
@@ -52,6 +54,8 @@ export default function Payment({
             <Image src="/memberships/Payment/ic_round-autorenew.svg" alt="Auto renew payment" width={20} height={20} />
             <span className="ml-2">Auto renew payment</span>
           </>
+        ) : hasNoPaymentMethods ? (
+          'Add Payment Method'
         ) : (
           'Select Payment Method'
         )}
@@ -89,6 +93,12 @@ export default function Payment({
             Cancelled
           </p>
         )
+      ) : hasNoPaymentMethods ? (
+        <div className="space-y-2">
+          <p className="text-2xl text-primary-black">
+            Currently, you have no saved payment methods. Please add one to continue with your purchase.
+          </p>
+        </div>
       ) : (
         <p className="text-2xl text-primary-black">
           Select a payment method or add new to change your membership to a <span className="font-semibold text-tertiary-orange">{selectedPlan?.planName || 'Yearly'} Plan</span>.
@@ -97,7 +107,7 @@ export default function Payment({
 
 
       {/* Payment method card - only show when there's no error */}
-      {!errorMessage && (
+      {!errorMessage && paymentMethodSummary && (
         <div className="rounded-2xl border border-[#F6E2D1] bg-[#FFEBD5] p-4 shadow-custom">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
