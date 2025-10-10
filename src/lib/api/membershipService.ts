@@ -189,6 +189,35 @@ export async function previewMembershipUpgrade(newMembershipId: string) {
     }
 }
 
+// Purchase membership with vault token (for new users)
+export async function purchaseMembership(
+    membershipId: string,
+    vaultTokenId: string
+) {
+    try {
+        const response = await fetch(`/api/orders/membership/${membershipId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                vaultTokenId
+            }),
+        });
+        
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to purchase membership');
+        }
+        
+        return data;
+    } catch (error: any) {
+        throw new Error(error.message || 'An error occurred while purchasing membership');
+    }
+}
+
+// Upgrade existing membership (for users with active membership)
 export async function requestMembershipUpgrade(
     newMembershipId: string, 
     vaultTokenId: string, 
@@ -262,5 +291,57 @@ export async function reactivateMembership(membershipId: string, vaultTokenId: s
         return data;
     } catch (error: any) {
         throw new Error(error.message || 'An error occurred while reactivating membership');
+    }
+}
+
+// Add credit card payment method
+export async function addCardPaymentMethod(cardData: {
+    number: string;
+    expiry: string;
+    cvv: string;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+}) {
+    try {
+        const response = await fetch('/api/payment-methods', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                paymentSource: {
+                    card: {
+                        number: cardData.number.replace(/\s/g, ''), // Remove spaces
+                        expiry: cardData.expiry,
+                        security_code: cardData.cvv,
+                        name: cardData.name,
+                        billing_address: {
+                            address_line_1: cardData.address,
+                            admin_area_2: cardData.city,
+                            admin_area_1: cardData.state,
+                            postal_code: cardData.zipCode,
+                            country_code: cardData.country
+                        }
+                    }
+                },
+                setAsDefault: true
+            }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data?.message || `Failed to add payment method (${response.status})`);
+        }
+        
+        return data; // Returns { success: true, data: { vaultTokenId, paymentMethodType, maskedDetails, ... } }
+    } catch (error: any) {
+        console.error('addCardPaymentMethod error:', error);
+        throw new Error(error.message || 'An error occurred while adding payment method');
     }
 }
