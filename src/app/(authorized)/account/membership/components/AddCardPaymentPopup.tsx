@@ -147,9 +147,9 @@ export default function AddCardPaymentPopup({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="relative bg-[#FFF2E5] rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
+      <div className="text-xl relative bg-[#FFF2E5] rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-lg">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-black">Add Payment Method</h2>
+          <h2 className="text-4xl font-bold text-black">Add Payment Method</h2>
           <button
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -159,14 +159,14 @@ export default function AddCardPaymentPopup({
           </button>
         </div>
         
-        <p className="text-base text-gray-600 mb-4">
+        <p className="text-gray-600 mb-4">
           Enter your card details. For testing, use: <strong>4005519200000004</strong>
         </p>
 
         <div className="space-y-4">
           {/* Card Number */}
           <div>
-            <label htmlFor="card-number" className="block text-sm font-medium text-black mb-1">
+            <label htmlFor="card-number" className="block font-medium text-black mb-1">
               Card Number
             </label>
             <input
@@ -181,13 +181,13 @@ export default function AddCardPaymentPopup({
               disabled={loading}
               className={inputClass(!!errors.number)}
             />
-            {errors.number && <p className="mt-1 text-red-600 text-xs">{errors.number}</p>}
+            {errors.number && <p className="mt-1 text-red-600 ">{errors.number}</p>}
           </div>
 
           {/* Expiry and CVV */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="expiry" className="block text-sm font-medium text-black mb-1">
+              <label htmlFor="expiry" className="block font-medium text-black mb-1">
                 Expiry Date (MM/YY)
               </label>
               <input
@@ -203,11 +203,11 @@ export default function AddCardPaymentPopup({
                 disabled={loading}
                 className={inputClass(!!errors.expiry)}
               />
-              {errors.expiry && <p className="mt-1 text-red-600 text-xs">{errors.expiry}</p>}
+              {errors.expiry && <p className="mt-1 text-red-600 ">{errors.expiry}</p>}
             </div>
 
             <div>
-              <label htmlFor="cvv" className="block text-sm font-medium text-black mb-1">
+              <label htmlFor="cvv" className="block font-medium text-black mb-1">
                 CVV
               </label>
               <input
@@ -220,13 +220,13 @@ export default function AddCardPaymentPopup({
                 disabled={loading}
                 className={inputClass(!!errors.cvv)}
               />
-              {errors.cvv && <p className="mt-1 text-red-600 text-xs">{errors.cvv}</p>}
+              {errors.cvv && <p className="mt-1 text-red-600 ">{errors.cvv}</p>}
             </div>
           </div>
 
           {/* Cardholder Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-black mb-1">
+            <label htmlFor="name" className="block font-medium text-black mb-1">
               Cardholder Name
             </label>
             <input
@@ -238,12 +238,12 @@ export default function AddCardPaymentPopup({
               disabled={loading}
               className={inputClass(!!errors.name)}
             />
-            {errors.name && <p className="mt-1 text-red-600 text-xs">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-red-600 ">{errors.name}</p>}
           </div>
 
           {/* Billing Address */}
           <div>
-            <label htmlFor="address" className="block text-sm font-medium text-black mb-1">
+            <label htmlFor="address" className="block font-medium text-black mb-1">
               Billing Address
             </label>
             <input
@@ -255,13 +255,13 @@ export default function AddCardPaymentPopup({
               disabled={loading}
               className={inputClass(!!errors.address)}
             />
-            {errors.address && <p className="mt-1 text-red-600 text-xs">{errors.address}</p>}
+            {errors.address && <p className="mt-1 text-red-600 ">{errors.address}</p>}
           </div>
 
           {/* City, State, Zip */}
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label htmlFor="city" className="block text-sm font-medium text-black mb-1">
+              <label htmlFor="city" className="block font-medium text-black mb-1">
                 City
               </label>
               <input
@@ -273,11 +273,11 @@ export default function AddCardPaymentPopup({
                 disabled={loading}
                 className={inputClass(!!errors.city)}
               />
-              {errors.city && <p className="mt-1 text-red-600 text-xs">{errors.city}</p>}
+              {errors.city && <p className="mt-1 text-red-600 ">{errors.city}</p>}
             </div>
 
             <div>
-              <label htmlFor="state" className="block text-sm font-medium text-black mb-1">
+              <label htmlFor="state" className="block font-medium text-black mb-1">
                 State
               </label>
               <input
@@ -290,11 +290,11 @@ export default function AddCardPaymentPopup({
                 disabled={loading}
                 className={inputClass(!!errors.state)}
               />
-              {errors.state && <p className="mt-1 text-red-600 text-xs">{errors.state}</p>}
+              {errors.state && <p className="mt-1 text-red-600 ">{errors.state}</p>}
             </div>
 
             <div>
-              <label htmlFor="zipCode" className="block text-sm font-medium text-black mb-1">
+              <label htmlFor="zipCode" className="block font-medium text-black mb-1">
                 ZIP Code
               </label>
               <input
@@ -306,7 +306,7 @@ export default function AddCardPaymentPopup({
                 disabled={loading}
                 className={inputClass(!!errors.zipCode)}
               />
-              {errors.zipCode && <p className="mt-1 text-red-600 text-xs">{errors.zipCode}</p>}
+              {errors.zipCode && <p className="mt-1 text-red-600 ">{errors.zipCode}</p>}
             </div>
           </div>
         </div>
