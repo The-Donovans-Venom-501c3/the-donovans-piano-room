@@ -18,7 +18,8 @@ export enum PopupType {
   CANCEL_SWITCH = "cancel-switch",
   CANCEL_AUTOPAY = "cancel-autopay",
   APPLY_SCHOLARSHIP = "apply-scholarship",
-  SWITCH_FROM_SCHOLARSHIP = "switch-from-scholarship"
+  SWITCH_FROM_SCHOLARSHIP = "switch-from-scholarship",
+  NO_ACTIVE_MEMBERSHIP = "no-active-membership"
 }
 
 // Popup configuration interface
@@ -70,6 +71,14 @@ export const POPUP_CONFIG: Record<PopupType, PopupConfig> = {
     content: "You're currently on a scholarship plan. If you switch to another plan, your scholarship will no longer apply.\n\nTo return to the scholarship plan in the future, you'll need to submit a new application and meet eligibility requirements again.",
     primaryButton: "Change Plan",
     secondaryButton: "Stay on Scholarship",
+    primaryButtonStyle: "bg-primary-purple hover:bg-purple-700",
+    secondaryButtonStyle: "border-2 border-primary-purple text-primary-purple hover:bg-purple-50"
+  },
+  [PopupType.NO_ACTIVE_MEMBERSHIP]: {
+    title: "No Active Membership",
+    content: "You currently do not have active membership. Please subscribe or go back.",
+    primaryButton: "Find Out More",
+    secondaryButton: "Go Back",
     primaryButtonStyle: "bg-primary-purple hover:bg-purple-700",
     secondaryButtonStyle: "border-2 border-primary-purple text-primary-purple hover:bg-purple-50"
   }

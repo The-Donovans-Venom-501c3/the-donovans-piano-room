@@ -12,21 +12,22 @@ import {
   getUserMembership, 
   getPaymentMethods, 
   previewMembershipUpgrade, 
+  purchaseMembership,
   requestMembershipUpgrade,
-  getUpgradeStatus 
+  addCardPaymentMethod
 } from "@/lib/api/membershipService";
 import Payment from "../../components/Payment";
 import PlanCard from "../../components/PlanCard";
 import Popup from "../../components/Popup";
 import PaymentMethodSelectionPopup from "../../components/PaymentMethodSelectionPopup";
+import AddCardPaymentPopup, { type CardData } from "../../components/AddCardPaymentPopup";
 import { 
   UserMembership, 
   MembershipStatus, 
   MembershipLevelId, 
   Plan, 
   PaymentMethod, 
-  UpgradePreview, 
-  UpgradeResponse 
+  UpgradePreview
 } from "@/interfaces/membershipInterface";
 import { MEMBERSHIP_UI_CONFIG, PopupType, ButtonConfig, getYearlyPriceMultiplier } from "../../config";
 import "../../../../../../styles/primary-purple-scrollbar.css";
@@ -38,6 +39,14 @@ const PLAN_ID_MAP: Record<string, MembershipLevelId> = {
   'monthly': MembershipLevelId.MONTH,
   'daily': MembershipLevelId.DAY,
   'free': MembershipLevelId.FREE,
+};
+
+// Map MembershipLevelId to membership ID
+const MEMBER_ID_MAP: Record<MembershipLevelId, string> = {
+  [MembershipLevelId.FREE]: '003',
+  [MembershipLevelId.DAY]: '001', 
+  [MembershipLevelId.MONTH]: '002',
+  [MembershipLevelId.YEAR]: '004'
 };
 
 export default function UpgradeConfirmationPage() {
@@ -55,11 +64,13 @@ export default function UpgradeConfirmationPage() {
   const [showBackConfirmationPopup, setShowBackConfirmationPopup] = useState(false);
   const [showPaymentMethodPopup, setShowPaymentMethodPopup] = useState(false);
   const [showScholarshipWarningPopup, setShowScholarshipWarningPopup] = useState(false);
+  const [showAddPaymentMethodPopup, setShowAddPaymentMethodPopup] = useState(false);
   const [switching, setSwitching] = useState<boolean>(false);
   const [switchSuccess, setSwitchSuccess] = useState<boolean>(false);
   const [switchError, setSwitchError] = useState<string | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [effectiveDate, setEffectiveDate] = useState<string | null>(null);
+  const [addingPaymentMethod, setAddingPaymentMethod] = useState<boolean>(false);
 
   // Get the MembershipLevelId from the URL parameter
   const levelId = PLAN_ID_MAP[planId];
@@ -77,35 +88,47 @@ export default function UpgradeConfirmationPage() {
     (async () => {
       try {
         setLoading(true);
-        const [userMembership, planDetails, paymentMethodsData] = await Promise.all([
-          getUserMembership(),
+        
+        // Load plan details and payment methods first
+        const [planDetails, paymentMethodsData] = await Promise.all([
           getPlanInfo(levelId),
           getPaymentMethods()
         ]);
         
         if (!isMounted) return;
         
-        setMembership(userMembership);
         setSelectedPlan({ 
           ...planDetails, 
           isCurrent: false, // This is a selected plan, not current
           isPopular: planDetails.levelId === MembershipLevelId.YEAR,
           yearlyPrice: (planDetails.price * getYearlyPriceMultiplier(levelId)).toFixed(2)
         });
+        
+        // Try to get user membership
+        let userMembership: UserMembership | null = null;
+        try {
+          userMembership = await getUserMembership();
+          if (isMounted) {
+            setMembership(userMembership);
+            
+            // if user already has the target membership level, redirect to membership page
+            if (userMembership?.levelId === levelId) {
+              setTimeout(() => {
+                router.push('/account/membership');
+              }, 1000);
+              return;
+            }
 
-        // Check if user already has the target membership level (successful upgrade)
-        if (userMembership.levelId === levelId) {
-          // User already has this membership level, likely from a recent successful upgrade
-          // Redirect them to the membership page instead of showing upgrade options
-          setTimeout(() => {
-            router.push('/account/membership');
-          }, 1000);
-          return;
-        }
-
-        // Check if user is switching from scholarship plan
-        if (userMembership.levelId === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
-          setShowScholarshipWarningPopup(true);
+            // Check if user is switching from scholarship plan
+            if (userMembership?.levelId === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
+              setShowScholarshipWarningPopup(true);
+            }
+          }
+        } catch (membershipError: any) {
+          // User has no membership, fine for new subscriptions
+          if (isMounted) {
+            setMembership(null);
+          }
         }
         
         // Set payment methods and select default
@@ -114,23 +137,16 @@ export default function UpgradeConfirmationPage() {
         const defaultMethod = methods.find((method: PaymentMethod) => method.isDefault) || methods[0];
         setSelectedPaymentMethod(defaultMethod);
         
-        // Get switch preview if we have the required data
-        if (planDetails?.levelId) {
-          const memberIdMap = {
-            [MembershipLevelId.FREE]: '003',
-            [MembershipLevelId.DAY]: '001', 
-            [MembershipLevelId.MONTH]: '002',
-            [MembershipLevelId.YEAR]: '004'
-          };
-          
-          const newMembershipId = memberIdMap[planDetails.levelId as keyof typeof memberIdMap];
+        // Get switch preview if user has existing membership
+        if (planDetails?.levelId && userMembership) {
+          const newMembershipId = MEMBER_ID_MAP[planDetails.levelId as MembershipLevelId];
           if (newMembershipId) {
             try {
               const preview = await previewMembershipUpgrade(newMembershipId);
               if (!isMounted) return;
               setUpgradePreview(preview);
             } catch (previewError) {
-              console.warn('Failed to load switch preview:', previewError);
+              // Preview is optional, silently fail
             }
           }
         }
@@ -171,39 +187,50 @@ export default function UpgradeConfirmationPage() {
       return;
     }
 
+    // Determine if this is a new purchase or upgrade (used in both try and catch blocks)
+    const isNewPurchase = !membership;
+
     try {
       setSwitching(true);
       setSwitchError(null);
 
-      const memberIdMap = {
-        [MembershipLevelId.FREE]: '003',
-        [MembershipLevelId.DAY]: '001', 
-        [MembershipLevelId.MONTH]: '002',
-        [MembershipLevelId.YEAR]: '004'
-      };
-
-      const newMembershipId = memberIdMap[selectedPlan.levelId];
+      const newMembershipId = MEMBER_ID_MAP[selectedPlan.levelId];
       if (!newMembershipId) {
         throw new Error('Invalid membership plan selected');
       }
+      
+      let response: any;
+      
+      if (isNewPurchase) {
+        // New user: use purchase endpoint (Step 7 from Postman guide)
+        response = await purchaseMembership(
+          newMembershipId,
+          selectedPaymentMethod.vaultTokenId
+        );
+      } else {
+        // Existing user: use upgrade endpoint
+        response = await requestMembershipUpgrade(
+          newMembershipId,
+          selectedPaymentMethod.vaultTokenId,
+          'immediate'
+        );
+      }
 
-      const response: UpgradeResponse = await requestMembershipUpgrade(
-        newMembershipId,
-        selectedPaymentMethod.vaultTokenId,
-        'immediate'
-      );
 
-      if (response.success) {
-        // Check if approval is needed (e.g., PayPal wallet)
+      // Handle different response formats
+      const success = response.success !== false && (response.type === 'vault_payment' || response.success === true);
+      
+      if (success) {
+        // Check if approval is needed (e.g., 3D Secure authentication)
         if (response.approvalUrl) {
-          // Redirect to PayPal for approval
+          // Redirect for payment approval
           window.location.href = response.approvalUrl;
           return;
         }
 
         // Immediate success
         setSwitchSuccess(true);
-        setEffectiveDate(response.effectiveDate || null);
+        setEffectiveDate(response.effectiveDate || response.payment?.effectiveDate || null);
         
         // Refresh membership data and redirect after a brief delay
         setTimeout(async () => {
@@ -211,21 +238,24 @@ export default function UpgradeConfirmationPage() {
             const updatedMembership = await getUserMembership();
             setMembership(updatedMembership);
           } catch (error) {
-            console.warn('Failed to refresh membership:', error);
+            // Silently fail - user will see updated info on redirect
           }
-          // Redirect to membership page after successful switch
+          // Redirect to membership page after successful purchase/upgrade
           router.push('/account/membership');
-        }, 2000); // Give users time to see the success message
+        }, 3000); // Give users time to see the success message
 
       } else {
         // Create an error object that includes the transaction ID from the response
-        const error = new Error(response.error || 'Switch failed');
-        (error as any).transactionId = response.membershipHistoryId;
+        const errorMessage = response.error || response.message || (isNewPurchase ? 'Failed to purchase membership' : 'Failed to upgrade membership');
+        const error = new Error(errorMessage);
+        (error as any).transactionId = response.membershipHistoryId || response.payment?.transactionId;
         throw error;
       }
 
     } catch (error: any) {
-      setSwitchError(error.message || 'Failed to switch membership');
+      const errorMessage = error.message || (isNewPurchase ? 'Failed to purchase membership' : 'Failed to upgrade membership');
+      setSwitchError(errorMessage);
+      
       // Extract transaction ID from error response or error object
       let transactionId = null;
       
@@ -267,10 +297,38 @@ export default function UpgradeConfirmationPage() {
     // User can now click the "Confirm Plan Selection" button again
   };
 
+  const handleAddCard = async (cardData: CardData) => {
+    try {
+      setAddingPaymentMethod(true);
+      
+      const response = await addCardPaymentMethod(cardData);
+      
+      if (response?.success) {
+        // Refresh payment methods
+        const paymentMethodsData = await getPaymentMethods();
+        const methods = paymentMethodsData.data || [];
+        setPaymentMethods(methods);
+        const defaultMethod = methods.find((method: PaymentMethod) => method.isDefault) || methods[0];
+        setSelectedPaymentMethod(defaultMethod);
+        setShowAddPaymentMethodPopup(false); // Close popup after success
+      } else {
+        throw new Error('Failed to add payment method');
+      }
+    } catch (error: any) {
+      setError(error.message || 'Failed to add payment method');
+      setShowAddPaymentMethodPopup(false); // Close popup on error
+    } finally {
+      setAddingPaymentMethod(false);
+    }
+  };
+
+  // Check if user has no payment methods
+  const hasNoPaymentMethods = !paymentMethods || paymentMethods.length === 0;
+
   // Button configuration for Payment component
   const paymentButtons: ButtonConfig[] = [
     {
-      onClick: () => router.push('/account/payments'),
+      onClick: () => setShowAddPaymentMethodPopup(true),
       text: 'Add payment method',
       disabled: false,
       loading: false,
@@ -361,8 +419,11 @@ export default function UpgradeConfirmationPage() {
               </h1>
             </div>
             <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">
-              Great news! You&apos;re now on the {selectedPlan?.planName} Plan and have access to brand-new features waiting for you. {effectiveDate && (
-                <>Effective date: {new Date(effectiveDate).toLocaleDateString()}</>
+              {membership && (
+                <>Great news! You&apos;re now on the {selectedPlan?.planName} Plan and have access to brand-new features waiting for you.</>
+              )}
+              {effectiveDate && (
+                <> Effective date: {new Date(effectiveDate).toLocaleDateString()}</>
               )}
             </p>
           </>
@@ -410,7 +471,12 @@ export default function UpgradeConfirmationPage() {
               <div className="mt-4 flex w-full justify-end text-3xl gap-4 font-semibold">
                 <button
                   type="button"
-                  className="w-auto rounded-full bg-primary-purple px-6 py-5 text-center text-white"
+                  disabled={hasNoPaymentMethods || switching}
+                  className={`w-auto rounded-full px-6 py-5 text-center ${
+                    hasNoPaymentMethods || switching
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'bg-primary-purple text-white hover:bg-purple-700'
+                  }`}
                   onClick={handleSwitch}
                 >
                   Confirm Plan Selection
@@ -426,10 +492,10 @@ export default function UpgradeConfirmationPage() {
             nextRenewalAt={membership?.nextRenewalAt}
             autoRenew={Boolean(membership?.autoRenew)}
             paymentMethodSummary={selectedPaymentMethod ? {
-              brand: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 'paypal' : selectedPaymentMethod.maskedDetails.brand,
-              last4: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 'paypal' : selectedPaymentMethod.maskedDetails.last4,
-              expMonth: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 0 : (selectedPaymentMethod.maskedDetails.expiryMonth ? parseInt(selectedPaymentMethod.maskedDetails.expiryMonth) : 0),
-              expYear: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 0 : (selectedPaymentMethod.maskedDetails.expiryYear ? parseInt(selectedPaymentMethod.maskedDetails.expiryYear) : 0)
+              brand: selectedPaymentMethod.maskedDetails.brand,
+              last4: selectedPaymentMethod.maskedDetails.last4,
+              expMonth: selectedPaymentMethod.maskedDetails.expiryMonth ? parseInt(selectedPaymentMethod.maskedDetails.expiryMonth) : 0,
+              expYear: selectedPaymentMethod.maskedDetails.expiryYear ? parseInt(selectedPaymentMethod.maskedDetails.expiryYear) : 0
             } : membership?.paymentMethodSummary}
             selectedPaymentMethod={selectedPaymentMethod || undefined}
             selectedPlan={selectedPlan}
@@ -438,6 +504,7 @@ export default function UpgradeConfirmationPage() {
             errorMessage={switchError || undefined}
             transactionId={transactionId || undefined}
             onRetry={handleRetry}
+            hasNoPaymentMethods={hasNoPaymentMethods}
           />
         </div>
       </div>
@@ -477,6 +544,14 @@ export default function UpgradeConfirmationPage() {
           onClick: handleScholarshipWarningConfirm,
           text: "Change Plan"
         }}
+      />
+
+      {/* Add Payment Method Popup */}
+      <AddCardPaymentPopup
+        isOpen={showAddPaymentMethodPopup}
+        onClose={() => setShowAddPaymentMethodPopup(false)}
+        onAddCard={handleAddCard}
+        loading={addingPaymentMethod}
       />
     </AuthorizedWrapper1>
   );
