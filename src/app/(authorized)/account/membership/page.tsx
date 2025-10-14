@@ -251,6 +251,7 @@ export default function Page() {
       pageTitle={authorizedWrapperTitles.AccountAndSettings}
       openedLink=""
     >
+      <div className="h-full overflow-y-auto primary-purple-scrollbar">
       <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
 
       <div className="w-full">
@@ -389,6 +390,7 @@ export default function Page() {
         selectedPaymentMethod={selectedPaymentMethod}
         onPaymentMethodSelect={handlePaymentMethodChange}
       />
+      </div>
     </AuthorizedWrapper1>
   );
 }
