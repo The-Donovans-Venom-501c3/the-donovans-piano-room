@@ -1,15 +1,15 @@
 export default function Button1({
   text,
-  onClick = null,
+  onClick,
   style = {},
   type = "submit",
   disabled = false,
 }: {
   text: string;
   type?: "submit" | "reset" | "button";
-  onClick?: any;
+  onClick?: (e: any) => any | null;
   style?: any;
-  disabled?: any;
+  disabled?: boolean;
 }) {
   return disabled ? (
     <button

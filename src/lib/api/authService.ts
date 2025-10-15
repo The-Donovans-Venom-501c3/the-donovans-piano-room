@@ -19,6 +19,7 @@ export const signup = async (
     }),
   });
   const data = await response.json();
+  console.log("signup response data: ", data);
   return { data, ok: response.ok };
 };
 

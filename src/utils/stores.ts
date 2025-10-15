@@ -9,20 +9,23 @@ import { profileInterface } from "@/interfaces/profileInterface";
 ///////////////
 ////SIGN UP////
 ///////////////
-export const singupStepAtom = atom(1);
+export const singupStepAtom = atom(3);
 //Membership//
 export type MembershipType =
   | "24-hours"
   | "yearly-access"
   | "monthly-access"
-  | "scholarship";
-export const membershipChoiceAtom = atom<MembershipType>("24-hours");
+  | "scholarship"
+  | "basic"
+  | null;
+export const membershipChoiceAtom = atom<MembershipType>(null);
 
 export type membershipTypes = {
   "24-hours": "24-hours";
   "yearly-access": "yearly-access";
   "monthly-access": "monthly-access";
   scholarship: "scholarship";
+  baisc: "basic";
 };
 
 //forgot-password//

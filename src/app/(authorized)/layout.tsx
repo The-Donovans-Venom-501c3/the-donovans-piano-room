@@ -25,7 +25,7 @@ export default function AuthorizedLayout({
 
     (async () => {
       try {
-        const res = await fetch(`/api/membership/user?userId=${profile.id}`, {
+        const res = await fetch(`/api/membership/user`, {
           method: "GET",
           cache: "no-store",
         });
@@ -69,19 +69,16 @@ export default function AuthorizedLayout({
     };
   }, [profile.id, pathname, router, setGuestUser, setShowModal]);
 
-  if (loading && (pathname.includes("/lessons") || pathname.includes("/games")))
+  if (loading && pathname.includes("/lessons")) {
     return (
       <FullScreenMessage
         title="Access Denied"
         message="🚫 You must be a member to access this page."
       />
     );
-
+  }
   // If not authorized and on protected path, don't render anything
-  if (
-    !authorized &&
-    (pathname.includes("/lessons") || pathname.includes("/games"))
-  ) {
+  if (!authorized && loading && pathname.includes("/lessons")) {
     return <></>;
   }
 

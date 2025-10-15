@@ -1,103 +1,368 @@
-import { PayPalScriptProvider, PayPalButtons, PayPalNumberField, PayPalExpiryField, PayPalCardFieldsProvider, PayPalCVVField, usePayPalCardFields, PayPalCardFieldsForm, PayPalCardFieldsComponentOptions, CardFieldStyle } from "@paypal/react-paypal-js";
-import Button1 from "@/components/atoms/Button1";
-import { useState } from "react";
-import Link from "next/link";
+"use client";
+
+import {
+  PayPalScriptProvider,
+  PayPalButtons,
+  PayPalCardFieldsProvider,
+  usePayPalCardFields,
+} from "@paypal/react-paypal-js";
+import { useEffect, useState } from "react";
+import { useAtom, useSetAtom } from "jotai";
+import { membershipChoiceAtom, singupStepAtom } from "@/utils/stores";
+// import Button1 from "@/components/atoms/Button1";
 import Button2 from "@/components/atoms/Button2";
 import SignupHeader from "./SignupHeader";
-import { useSetAtom } from "jotai";
-import { singupStepAtom } from "@/utils/stores";
-import Checkbox from "@/components/atoms/Checkbox";
+import DisplayCard from "./payment/DisplayCard";
+import Image from "next/image";
+
 export default function SignupPayment() {
-    const [displayCardFields, setDisplayCardFields] = useState(false)
-    const setSingupStep = useSetAtom(singupStepAtom)
-    const fieldStyle = {
-        '.card-icon': {
-            'display': 'none',
-            "padding-bottom": "1rem",
-            "padding-top": "1.75rem",
+  const [displayCardFields, setDisplayCardFields] = useState(false);
+  const membershipId = {
+    "24-hours": "001",
+    "yearly-access": "004",
+    "monthly-access": "002",
+    scholarship: "003",
+  };
+  const [billingAddr, setBillingAddr] = useState(false);
+  const setSingupStep = useSetAtom(singupStepAtom);
+  const membershipChoice = useAtom(membershipChoiceAtom);
+  const [fname, setFName] = useState("");
+  const [lname, setLName] = useState("");
+  const [streetAddr, setStreetAddr] = useState("");
+  const [aptAddr, setAptAddr] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
+
+  const { cardFieldsForm, fields } = usePayPalCardFields();
+
+  async function goToBilling() {
+    console.log("calling go to billing");
+    if (!cardFieldsForm) {
+      alert(
+        "Payment form is not ready yet. Please wait a second and try again.",
+      );
+      return;
+    }
+    console.log("calling go to billing");
+
+    // Ask the SDK for current validity of all rendered card fields
+    const { isFormValid, errors } = await cardFieldsForm.getState();
+
+    if (!isFormValid) {
+      // Optional: focus the first invalid field for a better UX
+      const firstErr = errors?.[0];
+      if (firstErr?.field === "cardNumberField")
+        fields?.cardNumberField?.focus?.();
+      if (firstErr?.field === "cardExpiryField")
+        fields?.cardExpiryField?.focus?.();
+      if (firstErr?.field === "cardCvvField") fields?.cardCvvField?.focus?.();
+
+      alert("Please fix the highlighted card details before continuing.");
+      return;
+    }
+
+    // ✅ Card fields are valid — move to your billing form step
+    setBillingAddr(true);
+  }
+
+  async function submitHandler() {
+    if (!cardFieldsForm) return;
+
+    await cardFieldsForm.submit({
+      cardholderName: `${fname} ${lname}`.trim(),
+      // Ask PayPal to do SCA when applicable (optional — you already set SCA_ALWAYS server-side)
+      contingencies: ["3D_SECURE"],
+      billingAddress: {
+        // Use your state values (fall back to empty string if undefined)
+        addressLine1: streetAddr || "",
+        addressLine2: aptAddr || "",
+        adminArea2: city || "", // City
+        adminArea1: state || "", // State/Province
+        postalCode: zip || "",
+        countryCode: "US",
+      },
+    });
+
+    // setBillingAddr(true);
+  }
+
+  // // ✅ Style applied directly to PayPal iframes
+
+  const createOrder = async () => {
+    try {
+      const response = await fetch(
+        `/api/orders/membership/${membershipId[membershipChoice]}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
         },
-        'body': {
-            "padding": "0",
-        },
-        'input': {
-            "appearance": "none",
-            "border": "2px solid #391F0F",
-            "borderRadius": "15px",
-            "padding-bottom": "1rem",
-            "padding-top": "1.75rem",
-            "margin-left": "0.5rem",
-        }, ".invalid": {
-            "color": "black",
-            "border": "none"
-        },
-        ":focus": {
-            "border": "2px solid #391F0F",
-            "box-shadow": "none"
-        }
+      );
+      console.log("Creating order...");
+      const orderData = await response.json();
+      console.log("Order data received:", orderData);
+      if (!orderData.id) {
+        const errorDetail = orderData.details[0];
+        const errorMessage = errorDetail
+          ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
+          : "Unexpected error occurred, please try again.";
+
+        throw new Error(errorMessage);
+      }
+      console.log("Order created successfully:", orderData);
+      return orderData.id;
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
+  };
 
-    const createOrder = async () => {
-        return "";
-    }
+  const onApprove = async (data) => {
+    const response = await fetch(
+      `api/orders/membership/${membershipId[membershipChoice]}/${data.orderID}/capture`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      },
+    );
 
-    const onApprove = async () => {
-        return "";
-    }
+    const details = await response.json();
 
-    const onError = async () => {
-        return "";
-    }
+    // Show success message to buyer
+    alert(`Transaction completed by ${details.payer.name.given_name}`);
+  };
 
-    return (
-        <div className='w-[24vw] 3xl:w-[26vw]'>
-            <SignupHeader navName='Membership' navLink='' stepNum={4} stepName='Add your payment method' onClickNav={()=>setSingupStep(3)} />
-            
-            <PayPalScriptProvider options={{clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID, components: "card-fields,buttons", enableFunding: "venmo"}}>
-                {!displayCardFields && (<>
-                    <Button1 style={{padding: "15px", marginBottom: "4%", marginTop: "3%"}} text="Check out with credit card" onClick={()=>{setDisplayCardFields(true)}}></Button1>
-                    <PayPalButtons style={{shape: "pill"}}></PayPalButtons>
-                </>)}
+  const onError = async () => {
+    console.error("An error occurred during the transaction.");
+    return "";
+  };
 
-                {displayCardFields && 
-                (<PayPalCardFieldsProvider createOrder={createOrder} onApprove={onApprove} onError={onError}>
-                    <label className="relative w-full">
-                        <span className="absolute top-[8px] left-[25px] z-50 text-[#391F0F] font-medium w-[24vw]">Card number</span>
-                        <PayPalNumberField style={fieldStyle} placeholder="" />
+  return (
+    <div className="mx-auto flex w-full flex-col items-center justify-center">
+      <div className="w-[30%] ">
+        <SignupHeader
+          navName="Membership"
+          navLink=""
+          stepNum={4}
+          stepName="Add your payment method"
+          onClickNav={() => setSingupStep(3)}
+        />
+      </div>
+
+      <PayPalScriptProvider
+        options={{
+          clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "test",
+          components: "buttons,card-fields",
+          currency: "USD",
+          enableFunding: "venmo", // 👈 required
+          buyerCountry: "US",
+        }}
+      >
+        {!displayCardFields && (
+          <div className="flex  w-[25%] flex-col gap-4">
+            <div>
+              <Button1
+                text="Check out with credit card"
+                onClick={() => setDisplayCardFields(true)}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Button1
+                text="Check out with PayPal"
+                onClick={() => setDisplayCardFields(true)}
+                logo={
+                  <Image
+                    src="/auth/paypal.svg"
+                    alt="PayPal logo"
+                    width={20}
+                    height={20}
+                    className="ml-2"
+                  />
+                }
+              />
+            </div>
+            <PayPalButtons
+              style={{ layout: "vertical", label: "", shape: "pill" }}
+              fundingSource="venmo"
+              createOrder={createOrder}
+              onApprove={onApprove}
+            />
+            <PayPalButtons
+              style={{ shape: "pill" }}
+              onApprove={onApprove}
+              createOrder={createOrder}
+              fundingSource="paypal"
+            />
+          </div>
+        )}
+        <div className="w-[30%]">
+          {displayCardFields && !billingAddr && (
+            <>
+              <PayPalCardFieldsProvider
+                createOrder={createOrder}
+                onApprove={onApprove}
+                onError={onError}
+              >
+                <DisplayCard
+                  onValid={() => setBillingAddr(true)}
+                  setDisplayCardFields={setDisplayCardFields}
+                />
+              </PayPalCardFieldsProvider>
+            </>
+          )}
+          {billingAddr && (
+            <div className="  w-full ">
+              <div className="flex w-full">
+                <div className=" mt-6 w-full items-center justify-center space-y-5 px-1">
+                  {/* Card Number */}
+                  <div className="h-34 rounded-2xl border border-gray-300 bg-white px-2">
+                    <label className="mb-1 mt-2 block text-sm font-medium text-[#391F0F]">
+                      First Name *
                     </label>
-                    <div className="flex gap-[2%] mb-[4%]">
-                        <label className="relative w-full">
-                            <span className="absolute top-[8px] left-[15px] z-50 text-[#391F0F] font-medium w-[24vw]">Expiration date</span>
-                            <PayPalExpiryField style={fieldStyle} placeholder="" />
-                        </label>
-                        <label className="relative w-full">
-                            <span className="absolute top-[8px] left-[15px] z-50 text-[#391F0F] font-medium w-[24vw]">CVC</span>
-                            <PayPalCVVField style={fieldStyle} placeholder="" />
-                        </label>
-                    </div>
-                    {/* <Checkbox>
-                        <span className="text-[#391F0F] text-white text-lg 3xl:text-xl 4xl:text-2xl">Set as default payment method</span>
-                    </Checkbox> */}
-                    <SubmitPayment/>
-                    <Button2 style={{marginTop: "4%"}} text="Cancel" onClick={()=>setDisplayCardFields(false)}></Button2>
-                </PayPalCardFieldsProvider>
-            )}
-            </PayPalScriptProvider>
-            <p className='w-full text-center mt-[4vh] text-lg 3xl:text-2xl  text-white bg-primary-purple py-3 rounded-3xl 2xl:rounded-4xl text-[12px] mt-9 2xl:py-5 3xl:py-8'>Already have an account? <Link href="/login" className='text-primary-yellow underline'>Log in</Link></p> 
+                    <input
+                      type="text"
+                      value={fname}
+                      onChange={(e) => setFName(e.target.value)}
+                      className="h-20 w-full pl-2 text-3xl focus:outline-none focus:ring-0 "
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 w-full  items-center justify-center space-y-5 px-1">
+                  {/* Card Number */}
+                  <div className="h-34 rounded-2xl border border-gray-300 bg-white px-2">
+                    <label className="mb-1 mt-2 block text-sm font-medium text-[#391F0F]">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={lname}
+                      onChange={(e) => setLName(e.target.value)}
+                      className="h-20 w-full pl-2 text-3xl focus:outline-none focus:ring-0 "
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="mt-6  items-center justify-center space-y-5">
+                <div className="h-34 rounded-2xl border border-gray-300 bg-white px-2">
+                  <label className="mb-1 mt-2 block text-sm font-medium text-[#391F0F]">
+                    Street Address
+                  </label>
+                  <input
+                    type="text"
+                    value={streetAddr}
+                    onChange={(e) => setStreetAddr(e.target.value)}
+                    className="h-20 w-full  pl-2  text-3xl focus:outline-none focus:ring-0 "
+                  />
+                </div>
+              </div>
+              <div className="mt-6  items-center justify-center space-y-5">
+                <div className="h-34 rounded-2xl border border-gray-300 bg-white px-2">
+                  <label className="mb-1 mt-2 block text-sm font-medium text-[#391F0F]">
+                    Apt/suite/other (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={aptAddr}
+                    onChange={(e) => setAptAddr(e.target.value)}
+                    className="h-20 w-full  pl-2  text-3xl focus:outline-none focus:ring-0 "
+                  />
+                </div>
+              </div>
+              <div className="mt-6  items-center justify-center space-y-5">
+                <div className="h-34 rounded-2xl border border-gray-300 bg-white px-2">
+                  <label className="mb-1 mt-2 block text-sm font-medium text-[#391F0F]">
+                    City *
+                  </label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="h-20 w-full  pl-2  text-3xl focus:outline-none focus:ring-0 "
+                  />
+                </div>
+              </div>
+              <div className="flex w-full">
+                <div className=" mt-6 w-full items-center  justify-center space-y-5 px-1">
+                  {/* Card Number */}
+                  <div className="h-34 rounded-2xl border border-gray-300 bg-white px-2">
+                    <label className="mb-1 mt-2 block text-sm font-medium text-[#391F0F]">
+                      State *
+                    </label>
+                    <input
+                      type="text"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="h-20 w-full  pl-2  text-3xl focus:outline-none focus:ring-0 "
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 w-full  items-center justify-center space-y-5 px-1">
+                  {/* Card Number */}
+                  <div className="h-34 rounded-2xl border border-gray-300 bg-white px-2">
+                    <label className="mb-1 mt-2 block text-sm font-medium text-[#391F0F]">
+                      Zip code *
+                    </label>
+                    <input
+                      type="text"
+                      value={zip}
+                      onChange={(e) => setZip(e.target.value)}
+                      className="h-20 w-full pl-2 text-3xl focus:outline-none focus:ring-0 "
+                    />
+                  </div>
+                </div>
+              </div>
+              <Button1
+                text="Check out"
+                //   onClick={submitHandler}
+                style={{ marginTop: "0.5rem" }}
+              />
+              <Button2
+                style={{ marginTop: "1rem" }}
+                text="Cancel"
+                onClick={() => setBillingAddr(false)}
+              />
+            </div>
+            // <BillingAdress onClickCancel={() => setBillingAddr(false)} />
+          )}
         </div>
-    )
+      </PayPalScriptProvider>
+    </div>
+  );
 }
 
-const SubmitPayment = () => {
-    const {cardFieldsForm} = usePayPalCardFields();
+//member_id
+//001 one time
 
-    function submitHandler() {
-        cardFieldsForm?.submit()
-        .then(() => {
-            // submit successful
-        })
-        .catch(() => {
-            // submission error
-        });
-    }
-    return <Button1 text="Check out" onClick={submitHandler} style={{marginTop: ".5%"}} />;
+const Button1 = ({
+  text,
+  onClick = null,
+  style = {},
+  type = "button",
+  disabled = false,
+  logo,
+}) => {
+  return (
+    <button
+      type={type}
+      onClick={onClick ?? undefined}
+      style={style}
+      disabled={disabled}
+      className="flex h-[42px] w-full items-center  justify-center gap-2 rounded-3xl bg-yellow-400 px-6 py-3 font-semibold text-purple-900 disabled:opacity-50"
+    >
+      <p className="text-xl font-bold">{text}</p>
+      <div>{logo}</div>
+    </button>
+  );
 };
+
+// const SubmitPayment = () => {
+//   const { cardFieldsForm } = usePayPalCardFields();
+
+//   return (
+
+//   );
+// };
