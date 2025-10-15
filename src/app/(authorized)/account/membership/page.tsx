@@ -28,6 +28,7 @@ export default function Page() {
   const [showCancelPopup, setShowCancelPopup] = useState<boolean>(false);
   const [showCancelAutopayPopup, setShowCancelAutopayPopup] = useState<boolean>(false);
   const [showPaymentMethodPopup, setShowPaymentMethodPopup] = useState<boolean>(false);
+  const [showNoActiveMembershipPopup, setShowNoActiveMembershipPopup] = useState<boolean>(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isReactivating, setIsReactivating] = useState<boolean>(false);
@@ -43,6 +44,13 @@ export default function Page() {
         ]);
         if (!isMounted) return;
         setMembership(userMembership);
+        
+        // Show the popup if user has no active membership
+        if (!userMembership || !userMembership.levelId) {
+          setShowNoActiveMembershipPopup(true);
+          setLoading(false);
+          return;
+        }
         
         // Set payment methods and select default
         const methods = paymentMethodsData.data || [];
@@ -62,7 +70,12 @@ export default function Page() {
         }
       } catch (e: any) {
         if (!isMounted) return;
-        setError(e?.message || "Failed to load membership info");
+        if (e?.message?.includes('membership') || e?.message?.includes('not found')) {
+          // Show the popup if there is an error about no membership
+          setShowNoActiveMembershipPopup(true);
+        } else {
+          setError(e?.message || "Failed to load membership info");
+        }
       } finally {
         if (!isMounted) return;
         setLoading(false);
@@ -151,6 +164,16 @@ export default function Page() {
 
   const handleKeepAutopay = () => {
     setShowCancelAutopayPopup(false);
+  };
+
+  const handleGoBack = () => {
+    router.back();
+  };
+
+  const handleApplyScholarship = () => {
+    // Redirect to The Donovan organization website
+    const scholarshipFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSczYBC5tnRZcjjTBN4J4BXEDxO-8NuM1ZuNlfR4z9heXk3T6w/viewform";
+    window.open(scholarshipFormUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleReactivate = async () => {
@@ -388,6 +411,20 @@ export default function Page() {
         paymentMethods={paymentMethods}
         selectedPaymentMethod={selectedPaymentMethod}
         onPaymentMethodSelect={handlePaymentMethodChange}
+      />
+
+      {/* No Active Membership Popup */}
+      <Popup
+        isOpen={showNoActiveMembershipPopup}
+        type={PopupType.NO_ACTIVE_MEMBERSHIP}
+        primaryButton={{
+          onClick: handleApplyScholarship,
+          text: "Apply for Scholarship"
+        }}
+        secondaryButton={{
+          onClick: handleGoBack,
+          text: "Go Back"
+        }}
       />
     </AuthorizedWrapper1>
   );
