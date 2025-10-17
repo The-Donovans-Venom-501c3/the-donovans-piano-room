@@ -28,6 +28,7 @@ export default function Page() {
   const [showCancelPopup, setShowCancelPopup] = useState<boolean>(false);
   const [showCancelAutopayPopup, setShowCancelAutopayPopup] = useState<boolean>(false);
   const [showPaymentMethodPopup, setShowPaymentMethodPopup] = useState<boolean>(false);
+  const [showNoActiveMembershipPopup, setShowNoActiveMembershipPopup] = useState<boolean>(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isReactivating, setIsReactivating] = useState<boolean>(false);
@@ -43,6 +44,13 @@ export default function Page() {
         ]);
         if (!isMounted) return;
         setMembership(userMembership);
+        
+        // Show the popup if user has no active membership
+        if (!userMembership || !userMembership.levelId) {
+          setShowNoActiveMembershipPopup(true);
+          setLoading(false);
+          return;
+        }
         
         // Set payment methods and select default
         const methods = paymentMethodsData.data || [];
@@ -62,7 +70,12 @@ export default function Page() {
         }
       } catch (e: any) {
         if (!isMounted) return;
-        setError(e?.message || "Failed to load membership info");
+        if (e?.message?.includes('membership') || e?.message?.includes('not found')) {
+          // Show the popup if there is an error about no membership
+          setShowNoActiveMembershipPopup(true);
+        } else {
+          setError(e?.message || "Failed to load membership info");
+        }
       } finally {
         if (!isMounted) return;
         setLoading(false);
@@ -151,6 +164,20 @@ export default function Page() {
 
   const handleKeepAutopay = () => {
     setShowCancelAutopayPopup(false);
+  };
+
+  const handleGoBack = () => {
+    setShowNoActiveMembershipPopup(false);
+    router.back();
+  };
+
+  const handleApplyScholarship = () => {
+    // Redirect to The Donovan organization website
+    const scholarshipFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSczYBC5tnRZcjjTBN4J4BXEDxO-8NuM1ZuNlfR4z9heXk3T6w/viewform";
+    window.open(scholarshipFormUrl, '_blank', 'noopener,noreferrer');
+    // Navigate back since user can't use this page without active membership
+    setShowNoActiveMembershipPopup(false);
+    router.back();
   };
 
   const handleReactivate = async () => {
@@ -251,107 +278,111 @@ export default function Page() {
       pageTitle={authorizedWrapperTitles.AccountAndSettings}
       openedLink=""
     >
+      <div className="h-full overflow-y-auto primary-purple-scrollbar">
       <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
 
-      <div className="w-full">
-        <h1 className="mt-[3vh] font-montserrat text-5xl font-medium text-primary-brown 3xl:text-6xl 4xl:text-7xl">
-          {!loading && !error && membership && membership.status === MembershipStatus.CANCELLED 
-            ? "Your Membership Has Been Canceled" 
-            : "Your membership"
-          }
-        </h1>
+      {/* Only show content if user has an active membership */}
+      {!showNoActiveMembershipPopup && (
+        <div className="w-full">
+          <h1 className="mt-[3vh] font-montserrat text-5xl font-medium text-primary-brown 3xl:text-6xl 4xl:text-7xl">
+            {!loading && !error && membership && membership.status === MembershipStatus.CANCELLED 
+              ? "Your Membership Has Been Canceled" 
+              : "Your membership"
+            }
+          </h1>
 
-        {loading && (
-          <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
-            Loading your membership...
-          </p>
-        )}
-        {!loading && error && (
-          <p className="text-red-600 text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
-            {error}
-          </p>
-        )}
-        {!loading && !error && membership && membership.status === MembershipStatus.CANCELLED && (
-          <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
-            Your membership will remain active until <span className="font-semibold text-primary-orange">{formattedNextRenewal}</span>. After that, you&apos;ll lose access to member benefits.
-          </p>
-        )}
+          {loading && (
+            <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
+              Loading your membership...
+            </p>
+          )}
+          {!loading && error && (
+            <p className="text-red-600 text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
+              {error}
+            </p>
+          )}
+          {!loading && !error && membership && membership.status === MembershipStatus.CANCELLED && (
+            <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
+              Your membership will remain active until <span className="font-semibold text-primary-orange">{formattedNextRenewal}</span>. After that, you&apos;ll lose access to member benefits.
+            </p>
+          )}
 
-        {!loading && !error && membership && membership.status !== MembershipStatus.CANCELLED && (
-          <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
-            {membership.autoRenew && formattedNextRenewal ? (
-              <>
-                As a valued member, your membership #{membership.membershipId} will be auto renewed on <span className="font-semibold text-primary-orange">{formattedNextRenewal}.</span>
-              </>
-            ) : (
-              <>
-                Renew your membership #{membership.membershipId} before <span className="font-semibold text-primary-orange">{formattedNextRenewal}</span> to enjoy uninterrupted fun and learning!
-              </>
+          {!loading && !error && membership && membership.status !== MembershipStatus.CANCELLED && (
+            <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium pt-[1%]">
+              {membership.autoRenew && formattedNextRenewal ? (
+                <>
+                  As a valued member, your membership #{membership.membershipId} will be auto renewed on <span className="font-semibold text-primary-orange">{formattedNextRenewal}.</span>
+                </>
+              ) : (
+                <>
+                  Renew your membership #{membership.membershipId} before <span className="font-semibold text-primary-orange">{formattedNextRenewal}</span> to enjoy uninterrupted fun and learning!
+                </>
+              )}
+            </p>
+          )}
+          <div className='mt-[4vh] mb-[4vh] bg-[#FED2AA] h-1'></div>
+
+          <div className="grid w-full grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-9 md:max-w-[1000px]">
+            {plan && uiConfig && (
+              <div className="flex flex-1 flex-col gap-6 rounded-xl bg-primary-skin p-6">
+                <h1 className="font-montserrat text-2xl font-semibold text-primary-brown md:text-3xl">
+                  Current membership
+                </h1>
+
+                <PlanCard
+                  plan={plan}
+                  uiConfig={uiConfig}
+                />
+                
+                {/* Actions - Hide when auto-renew/autopay is off or membership is canceled */}
+                {membership?.autoRenew && membership?.status === MembershipStatus.ACTIVE && (
+                  <div className="mt-4 flex w-full flex-col items-center text-3xl gap-4 md:flex-row font-semibold">
+                    {membershipButtons.map((button, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        disabled={button.disabled || button.loading}
+                        className={button.style}
+                        onClick={button.onClick}
+                      >
+                        {button.loading 
+                          ? (button.loadingText || 'Loading...')
+                          : button.text
+                        }
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
-          </p>
-        )}
-        <div className='mt-[4vh] mb-[4vh] bg-[#FED2AA] h-1'></div>
-
-        <div className="grid w-full grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-9 md:max-w-[1000px]">
-          {plan && uiConfig && (
-            <div className="flex flex-1 flex-col gap-6 rounded-xl bg-primary-skin p-6">
-              <h1 className="font-montserrat text-2xl font-semibold text-primary-brown md:text-3xl">
-                Current membership
-              </h1>
-
-              <PlanCard
-                plan={plan}
-                uiConfig={uiConfig}
+            <div className="flex flex-1 flex-col gap-6">
+              {!membership?.autoRenew && (
+                <RenewMembership
+                  nextRenewalAt={membership?.nextRenewalAt}
+                  onRenewClick={() => router.push('/account/membership/upgrade')}
+                />
+              )}
+              <Payment
+                mode="membership"
+                membershipId={membership?.membershipId || ""}
+                nextRenewalAt={membership?.nextRenewalAt}
+                autoRenew={Boolean(membership?.autoRenew)}
+                membershipStatus={membership?.status}
+                paymentMethodSummary={selectedPaymentMethod ? {
+                  brand: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 'paypal' : selectedPaymentMethod.maskedDetails.brand,
+                  last4: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 'paypal' : selectedPaymentMethod.maskedDetails.last4,
+                  expMonth: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 0 : (selectedPaymentMethod.maskedDetails.expiryMonth ? parseInt(selectedPaymentMethod.maskedDetails.expiryMonth) : 0),
+                  expYear: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 0 : (selectedPaymentMethod.maskedDetails.expiryYear ? parseInt(selectedPaymentMethod.maskedDetails.expiryYear) : 0)
+                } : membership?.paymentMethodSummary}
+                selectedPaymentMethod={selectedPaymentMethod || undefined}
+                buttons={paymentButtons}
+                onEditClick={() => setShowPaymentMethodPopup(true)}
               />
               
-              {/* Actions - Hide when auto-renew/autopay is off or membership is canceled */}
-              {membership?.autoRenew && membership?.status === MembershipStatus.ACTIVE && (
-                <div className="mt-4 flex w-full flex-col items-center text-3xl gap-4 md:flex-row font-semibold">
-                  {membershipButtons.map((button, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      disabled={button.disabled || button.loading}
-                      className={button.style}
-                      onClick={button.onClick}
-                    >
-                      {button.loading 
-                        ? (button.loadingText || 'Loading...')
-                        : button.text
-                      }
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
-          )}
-          <div className="flex flex-1 flex-col gap-6">
-            {!membership?.autoRenew && (
-              <RenewMembership
-                nextRenewalAt={membership?.nextRenewalAt}
-                onRenewClick={() => router.push('/account/membership/upgrade')}
-              />
-            )}
-            <Payment
-              mode="membership"
-              membershipId={membership?.membershipId || ""}
-              nextRenewalAt={membership?.nextRenewalAt}
-              autoRenew={Boolean(membership?.autoRenew)}
-              membershipStatus={membership?.status}
-              paymentMethodSummary={selectedPaymentMethod ? {
-                brand: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 'paypal' : selectedPaymentMethod.maskedDetails.brand,
-                last4: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 'paypal' : selectedPaymentMethod.maskedDetails.last4,
-                expMonth: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 0 : (selectedPaymentMethod.maskedDetails.expiryMonth ? parseInt(selectedPaymentMethod.maskedDetails.expiryMonth) : 0),
-                expYear: selectedPaymentMethod.paymentMethodType?.toLowerCase() === 'paypal' ? 0 : (selectedPaymentMethod.maskedDetails.expiryYear ? parseInt(selectedPaymentMethod.maskedDetails.expiryYear) : 0)
-              } : membership?.paymentMethodSummary}
-              selectedPaymentMethod={selectedPaymentMethod || undefined}
-              buttons={paymentButtons}
-              onEditClick={() => setShowPaymentMethodPopup(true)}
-            />
-            
           </div>
         </div>
-      </div>
+      )}
 
       {/* Cancel Membership Popup */}
       <Popup
@@ -388,6 +419,20 @@ export default function Page() {
         paymentMethods={paymentMethods}
         selectedPaymentMethod={selectedPaymentMethod}
         onPaymentMethodSelect={handlePaymentMethodChange}
+      />
+
+      {/* No Active Membership Popup */}
+      <Popup
+        isOpen={showNoActiveMembershipPopup}
+        type={PopupType.NO_ACTIVE_MEMBERSHIP}
+        primaryButton={{
+          onClick: handleApplyScholarship,
+          text: "Apply for Scholarship"
+        }}
+        secondaryButton={{
+          onClick: handleGoBack,
+          text: "Go Back"
+        }}
       />
     </AuthorizedWrapper1>
   );

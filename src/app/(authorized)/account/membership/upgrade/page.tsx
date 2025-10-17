@@ -32,7 +32,7 @@ export default function UpgradePage() {
 
   const handleScholarshipApply = () => {
     // Redirect to The Donovan organization website
-    const scholarshipFormUrl = "https://www.thedonovan.org";
+    const scholarshipFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSczYBC5tnRZcjjTBN4J4BXEDxO-8NuM1ZuNlfR4z9heXk3T6w/viewform";
     window.open(scholarshipFormUrl, '_blank', 'noopener,noreferrer');
     setShowScholarshipPopup(false);
   };
@@ -171,6 +171,7 @@ export default function UpgradePage() {
       pageTitle={authorizedWrapperTitles.AccountAndSettings}
       openedLink=""
     >
+      <div className="h-full overflow-y-auto primary-purple-scrollbar">
       <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
 
       <div className="mt-4 w-full">
@@ -246,6 +247,7 @@ export default function UpgradePage() {
           text: "Go Back"
         }}
       />
+      </div>
     </AuthorizedWrapper1>
   );
 }
