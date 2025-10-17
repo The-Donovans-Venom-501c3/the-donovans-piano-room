@@ -171,6 +171,7 @@ export default function UpgradePage() {
       pageTitle={authorizedWrapperTitles.AccountAndSettings}
       openedLink=""
     >
+      <div className="h-full overflow-y-auto primary-purple-scrollbar">
       <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
 
       <div className="mt-4 w-full">
@@ -246,6 +247,7 @@ export default function UpgradePage() {
           text: "Go Back"
         }}
       />
+      </div>
     </AuthorizedWrapper1>
   );
 }

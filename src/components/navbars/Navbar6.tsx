@@ -11,20 +11,19 @@ export default function Navbar6({ page }: { page: string }) {
 
   return (
     <>
-      <div className="fixed top-0 z-40 h-[8.8vh] w-[100vw] bg-[#fbf7ff] backdrop-blur-sm"></div>
-      <nav className="fixed top-0 z-50 h-[9vh] w-full border-b-2 border-b-[#ecd6fe] bg-[#f4c51a]">
-        <div className="absolute top-0 flex h-[8.8vh] w-[24vw] justify-end rounded-r-full bg-secondary-purple py-2 pr-4">
-          <Image
-            src="/navbar/Logo.svg"
-            width={220}
-            height={35}
-            alt="The Donovan's Piano Room"
-          />
-        </div>
+      <nav className="fixed top-0 z-50 h-[9.5vh] w-full border-b-2 border-[#A135E8] py-2 backdrop-blur-sm">
+             <div className="absolute top-0 flex h-[9.3vh] w-[24vw] justify-end rounded-r-full bg-[#601D86] py-2 pr-4">
+               <Image
+                 src="/navbar/Logo2.svg"
+                 width={220}
+                 height={35}
+                 alt="The Donovan's Piano Room"
+               />
+             </div>
 
         <div className="p-y-50 absolute right-28 top-[0px] float-right flex h-[8.8vh] justify-center gap-16">
           <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            className="relative flex items-center text-xl font-bold text-[#F0D454] hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.home === page ? highlightLink : {}}
             href="/"
           >
@@ -32,7 +31,7 @@ export default function Navbar6({ page }: { page: string }) {
             {navigationPages.home === page && displayBorder()}
           </Link>
           <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            className="relative flex items-center text-xl font-bold text-[#F0D454] hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.about === page ? highlightLink : {}}
             href="/about/why-choose-us"
           >
@@ -40,7 +39,7 @@ export default function Navbar6({ page }: { page: string }) {
             {navigationPages.about === page && displayBorder()}
           </Link>
           <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            className="relative flex items-center text-xl font-bold text-[#F0D454] hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.games === page ? highlightLink : {}}
             href="https://thedonovansmusicgames.netlify.app/"
           >
@@ -48,7 +47,7 @@ export default function Navbar6({ page }: { page: string }) {
             {navigationPages.games === page && displayBorder()}
           </Link>
           <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            className="relative flex items-center text-xl font-bold text-[#F0D454] hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.bookstore === page ? highlightLink : {}}
             href="/bookstore"
           >
@@ -56,7 +55,7 @@ export default function Navbar6({ page }: { page: string }) {
             {navigationPages.bookstore === page && displayBorder()}
           </Link>
           <Link
-            className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
+            className="relative flex items-center text-xl font-bold text-[#F0D454] hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.contact === page ? highlightLink : {}}
             href="/contact-us"
           >
@@ -64,7 +63,7 @@ export default function Navbar6({ page }: { page: string }) {
             {navigationPages.contact === page && displayBorder()}
           </Link>
           <Link
-            className="relative flex items-center text-primary-purple hover:text-[#E98427]"
+            className="relative flex items-center text-[#F0D454] hover:text-[#E98427]"
             style={navigationPages.cart === page ? highlightLink : {}}
             href="/cart"
           >
@@ -72,7 +71,7 @@ export default function Navbar6({ page }: { page: string }) {
             {navigationPages.cart === page && displayBorder()}
           </Link>
           <Link
-            className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
+            className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-[#F0D454] px-7 text-xl font-bold text-purple-900 hover:bg-[#E98427] 2xl:text-3xl"
             href="/signup"
           >
             Log in or register
