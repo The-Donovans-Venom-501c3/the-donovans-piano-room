@@ -278,6 +278,7 @@ export default function Page() {
       pageTitle={authorizedWrapperTitles.AccountAndSettings}
       openedLink=""
     >
+      <div className="h-full overflow-y-auto primary-purple-scrollbar">
       <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
 
       {/* Only show content if user has an active membership */}
