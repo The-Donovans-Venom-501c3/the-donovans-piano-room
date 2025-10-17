@@ -29,7 +29,7 @@ import {
   UpgradeResponse 
 } from "@/interfaces/membershipInterface";
 import { MEMBERSHIP_UI_CONFIG, PopupType, ButtonConfig, getYearlyPriceMultiplier } from "../../config";
-import "../../../../../../styles/primary-purple-scrollbar.css";
+import "@/styles/primary-purple-scrollbar.css";
 import Image from "next/image";
 
 // Map planId from URL to MembershipLevelId

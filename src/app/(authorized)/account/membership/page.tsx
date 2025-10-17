@@ -15,7 +15,7 @@ import PaymentMethodSelectionPopup from "./components/PaymentMethodSelectionPopu
 import RenewMembership from "./components/RenewMembership";
 import { UserMembership, MembershipStatus, MembershipLevelId, Plan, PaymentMethod } from "@/interfaces/membershipInterface";
 import { formatRenewalDate, MEMBERSHIP_UI_CONFIG, ButtonConfig, PopupType } from "./config";
-import "../../../../styles/primary-purple-scrollbar.css";
+import "@/styles/primary-purple-scrollbar.css";
 
 export default function Page() {
   const router = useRouter();

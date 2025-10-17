@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import FirstLesson from "./components/FirstLesson";
 import GamesHighlights from "./components/GamesHighlights";
 // import MusicNotes from "./components/MusicNotes";
-import "../../../styles/primary-purple-scrollbar.css"
+import "@/styles/primary-purple-scrollbar.css"
 import AuthorizedWrapper2 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper2";
 
 export default function Page() {
