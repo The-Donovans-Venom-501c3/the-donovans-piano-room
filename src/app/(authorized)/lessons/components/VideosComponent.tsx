@@ -9,7 +9,7 @@ export default function VideosComponent({ onSelectVideo }: Props) {
 
   return (
     <><h2 className="text-4xl font-medium text-primary-brown mb-4">
-      Videos(32)
+      Videos({lessons.length})
     </h2>
       <hr className="border-[1px] border-purple-200" />
       <div className="grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-4 overflow-y-auto overflow-x-hidden w-full">
