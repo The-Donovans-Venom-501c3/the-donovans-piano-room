@@ -44,14 +44,14 @@ export default function Contact() {
 
   return (
     <div
-      className="relative w-[45vw] h-[60vh]"
-      style={isNavOpen ? { width: '70vw', height: '57vh' } : { width: '80vw', height: '55vh' }}
+      className="relative w-[45vw]"
+      style={isNavOpen ? { width: '70vw' } : { width: '80vw' }}
     >
       <div className=" h-full w-full max-md2:mt-28 max-md2:mb-24">
         <div>
           {submitted && (
             <div className="my-8">
-             <div className="relative bottom-40 flex items-center justify-center rounded-md bg-secondary-yellow p-3 shadow-md max-w-[60vw] mx-auto">
+              <div className="relative bottom-40 flex items-center justify-center rounded-md bg-secondary-yellow p-3 shadow-md max-w-[60vw] mx-auto">
                 <Image
                   src="/about/membership/Icon-include.svg"
                   width={20}
@@ -72,7 +72,7 @@ export default function Contact() {
         </div>
 
         <div className="flex flex-col items-end justify-center md:flex-row">
-          <div className="relative bottom-[5vh] mb-10 w-[384px] md:mb-0 md:mr-10">
+          <div className=" bottom-[5vh] mb-10 w-[384px] md:mb-0 md:mr-10">
 
             <div className="mb-8 flex flex-col items-start text-white">
               <h2 className="mb-8 text-6xl font-semibold">Get in touch</h2>

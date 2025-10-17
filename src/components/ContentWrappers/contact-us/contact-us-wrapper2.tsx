@@ -47,7 +47,7 @@ export default function ContactUsContentWrapper({
         </div>
 
         {/* Main content area */}
-        <div className="flex-1 flex justify-center items-start mt-60">
+        <div className="flex-1 flex justify-center items-center overflow-auto">
           <div className="w-full relative z-10">
             {children}
           </div>
