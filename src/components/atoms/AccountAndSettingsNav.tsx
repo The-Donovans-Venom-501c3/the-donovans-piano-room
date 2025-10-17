@@ -17,7 +17,7 @@ export default function AccountAndSettingsNav({currentPage}: {currentPage: strin
           style={currentPage === settingsNavigation.membership ? {background: "#D8BCFD", fontWeight: "600", color: "#6F219E"} : {}}
           >Membership</p>
         </Link>
-        <Link href="#">
+        <Link href="/account/payments">
           <p className="text-primary-gray text-xl 3xl:text-2xl 4xl:text-3xl py-[.5vh] px-[1vw] rounded-xl"
           style={currentPage === settingsNavigation.paymentMethods ? {background: "#D8BCFD", fontWeight: "600", color: "#6F219E"} : {}}
           >Payment methods</p>
