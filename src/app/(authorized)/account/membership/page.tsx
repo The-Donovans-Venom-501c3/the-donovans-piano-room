@@ -434,6 +434,7 @@ export default function Page() {
           text: "Go Back"
         }}
       />
+      </div>
     </AuthorizedWrapper1>
   );
 }
