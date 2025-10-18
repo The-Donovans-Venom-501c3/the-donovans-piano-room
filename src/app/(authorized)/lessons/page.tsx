@@ -5,7 +5,7 @@ import { nav4leftLinks } from "@/utils/stores";
 import EbooksComponent from "./components/EbooksComponent";
 import VideosComponent from "./components/VideosComponent";
 import LiveSessionsComponent from "./components/LiveSessionsComponent";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { lessons, Lesson } from "./components/Lesson";
 import VideoDetail from "./components/VideoDetailPage";
 import { useSearchParams } from "next/navigation";
@@ -34,7 +34,7 @@ const sections: NavItem[] = [
     }
 ];
 
-const LessonsPage = () => {
+function LessonsPageContent() {
     const [activeSection, setActiveSection] = useState<string>("ebooks");
     
     // logic for lessons navigation setting
@@ -49,10 +49,10 @@ const LessonsPage = () => {
     const section =  
         activeSection === "videos"
         ? selectedVideoId
-            ? < VideoDetail lesson={selectedVideoId} prevLesson={prevLesson} nextLesson={nextLesson}
+            ? <VideoDetail lesson={selectedVideoId} prevLesson={prevLesson} nextLesson={nextLesson}
             onBack={() => setSelectedVideoId(null)} onPrev={() => prevLesson && setSelectedVideoId(prevLesson)}
             onNext={() => nextLesson && setSelectedVideoId(nextLesson)}  />
-            : < VideosComponent onSelectVideo={setSelectedVideoId} /> : sections.find(s => s.id === activeSection)?.element;
+            : <VideosComponent onSelectVideo={setSelectedVideoId} /> : sections.find(s => s.id === activeSection)?.element;
     
     // Get url params
     const tabFromURL = useSearchParams().get("tab");
@@ -77,6 +77,14 @@ const LessonsPage = () => {
             </div>
         </AuthorizedWrapper2>
     )
+}
+
+const LessonsPage = () => {
+    return (
+        <Suspense fallback={<div className="p-4">Loading...</div>}>
+            <LessonsPageContent />
+        </Suspense>
+    );
 }
 
 const NavBar = ({ items, activeItem, onItemClick }: {
