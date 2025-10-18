@@ -85,7 +85,8 @@ function LiveSessionsComponent() {
                         <Image
                             src="/journal-book/logo.svg"
                             alt="Piano Room"
-                            fill
+                            width={487}
+                            height={48}
                             className="w-full h-48 object-cover rounded-lg"
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg">
