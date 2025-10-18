@@ -62,6 +62,7 @@ export default function Page() {
     useEffect(()=>{
         // setProfile(profile)
         initNotifications(dummyNoticationsData)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     const deleteItem = (index: number, section: number) => {
       let temp: [notification[], notification[]] = [...displayedNotifications]

@@ -37,12 +37,13 @@ export default function LessonCard({ lesson, onClick }: Props) {
                 <div className="relative w-10 h-10 ">
                   <button onClick={() => onClick?.(lesson)}>
                     {/* Purple circle background */}
-                    <img
+                    <Image width={30} height={30}
                       src="/lessons/Videos/Purple Circle Button.svg"
+                      alt="circle"
                     />
                     {/* White chevron centered */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <img
+                      <Image alt="learn more" width={16} height={16}
                         src="/lessons/Videos/fluent_chevron-up-16-filled.svg"
                       />
                     </div>

@@ -82,9 +82,10 @@ function LiveSessionsComponent() {
                     )}
 
                     <div className="relative mb-4">
-                        <img
+                        <Image
                             src="/journal-book/logo.svg"
                             alt="Piano Room"
+                            fill
                             className="w-full h-48 object-cover rounded-lg"
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg">
