@@ -24,6 +24,7 @@ export default function PasswordCases({password, testCasesCB, allCasesIsCorrect}
             ))
             
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [password])
 
     return (

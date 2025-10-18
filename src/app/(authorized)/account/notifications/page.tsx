@@ -9,7 +9,7 @@ import AllOrUnread from "./components/AllOrUnread";
 import AllCatchUp from "./components/AllCatchUp";
 import { notification } from "../../../../interfaces/notificationInterface";
 import NotificationItem from "./components/NotificationItem";
-import "../../../../styles/primary-purple-scrollbar.css"
+import "@/styles/primary-purple-scrollbar.css"
 
 export default function Page() {
     const [allNotifications, setAllNotifications] = useState<[notification[], notification[]]>([[],[]])
@@ -62,6 +62,7 @@ export default function Page() {
     useEffect(()=>{
         // setProfile(profile)
         initNotifications(dummyNoticationsData)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     const deleteItem = (index: number, section: number) => {
       let temp: [notification[], notification[]] = [...displayedNotifications]

@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image'
 import { Lesson } from './Lesson'
 
 interface VideoDetailProps {
@@ -25,13 +26,13 @@ export default function VideoDetail({ lesson, prevLesson, nextLesson, onBack, on
           <div className=" flex space-x-4">
               {prevLesson && (
                 <button  onClick={onPrev}>
-                    <img src='/lessons/Videos/Left Chevron Arrow.svg'/>
+                    <Image src='/lessons/Videos/Left Chevron Arrow.svg' alt="left arrow" width={24} height={24}/>
                 </button>
              )}
               <span className="text-[#3F3B3C] mt-2 " >{lesson.title}</span>
               {nextLesson && (
                 <button onClick={onNext}>
-                  <img src='/lessons/Videos/Right Chevron Arrow.svg'/>
+                  <Image src='/lessons/Videos/Right Chevron Arrow.svg' alt="right arrow" width={24} height={24} />
                 </button>
               )}
           </div>
