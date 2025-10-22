@@ -46,7 +46,8 @@ export default function Page() {
         setMembership(userMembership);
         
         // Show the popup if user has no active membership
-        if (!userMembership || !userMembership.levelId) {
+        if (!userMembership) {
+          setPlan(null);
           setShowNoActiveMembershipPopup(true);
           setLoading(false);
           return;
@@ -58,7 +59,7 @@ export default function Page() {
         const defaultMethod = methods.find((method: PaymentMethod) => method.isDefault) || methods[0];
         setSelectedPaymentMethod(defaultMethod);
         
-        if (userMembership?.levelId) {
+        if (userMembership.levelId) {
           const planDetails = await getPlanInfo(userMembership.levelId);
           if (!isMounted) return;
           setPlan({ 
@@ -70,12 +71,11 @@ export default function Page() {
         }
       } catch (e: any) {
         if (!isMounted) return;
-        if (e?.message?.includes('membership') || e?.message?.includes('not found')) {
-          // Show the popup if there is an error about no membership
-          setShowNoActiveMembershipPopup(true);
-        } else {
-          setError(e?.message || "Failed to load membership info");
+        if (e?.message === 'Unauthorized') {
+          router.push('/auth/login');
+          return;
         }
+        setError(e?.message || "Failed to load membership info");
       } finally {
         if (!isMounted) return;
         setLoading(false);
@@ -90,6 +90,11 @@ export default function Page() {
     try {
       const userMembership = await getUserMembership();
       setMembership(userMembership);
+      if (!userMembership) {
+        setPlan(null);
+        setShowNoActiveMembershipPopup(true);
+        return;
+      }
       if (userMembership?.levelId) {
         const planDetails = await getPlanInfo(userMembership.levelId);
         setPlan({ 
