@@ -325,10 +325,14 @@ export default function Page() {
               )}
             </p>
           )}
-          <div className='mt-[4vh] mb-[4vh] bg-[#FED2AA] h-1'></div>
+          
+          {/* only show membership details grid when not loading and membership exists */}
+          {!loading && membership && (
+            <>
+              <div className='mt-[4vh] mb-[4vh] bg-[#FED2AA] h-1'></div>
 
-          <div className="grid w-full grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-9 md:max-w-[1000px]">
-            {plan && uiConfig && (
+              <div className="grid w-full grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-9 md:max-w-[1000px]">
+                {plan && uiConfig && (
               <div className="flex flex-1 flex-col gap-6 rounded-xl bg-primary-skin p-6">
                 <h1 className="font-montserrat text-2xl font-semibold text-primary-brown md:text-3xl">
                   Current membership
@@ -384,8 +388,10 @@ export default function Page() {
                 onEditClick={() => setShowPaymentMethodPopup(true)}
               />
               
+              </div>
             </div>
-          </div>
+          </>
+          )}
         </div>
       )}
 
