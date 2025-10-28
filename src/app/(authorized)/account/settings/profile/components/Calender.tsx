@@ -72,7 +72,7 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
     const profile = useAtomValue(profileAtom)
     const [avatar, setAvatar] = useState(profile.picture)
     const [selectingAvatar, setSelectingAvatar] = useState(false)
-    const [membershipName, setMembershipName] = useState<string | null>("Loading Membership...");
+    const [membershipName, setMembershipName] = useState<string>("Loading Membership...");
     
     const closeSelectingAvatar = () => {
         setSelectingAvatar(false)
@@ -115,7 +115,7 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
             </div>
             <div className="text-center">
                 <h2 className="text-4xl 3xl:text-5xl 4xl:text-6xl text-primary-brown">{profile.fullName}</h2>
-                <a href="#" className="underline text-lg 3xl:text-xl 4xl:text-2xl text-primary-purple">
+                <a href="/account/membership" className="underline text-lg 3xl:text-xl 4xl:text-2xl text-primary-purple">
                     {membershipName}
                 </a>
                 <div className="mt-4 px-14 text-xl 3xl:text-2xl 4xl:text-3xl">
