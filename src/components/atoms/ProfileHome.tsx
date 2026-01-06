@@ -25,7 +25,7 @@ const Profile = () => {
             <div className="relative h-[4vh] w-[5vh] right-5">
                 <Image src={profile.picture} fill alt="profile icon" className="rounded-full" />
             </div>
-            <p className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold text-[#4B2A16]">{"Hello, "}{profile.firstName}{"!"}</p>
+            <p className="text-2xl 3xl:text-3xl 4xl:text-4xl font-bold text-[#4B2A16]">Hello, {profile.firstName}!</p>
         </div>
     )
 }

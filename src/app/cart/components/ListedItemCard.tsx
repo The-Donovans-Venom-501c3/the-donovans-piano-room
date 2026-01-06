@@ -37,7 +37,7 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface; index: n
                 </span>
               </h3>
               <span className="font-roboto font-semibold text-xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
-                ${book.price}.00
+                ${book.price.toFixed(2)}
               </span>
             </div>
 
@@ -59,7 +59,7 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface; index: n
               {/* Price */}
               <div className="flex flex-col items-end p-2 w-[60px] h-[68px]">
                 <span className="font-roboto font-semibold text-2xl 3xl:text-4xl 4xl:text-5xl text-purple-800">
-                  ${book.price}.00
+                  ${(book.price * book.quantity).toFixed(2)}
                 </span>
               </div>
             </div>
