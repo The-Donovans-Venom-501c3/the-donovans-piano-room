@@ -74,7 +74,8 @@ export default function PaymentCard() {
         ) : (
           <PayPalScriptProvider
             options={{
-              clientId: "AQU1gu7Wg-9FB2ehd5J4VmBEWwwkdoakf_h2iR7VZSLeI0RpaJNSMJbQ0bsAoD7erBM6ZsfOIN00kec1",
+               clientId: "AQU1gu7Wg-9FB2ehd5J4VmBEWwwkdoakf_h2iR7VZSLeI0RpaJNSMJbQ0bsAoD7erBM6ZsfOIN00kec1",
+              // clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AYvfaR1mskqI65Qnq4RL6Mwi-uCdCBeFuO6nsb6moMrEBaGR3A-6vROZJlUB1DSbadiTna6I2D40UNwS",
             "enable-funding": "venmo,card,applepay",
             }}
           >
@@ -100,11 +101,13 @@ export default function PaymentCard() {
                 };
 
                 await addCart({ cart: cartData });
-                const order = await createOrder(cartData);
-                return order.id;
+                const data = await createOrder(cartData);
+                return data.order.id;
               }}
               onApprove={async (data) => {
                 try {
+                  
+                  console.log("Capture result received:", data);
                   const result = await captureOrder(data.orderID);
                   setOrderId(result.id);       
                   setPaymentSuccess(true);    

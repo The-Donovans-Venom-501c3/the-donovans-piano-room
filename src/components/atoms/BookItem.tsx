@@ -27,7 +27,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
     [book, addedCartItems],
   );
   return (
-    <div className="min-h-[40vh] w-[250px] rounded-2xl bg-[#FEF8EE] px-5 pb-3 shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px] shadow-[#AC7A2280]">
+    <div className="flex flex-col min-h-[40vh] w-[250px] rounded-2xl bg-[#FEF8EE] px-5 pb-3 shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px] shadow-[#AC7A2280]">
       <div className="flex w-full justify-between pt-1">
         <div className="flex items-center gap-[2%]">
           <div className="relative h-[2.5vh] w-[2.5vh]">
@@ -57,7 +57,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
       >
         The Donovan&apos;s piano room
       </p>
-      <p className="text-xl 2xl:text-2xl 3xl:text-3xl">{book.description}</p>
+      <p className="text-xl 2xl:text-2xl 3xl:text-3xl line-clamp-2">{book.description}</p>
       <Link
         href={"/bookstore/" + book.id}
         className="mb-[10%] flex items-center gap-[1%]"
@@ -69,6 +69,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
           <Image src="/about/FAQs/DropdownIcon.svg" fill alt="" />
         </div>
       </Link>
+      <div className="mt-auto">
       {loading ? (
         <div className="flex w-full items-center justify-center gap-[2%] rounded-full bg-[#DDDADA] py-3 text-[1vw] font-semibold text-[#564E4E] 2xl:py-4 3xl:py-5">
           <CircularProgress size={15} sx={{ color: "#564E4E" }} />
@@ -88,6 +89,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
           onClick={handleAddToCart}
         />
       )}
+      </div>
     </div>
   );
 }

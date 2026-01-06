@@ -1,6 +1,8 @@
 import ShoppingCartOutlined from "@mui/icons-material/ShoppingCartOutlined";
+import { useRouter } from "next/navigation";
 
 export default function EmptyCart() {
+  const router = useRouter();
   return (
     <div className="flex h-[40vh] w-full flex-col items-center justify-center rounded-xl bg-[#ffffff] space-y-3">
       <div>
@@ -12,7 +14,7 @@ export default function EmptyCart() {
       <p className=" text-xl 3xl:text-2xl 4xl:text-3xl">
         Go back to the bookstore and start shopping
       </p>
-      <button className=" rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white">
+      <button onClick={() => {router.push("/bookstore")}} className=" rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white">
         Start shopping
       </button>
     </div>
