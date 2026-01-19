@@ -1,8 +1,20 @@
-import { InputAdornment, TextField } from '@mui/material';
+import { InputAdornment, TextField, IconButton } from '@mui/material';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
+import { useRef } from 'react';
 export default function DateInput({defaultValue, label, onChange, name}: {defaultValue: string, label: string, onChange: any, name: string}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const openCalendar = () => {
+    if (inputRef.current && "showPicker" in inputRef.current) {
+      (inputRef.current as any).showPicker();
+    } else {
+      inputRef.current?.focus();
+    }
+  };
+
   return (
     <TextField
+        inputRef={inputRef}
         InputLabelProps={{
             className:'3xl:text-2xl 3xl:mt-2 pt-0', 
             sx:[{color: "#391f0f"}, {'&.Mui-focused': { color: "#391f0f"}},]
@@ -12,7 +24,9 @@ export default function DateInput({defaultValue, label, onChange, name}: {defaul
             disableUnderline: true,
             endAdornment: (
               <InputAdornment position='end'>
-                <CalendarMonthOutlinedIcon className='text-[#6F219E]'/>
+                <IconButton onClick={openCalendar} >
+                  <CalendarMonthOutlinedIcon className='text-[#6F219E]'/>
+                </IconButton>
               </InputAdornment>
             ),
             className: "bg-[#fef8ee] hover:bg-[#fef8ee] rounded-3xl",
