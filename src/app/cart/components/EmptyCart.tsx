@@ -1,4 +1,5 @@
 import ShoppingCartOutlined from "@mui/icons-material/ShoppingCartOutlined";
+import Link from "next/link";
 
 export default function EmptyCart() {
   return (
@@ -12,9 +13,13 @@ export default function EmptyCart() {
       <p className=" text-xl 3xl:text-2xl 4xl:text-3xl">
         Go back to the bookstore and start shopping
       </p>
-      <button className=" rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white">
+
+      <Link
+        href="/bookstore"
+        className="rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white"
+      >
         Start shopping
-      </button>
+      </Link>
     </div>
   );
 }
