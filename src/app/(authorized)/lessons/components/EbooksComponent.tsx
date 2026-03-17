@@ -73,6 +73,10 @@ function EbooksComponent() {
                             `}
                             style={{ cursor: "pointer" }}
                             onClick={() => setSelected(i)}
+                            onDoubleClick={() => {
+                                setSelected(i);
+                                handleRead();
+                            }}
                         >
                             {
                                 selected==i?<SelectedCard width={210} height={210}>
