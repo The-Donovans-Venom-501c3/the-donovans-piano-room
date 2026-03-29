@@ -5,6 +5,7 @@ import { profileAtom } from "@/utils/stores";
 import { useAtomValue } from "jotai";
 import SelectInput from '@/components/atoms/select-input-2';
 import AvatarSelectPopup from "./AvatarSelectPopup";
+import { getUserMembership, getPlanInfo } from "@/lib/api/membershipService";
 
 const getStartOfMonth = (month: number, year: number) => {
     return dayjs(new Date(year, month, 1)).day();
@@ -71,9 +72,35 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
     const profile = useAtomValue(profileAtom)
     const [avatar, setAvatar] = useState(profile.picture)
     const [selectingAvatar, setSelectingAvatar] = useState(false)
+    const [membershipName, setMembershipName] = useState<string>("Loading Membership...");
+    
     const closeSelectingAvatar = () => {
         setSelectingAvatar(false)
     }
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadMembership = async () => {
+            try {
+                const userMembership = await getUserMembership();
+                if (!isMounted) return;
+                if (!userMembership) {
+                    setMembershipName("No Active Membership");
+                }
+                else {
+                    const planDetails = await getPlanInfo(userMembership.levelId);
+                    setMembershipName(planDetails.planName);
+                }
+            } catch (e) {
+                setMembershipName("Error Loading Membership");
+            }
+        };
+        loadMembership();
+        
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     return (
         <div className="w-[27%] bg-[#FFF2E5] p-6 rounded-3xl font-montserrat">
@@ -88,7 +115,9 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
             </div>
             <div className="text-center">
                 <h2 className="text-4xl 3xl:text-5xl 4xl:text-6xl text-primary-brown">{profile.fullName}</h2>
-                <a href="#" className="underline text-lg 3xl:text-xl 4xl:text-2xl text-primary-purple">Monthly Membership</a>
+                <a href="/account/membership" className="underline text-lg 3xl:text-xl 4xl:text-2xl text-primary-purple">
+                    {membershipName}
+                </a>
                 <div className="mt-4 px-14 text-xl 3xl:text-2xl 4xl:text-3xl">
                     <div className="flex items-center justify-between">
                         <div className='flex items-center'>
