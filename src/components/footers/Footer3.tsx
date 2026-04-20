@@ -12,21 +12,36 @@ export default function Footer3() {
             <div className='flex gap-8'>
 
             <div className="relative h-[4vh] w-[5vh]">
-                <Link href="https://x.com/iamthedonovan?s=11" target="_blank">
-                 <Image src="/footer/Instagram.svg" fill alt='Twitter' />
-                </Link>
+                                <Link
+                                    href="https://x.com/iamthedonovan?s=11"
+                                    target="_blank"
+                                    aria-label="Twitter (opens in a new tab)"
+                                    className="inline-flex h-full w-full items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-400"
+                                >
+                                 <Image src="/footer/Instagram.svg" fill alt='Twitter' />
+                                </Link>
             </div>
 
             <div className="relative h-[4vh] w-[5vh]">
-                <Link href="https://www.facebook.com/TheDonovansVenomINC/" target="_blank">
-                 <Image src="/footer/Facebook.svg" fill alt='Facebook' />
-                </Link>
+                                <Link
+                                    href="https://www.facebook.com/TheDonovansVenomINC/"
+                                    target="_blank"
+                                    aria-label="Facebook (opens in a new tab)"
+                                    className="inline-flex h-full w-full items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-400"
+                                >
+                                 <Image src="/footer/Facebook.svg" fill alt='Facebook' />
+                                </Link>
             </div>
 
             <div className="relative h-[4vh] w-[5vh]">
-                <Link href="https://www.youtube.com/@thedonovansvenom2848" target="_blank">
-                 <Image src="/footer/Youtube.svg" fill alt='Youtube' />
-                </Link>
+                                <Link
+                                    href="https://www.youtube.com/@thedonovansvenom2848"
+                                    target="_blank"
+                                    aria-label="YouTube (opens in a new tab)"
+                                    className="inline-flex h-full w-full items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-400"
+                                >
+                                 <Image src="/footer/Youtube.svg" fill alt='Youtube' />
+                                </Link>
             </div>
 
 
