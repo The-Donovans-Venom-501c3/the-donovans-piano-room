@@ -1,11 +1,10 @@
 import { UserUpdateData } from "@/interfaces/profileInterface"
-import exp from "constants"
+import { fetchWithAuth } from "./fetchWithAuth"
 
 export const getUser = async () =>{
     try{
-        const response = await fetch('/api/user/', {
+        const response = await fetchWithAuth('/api/user/', {
             method: "GET", 
-            credentials: 'include'
         })
         const data = await response.json()
         return {data, ok: response.ok}
@@ -16,7 +15,7 @@ export const getUser = async () =>{
 }
 
 export const updateUser = async (userData: UserUpdateData) => {
-    const response = await fetch('/api/user/', {
+    const response = await fetchWithAuth('/api/user/', {
         method: "PUT", 
         headers: {
             'Content-Type': 'application/json'
