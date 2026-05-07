@@ -8,7 +8,7 @@ export default function AuthContentWrapper({children}: {children: React.ReactNod
     <div className='bg-primary-purple'>
         <Navbar2 />
         <BackgroundSignup/>
-        <section className='relative z-40 mx-auto flex flex-col items-center justify-center px-4 py-8 md:h-screen'>
+        <section className='relative z-40 mx-auto flex flex-col items-center justify-center px-4 min-h-screen pt-[calc(9.5vh+2rem)] pb-[calc(9.3vh+2rem)]'>
           {children}
 
         </section>

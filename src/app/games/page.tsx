@@ -55,9 +55,13 @@ const Games = () => {
   if (loading) {
     return (
       <>
-        <div className="w-[80%] mt-[9vh] mx-auto flex flex-col items-center justify-center flex-grow">
-          <CircularProgress size={60} />
-          <p className="mt-4 text-gray-600">Loading...</p>
+        <div
+          role="status"
+          aria-live="polite"
+          className="w-[80%] mt-[9vh] mx-auto flex flex-col items-center justify-center flex-grow"
+        >
+          <CircularProgress size={60} aria-hidden="true" />
+          <p className="mt-4 text-gray-600">Loading games, please wait…</p>
         </div>
       </>
     );
@@ -68,6 +72,10 @@ const Games = () => {
       {!isAuthenticated &&
         <div className="w-[80%] mt-[9vh] mx-auto flex-grow">
           <h1 className="text-5xl font-bold text-gray-800 mb-8">Games</h1>
+          <p className="sr-only">
+            The music games include a note identification quiz. If you use assistive technology and need help with the quiz,
+            please contact us at info@theDonovan.org for support.
+          </p>
 
           <div className="bg-white rounded-lg border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-6">

@@ -98,7 +98,7 @@ export default function LoginForm() {
                                 </svg>
                             </span>
                         </label>
-                        <label className="text-lg font-medium text-white mt-1 2xl:mt-2 3xl:text-2xl 4xl:text-[16px]">Remember me</label>
+                        <label htmlFor="check" className="text-lg font-medium text-white mt-1 2xl:mt-2 3xl:text-2xl 4xl:text-[16px]">Remember me</label>
                     </div>
                     <Link href="/forgot-password" className="text-lg font-medium text-primary-yellow mt-3 2xl:mt-4 3xl:text-2xl 4xl:text-[16px]">Forgot password?</Link>
                 </div>
