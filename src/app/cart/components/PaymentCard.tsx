@@ -5,6 +5,7 @@ import { addedCartItemsAtom, paymentSuccessAtom, orderIdAtom } from "@/store/car
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import InputForm from "@/components/atoms/form-input";
 import { createOrder, captureOrder, addCart, getCart } from "@/lib/api/orderService";
+import next from "next";
 
 export default function PaymentCard() {
   const addedCartItems = useAtomValue(addedCartItemsAtom);
@@ -74,7 +75,7 @@ export default function PaymentCard() {
         ) : (
           <PayPalScriptProvider
             options={{
-               clientId: "AQU1gu7Wg-9FB2ehd5J4VmBEWwwkdoakf_h2iR7VZSLeI0RpaJNSMJbQ0bsAoD7erBM6ZsfOIN00kec1",
+               clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AYvfaR1mskqI65Qnq4RL6Mwi-uCdCBeFuO6nsb6moMrEBaGR3A-6vROZJlUB1DSbadiTna6I2D40UNwS",
               // clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AYvfaR1mskqI65Qnq4RL6Mwi-uCdCBeFuO6nsb6moMrEBaGR3A-6vROZJlUB1DSbadiTna6I2D40UNwS",
             "enable-funding": "venmo,card,applepay",
             }}
