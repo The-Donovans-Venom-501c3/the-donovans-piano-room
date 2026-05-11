@@ -1,34 +1,117 @@
-import React, { useState } from 'react';
-import Image from 'next/image';
+import React, { useState } from "react";
+import Image from "next/image";
 import Button4 from "@/components/atoms/Button4";
-import InputForm from '@/components/atoms/form-input';
-import { bookCartItemInterface } from '@/interfaces/bookInterface';
-import { useSetAtom } from 'jotai';
-import { addedCartItemsAtom, useCartOperations } from '@/store/cartStore';
+import InputForm from "@/components/atoms/form-input";
+import { bookCartItemInterface } from "@/interfaces/bookInterface";
+import { useCartOperations } from "@/store/cartStore";
+import {
+  applyCouponToCartItem,
+  CouponResponse,
+} from "@/lib/api/couponService";
 
-const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: number }) => {
-  const setAddedCartItems = useSetAtom(addedCartItemsAtom)
-  const { updateQuantity, removeFromCart } = useCartOperations();
-  const [bookCoupon, setBookCoupon] = useState("")
+const calculateCouponDiscount = (
+  coupon: CouponResponse,
+  totalAmt: number
+): number => {
+  if (totalAmt <= 0) return 0;
+
+  const minimumPurchase = Number(coupon.minimumPurchase ?? 0);
+
+  if (minimumPurchase && totalAmt < minimumPurchase) {
+    return 0;
+  }
+
+  const discountValue = Number(coupon.discount ?? 0);
+  const discountType = coupon.discountType?.toLowerCase();
+
+  let discountAmount =
+    discountType === "percentage"
+      ? (totalAmt * discountValue) / 100
+      : discountValue;
+
+  if (coupon.maximumDiscount !== null && coupon.maximumDiscount !== undefined) {
+    discountAmount = Math.min(discountAmount, Number(coupon.maximumDiscount));
+  }
+
+  return Math.min(Number(discountAmount.toFixed(2)), totalAmt);
+};
+
+const ListedItemCard = ({
+  book,
+  index,
+}: {
+  book: bookCartItemInterface;
+  index: number;
+}) => {
+  const { updateQuantity, removeFromCart, applyCouponToItem } =
+    useCartOperations();
+
+  const [bookCoupon, setBookCoupon] = useState(
+    book.appliedCoupon?.couponCode || ""
+  );
+  const [couponMessage, setCouponMessage] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  const itemTotal = book.price * book.quantity;
+
   const increaseQuantity = () => updateQuantity(book.id, book.quantity + 1);
   const removeItem = () => removeFromCart(book.id);
   const decreaseQuantity = () => updateQuantity(book.id, book.quantity - 1);
+
+  const handleApplyCoupon = async () => {
+    const trimmedCouponCode = bookCoupon.trim();
+
+    setCouponMessage("");
+    setCouponError("");
+
+    if (!trimmedCouponCode) {
+      setCouponError("Coupon code required");
+      return;
+    }
+
+    try {
+      setIsApplyingCoupon(true);
+
+      const response = await applyCouponToCartItem(trimmedCouponCode, {
+        applicableTo: "book",
+        bookId: book.id,
+        totalAmt: itemTotal,
+      });
+
+      const discountAmount = calculateCouponDiscount(
+        response.coupon,
+        itemTotal
+      );
+
+      applyCouponToItem(book.id, response.coupon, discountAmount);
+
+      setCouponMessage(`Coupon applied. You saved $${discountAmount.toFixed(2)}.`);
+    } catch (error: any) {
+      setCouponError(error?.message || "Failed to apply coupon");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
   return (
-    <div className="flex flex-row  items-center p-8 gap-6 w-[62%] h-full tablet:w-full tablet:h-[72%] laptop:w-full laptop:h-[75%] bg-white rounded-[12px] shadow-md">
-      {/* Image Section */}
+    <div className="flex flex-row items-center p-8 gap-6 w-[62%] h-full tablet:w-full tablet:h-[72%] laptop:w-full laptop:h-[75%] bg-white rounded-[12px] shadow-md">
       <div className="relative h-[28vh] w-[14vw]">
         <Image
           src={book.imageSrc}
           alt="Book Cover"
           fill
           className="absolute w-full h-full left-0 top-0 rounded-[12px]"
-          style={{ objectFit: "cover", boxShadow: "2px 2px 4px 0px #AC7A2280", margin: 0, padding: 0 }}
+          style={{
+            objectFit: "cover",
+            boxShadow: "2px 2px 4px 0px #AC7A2280",
+            margin: 0,
+            padding: 0,
+          }}
         />
       </div>
 
-      {/* Text and Details Section */}
       <div className="flex flex-col justify-between w-full h-[26%]">
-        {/* Title */}
         <div className="flex flex-col gap-[15px]">
           <h3 className="font-montserrat font-bold text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown">
             The Donovan Piano Room {book.title}
@@ -36,10 +119,12 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
           <p>Format: {book.type}</p>
         </div>
 
-        {/* Quantity and Remove */}
         <div className="flex flex-row justify-between items-center">
           <div className="flex flex-row items-start gap-[32px]">
-            <div className="flex flex-row items-center gap-[4px] w-[80px] h-[24px] cursor-pointer" onClick={removeItem}>
+            <div
+              className="flex flex-row items-center gap-[4px] w-[80px] h-[24px] cursor-pointer"
+              onClick={removeItem}
+            >
               <span className="font-roboto font-bold text-xl 3xl:text-2xl 4xl:text-3xl text-primary-purple">
                 Remove
               </span>
@@ -49,35 +134,98 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
             </div>
 
             <div className="flex flex-row items-center justify-center gap-[9px] w-[72px] h-[26px] border-2 border-primary-purple rounded">
-              <button onClick={decreaseQuantity} className="font-roboto text-2xl 3xl:text-3xl 4xl:text-4xl text-primary-purple font-bold">
+              <button
+                onClick={decreaseQuantity}
+                className="font-roboto text-2xl 3xl:text-3xl 4xl:text-4xl text-primary-purple font-bold"
+              >
                 -
               </button>
               <span className="font-roboto font-bold text-xl 3xl:text-2xl 4xl:text-3xl text-primary-purple">
                 {book.quantity}
               </span>
-              <button onClick={increaseQuantity} className="font-roboto text-2xl 3xl:text-3xl 4xl:text-4xl text-primary-purple font-bold">
+              <button
+                onClick={increaseQuantity}
+                className="font-roboto text-2xl 3xl:text-3xl 4xl:text-4xl text-primary-purple font-bold"
+              >
                 +
               </button>
             </div>
           </div>
 
-          {/* Price Section */}
           <div className="flex flex-col items-end p-2 w-[123px] h-[68px] bg-[#F5E8FF] rounded-[12px] 4xl:mt-[2%]">
             <span className="font-roboto font-bold text-2xl 3xl:text-3xl 4xl:text-4xl text-[#714B2D]">
               Price
             </span>
             <span className="font-roboto font-semibold text-3xl 3xl:text-4xl 4xl:text-5xl text-[#1C1A1A]">
-              {book.price}
+              ${book.price.toFixed(2)}
             </span>
           </div>
         </div>
 
-        {/* Coupon Section */}
-        <div className="flex flex-row items-center gap-[24px] w-full mt-[4%]">
-          <InputForm field={{ label: "Coupon code", name: "coupon-field", type: "text" }} onChange={(e: any) => setBookCoupon(e.target.value)} text={bookCoupon} error='' />
-          <Button4 text="Apply Coupon"
-            style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingLeft: '24px', paddingRight: '24px', paddingTop: '8px', paddingBottom: '8px', width: '200px', height: '40px', border: '1px solid #6F219E', borderRadius: '31px', fontFamily: 'Roboto, sans-serif', fontWeight: 'bold', fontSize: '14px', color: '#6F219E' }}
-          />
+        {book.discountAmount && book.discountAmount > 0 && (
+          <div className="flex flex-row justify-between items-center mt-[2%]">
+            <p className="font-roboto text-[14px] text-[#1C1A1A]">
+              Applied Coupon:{" "}
+              <span className="font-bold text-primary-purple">
+                {book.appliedCoupon?.couponCode}
+              </span>
+            </p>
+            <p className="font-roboto text-[14px] text-green-700">
+              -${book.discountAmount.toFixed(2)}
+            </p>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-[8px] w-full mt-[4%]">
+          <div className="flex flex-row items-center gap-[24px] w-full">
+            <InputForm
+              field={{
+                label: "Coupon code",
+                name: `coupon-field-${index}`,
+                type: "text",
+              }}
+              onChange={(e: any) => setBookCoupon(e.target.value)}
+              text={bookCoupon}
+              error=""
+            />
+
+            <Button4
+              text={isApplyingCoupon ? "Applying..." : "Apply Coupon"}
+              onClick={handleApplyCoupon}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                paddingLeft: "24px",
+                paddingRight: "24px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                width: "200px",
+                height: "40px",
+                border: "1px solid #6F219E",
+                borderRadius: "31px",
+                fontFamily: "Roboto, sans-serif",
+                fontWeight: "bold",
+                fontSize: "14px",
+                color: "#6F219E",
+                opacity: isApplyingCoupon ? 0.7 : 1,
+                cursor: isApplyingCoupon ? "not-allowed" : "pointer",
+              }}
+            />
+          </div>
+
+          {couponMessage && (
+            <p className="font-roboto text-[14px] text-green-700">
+              {couponMessage}
+            </p>
+          )}
+
+          {couponError && (
+            <p className="font-roboto text-[14px] text-[#FFA480]">
+              {couponError}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -85,22 +233,3 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
 };
 
 export default ListedItemCard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
