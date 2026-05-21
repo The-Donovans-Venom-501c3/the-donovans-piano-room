@@ -66,7 +66,7 @@ export default function ContactUsForm() {
       <div className="flex flex-col items-end justify-center md:flex-row">
         <div className="mb-10 w-full md:mb-0 md:mr-10 md:w-1/4">
           <div className="mb-8 flex flex-col items-start text-white">
-            <h2 className="mb-8 text-6xl font-semibold">Get in touch</h2>
+            <h1 className="mb-8 text-6xl font-semibold">Get in touch</h1>
             <p className="md:w-full text-xl text-[#D9D9D9]">
               Have any questions, concerns, or need assistance? Fill out the form
               below and one of our representatives will reach out to you in a timely
@@ -122,7 +122,7 @@ export default function ContactUsForm() {
           <div className="p-5 font-medium">
             <div className="mb-5 flex">
               <Image src="/Info.svg" width={25} height={100} alt="Info" />
-              <h3 className="ml-4 text-4xl font-semibold text-[#F0D454]">Contact info</h3>
+              <h2 className="ml-4 text-4xl font-semibold text-[#F0D454]">Contact info</h2>
             </div>
             <hr className="mb-5 h-1 border-[#734920]" />
             <p className="text-lg">SEND YOUR LETTERS OR DONATIONS TO</p>
