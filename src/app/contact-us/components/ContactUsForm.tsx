@@ -67,11 +67,13 @@ export default function ContactUsForm() {
         <div className="mb-10 w-full md:mb-0 md:mr-10 md:w-1/4">
           <div className="mb-8 flex flex-col items-start text-white">
             <h1 className="mb-8 text-6xl font-semibold">Get in touch</h1>
-            <p className="md:w-full text-xl text-[#D9D9D9]">
-              Have any questions, concerns, or need assistance? Fill out the form
-              below and one of our representatives will reach out to you in a timely
-              manner.
-            </p>
+            <div className="md:w-full p-5 rounded-2xl bg-[#6F219E] ">
+              <p className="text-xl">
+                Have any questions, concerns, or need assistance? Fill out the form
+                below and one of our representatives will reach out to you in a timely
+                manner.
+              </p>
+            </div>
           </div>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <InputForm
