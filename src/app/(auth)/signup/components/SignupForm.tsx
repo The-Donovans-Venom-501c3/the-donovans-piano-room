@@ -89,6 +89,7 @@ export default function SignupForm() {
             type: "text",
             name: "fullName",
             label: "Full name",
+            required: true,
           }}
           onChange={(e: any) => setFullName(e.target.value)}
           text={fullName}
@@ -100,6 +101,7 @@ export default function SignupForm() {
             type: "email",
             name: "email",
             label: "Email",
+            required: true,
           }}
           onChange={(e: any) => setEmail(e.target.value)}
           text={email}
@@ -109,6 +111,7 @@ export default function SignupForm() {
           onChange={(e: any) => setPassword(e.target.value)}
           name="password"
           label="Password"
+          required={true}
           error={
             allPasswordCasesCorrect &&
             confirmPassword.length &&
@@ -128,6 +131,7 @@ export default function SignupForm() {
             onChange={(e: any) => setConfirmPassword(e.target.value)}
             name="confirm password"
             label="Confirm password"
+            required={true}
             error={
               allPasswordCasesCorrect &&
               confirmPassword.length &&
