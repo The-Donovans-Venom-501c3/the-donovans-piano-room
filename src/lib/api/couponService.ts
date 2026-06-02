@@ -1,17 +1,23 @@
-export type CouponApplicableTo = "book" | "all";
+export type CouponApplicableTo = "book" | "all" | "membership";
 
 export interface ApplyCouponRequestBody {
   applicableTo?: CouponApplicableTo;
   bookId?: string;
+  memberId?: string;
   totalAmt?: string | number;
 }
 
 export interface CouponResponse {
   couponCode: string;
-  discount: number;
+  bookId?: string | null;
+  memberId?: string | null;
+  applicableTo?: CouponApplicableTo;
+  discount: string | number;
   discountType: string;
-  maximumDiscount: number | null;
-  minimumPurchase: number;
+  maximumDiscount: string | number | null;
+  minimumPurchase: string | number;
+  expiration?: string | null;
+  status?: string;
 }
 
 export interface ApplyCouponResponse {
@@ -40,11 +46,17 @@ export async function applyCouponToCartItem(
     }
   );
 
-  const data = await response.json();
+  let data: any = {};
 
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to apply coupon");
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
   }
 
-  return data;
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to apply coupon");
+  }
+
+  return data as ApplyCouponResponse;
 }
