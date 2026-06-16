@@ -5,14 +5,36 @@ import InputForm from '@/components/atoms/form-input';
 import { bookCartItemInterface } from '@/interfaces/bookInterface';
 import { useSetAtom } from 'jotai';
 import { addedCartItemsAtom, useCartOperations } from '@/store/cartStore';
+import { applyBookCoupon } from '@/lib/api/membershipService';
 
 const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: number }) => {
   const setAddedCartItems = useSetAtom(addedCartItemsAtom)
   const { updateQuantity, removeFromCart } = useCartOperations();
   const [bookCoupon, setBookCoupon] = useState("")
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState("")
+  const [couponResult, setCouponResult] = useState<{ message: string; discountAmt: number; totalAmt: number } | null>(null)
+
   const increaseQuantity = () => updateQuantity(book.id, book.quantity + 1);
   const removeItem = () => removeFromCart(book.id);
   const decreaseQuantity = () => updateQuantity(book.id, book.quantity - 1);
+
+  const handleApplyCoupon = async () => {
+    if (!bookCoupon.trim()) return;
+    setCouponLoading(true);
+    setCouponError("");
+    setCouponResult(null);
+    try {
+      const totalAmt = parseFloat(String(book.price)) * book.quantity;
+      const result = await applyBookCoupon(bookCoupon.trim(), totalAmt, book.id);
+      setCouponResult(result);
+    } catch (error: any) {
+      setCouponError(error.message || 'Failed to apply coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-row  items-center p-8 gap-6 w-[62%] h-full tablet:w-full tablet:h-[72%] laptop:w-full laptop:h-[75%] bg-white rounded-[12px] shadow-md">
       {/* Image Section */}
@@ -73,11 +95,29 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
         </div>
 
         {/* Coupon Section */}
-        <div className="flex flex-row items-center gap-[24px] w-full mt-[4%]">
-          <InputForm field={{ label: "Coupon code", name: "coupon-field", type: "text" }} onChange={(e: any) => setBookCoupon(e.target.value)} text={bookCoupon} error='' />
-          <Button4 text="Apply Coupon"
-            style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingLeft: '24px', paddingRight: '24px', paddingTop: '8px', paddingBottom: '8px', width: '200px', height: '40px', border: '1px solid #6F219E', borderRadius: '31px', fontFamily: 'Roboto, sans-serif', fontWeight: 'bold', fontSize: '14px', color: '#6F219E' }}
-          />
+        <div className="flex flex-col gap-[8px] w-full mt-[4%]">
+          <div className="flex flex-row items-center gap-[24px] w-full">
+            <InputForm
+              field={{ label: "Coupon code", name: "coupon-field", type: "text" }}
+              onChange={(e: any) => {
+                setBookCoupon(e.target.value);
+                setCouponError("");
+                setCouponResult(null);
+              }}
+              text={bookCoupon}
+              error={couponError}
+            />
+            <Button4
+              text={couponLoading ? "Applying..." : "Apply Coupon"}
+              onClick={handleApplyCoupon}
+              style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingLeft: '24px', paddingRight: '24px', paddingTop: '8px', paddingBottom: '8px', width: '200px', height: '40px', border: '1px solid #6F219E', borderRadius: '31px', fontFamily: 'Roboto, sans-serif', fontWeight: 'bold', fontSize: '14px', color: '#6F219E', opacity: couponLoading ? 0.6 : 1, cursor: couponLoading ? 'not-allowed' : 'pointer' }}
+            />
+          </div>
+          {couponResult && (
+            <div className="text-sm text-green-600 font-roboto">
+              {couponResult.message} — Discount: <span className="font-bold">-${couponResult.discountAmt.toFixed(2)}</span>, Total: <span className="font-bold">${couponResult.totalAmt.toFixed(2)}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -85,22 +125,3 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
 };
 
 export default ListedItemCard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
