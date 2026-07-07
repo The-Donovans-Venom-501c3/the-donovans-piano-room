@@ -33,7 +33,7 @@ export default function InputForm({
           htmlFor={field.name}
         >
           {field.label}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
+          {field.required && <span className="text-red-800 ml-1">*</span>}
         </InputLabel>
         <Input
           className='w-full pl-5 text-[16px]'

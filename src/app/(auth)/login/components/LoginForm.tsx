@@ -68,6 +68,7 @@ export default function LoginForm() {
                         type: "email",
                         name: "email",
                         label: "Email",
+                        required: true,
                     }}
                     onChange={(e: any) => setEmail(e.target.value)}
                     text={email}
@@ -77,6 +78,7 @@ export default function LoginForm() {
                     onChange={(e: any) => setPassword(e.target.value)}
                     name='password'
                     label='Password'
+                    required={true}
                     error={""}
                     inputValue={password}
                 />

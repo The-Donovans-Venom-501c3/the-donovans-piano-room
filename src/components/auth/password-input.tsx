@@ -9,16 +9,19 @@ interface passwordInputInterface {
     onChange: any,
     label: string,
     error: string,
-    inputValue: string
+    inputValue: string,
+    required?: boolean,
 }
-export default function PasswordInput({ onChange, name, label, error, inputValue}: passwordInputInterface) {
+export default function PasswordInput({ onChange, name, label, error, inputValue, required = true}: passwordInputInterface) {
   const [showPassword, setShowPassword] = useState(false)
   const toggleShowPassword = () => setShowPassword(prev => !prev)
   return (
     <div>
 
       <FormControl variant="filled" sx={{ border: 1, borderColor: '#391f0f'}} error={!!error} className='bg-[#fef8ee] hover:bg-[#FCF0D8] focus:bg-[#FCF0D8] block rounded-3xl w-full 2xl:mb-[25px] 2xl:py-2 3xl:py-4'>
-          <InputLabel className='3xl:text-2xl 3xl:mt-3' sx={[{color: "#391f0f"},!error && {'&.Mui-focused': {color: "#391f0f"}}]} htmlFor="standard-adornment-password">{label}</InputLabel>
+          <InputLabel className='3xl:text-2xl 3xl:mt-3' sx={[{color: "#391f0f"},!error && {'&.Mui-focused': {color: "#391f0f"}}]} htmlFor="standard-adornment-password">
+            {label}{required && <span className="text-red-800 ml-1">*</span>}
+          </InputLabel>
           <Input
               required
               value={inputValue}

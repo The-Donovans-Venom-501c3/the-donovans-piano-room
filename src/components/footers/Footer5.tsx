@@ -5,23 +5,38 @@ export default function Footer5() {
   return (
     <div className="relative z-50 h-[9.5vh] border-t border-[#A135E8] flex justify-center items-center z-40 backdrop-blur-sm ">
       <div className="flex justify-between h-[28px] w-[84.7%] z-50">
-        <h2 className='2xl:text-[14px] w-[290px] 2xl:w-[400px]'
-        >Copyright © 2025 The Donovan&apos;s Piano Room. Powered by <Link className='text-yellow-500 underline' target='_blank' href='https://www.thedonovan.org/'>The Donovan&apos;s Venom</Link>, a 501(c)(3) nonprofit organization.</h2>
+        <p className='2xl:text-[14px] w-[290px] 2xl:w-[400px]'>
+          Copyright © 2025 The Donovan&apos;s Piano Room. Powered by <Link className='text-yellow-500 underline' target='_blank' href='https://www.thedonovan.org/'>The Donovan&apos;s Venom</Link>, a 501(c)(3) nonprofit organization.</p>
         <div className='flex gap-[2vw]'>
           <div className="relative h-[3.5vh] w-[3.5vh]">
-                <Link href="https://x.com/iamthedonovan?s=11" target="_blank">
+                <Link
+                  href="https://x.com/iamthedonovan?s=11"
+                  target="_blank"
+                  aria-label="Twitter (opens in a new tab)"
+                  className="inline-flex h-full w-full items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-400"
+                >
                  <Image src="/footer/Twitter.svg" fill alt='Twitter' />
                 </Link>
             </div>
 
             <div className="relative h-[3.5vh] w-[3.5vh]">
-                <Link href="https://www.facebook.com/TheDonovansVenomINC/" target="_blank">
+                <Link
+                  href="https://www.facebook.com/TheDonovansVenomINC/"
+                  target="_blank"
+                  aria-label="Facebook (opens in a new tab)"
+                  className="inline-flex h-full w-full items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-400"
+                >
                  <Image src="/footer/Facebook.svg" fill alt='Facebook' />
                 </Link>
             </div>
 
             <div className="relative h-[3.5vh] w-[3.5vh]">
-                <Link href="https://www.youtube.com/@thedonovansvenom2848" target="_blank">
+                <Link
+                  href="https://www.youtube.com/@thedonovansvenom2848"
+                  target="_blank"
+                  aria-label="YouTube (opens in a new tab)"
+                  className="inline-flex h-full w-full items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-400"
+                >
                  <Image src="/footer/Youtube.svg" fill alt='Youtube' />
                 </Link>
             </div>

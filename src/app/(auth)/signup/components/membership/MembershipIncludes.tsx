@@ -54,7 +54,7 @@ export default function MembershipIncludes() {
                 {status === "success" ?
                     <p className="flex items-center gap-2 mb-2">
                         <Image src="/Success.svg" width={18} height={18} alt="" /><span className="text-white text-[12px] 4xl:text-2xl 2xl:text-4xl">Discound code applied</span></p>
-                    : <p className="text-white text-[12px] 4xl:text-2xl 2xl:text-4xl mb-2 4xl:mt-4">Enter your discount code <span className="text-primary-yellow underline cursor-pointer" onClick={() => setShowDiscountInput(prev => !prev)}>here</span></p>
+                    : <p className="text-white text-[12px] 4xl:text-2xl 2xl:text-4xl mb-2 4xl:mt-4">Enter your discount code <button className="text-primary-yellow underline cursor-pointer bg-transparent border-none p-0 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary-yellow rounded" onClick={() => setShowDiscountInput(prev => !prev)} tabIndex={0}>here</button></p>
                 }
 
                 {showDiscountInput &&
