@@ -7,6 +7,7 @@ import SignupHeader from "./SignupHeader";
 import { useSetAtom } from "jotai";
 import { singupStepAtom } from "@/utils/stores";
 import Checkbox from "@/components/atoms/Checkbox";
+
 export default function SignupPayment() {
     const [displayCardFields, setDisplayCardFields] = useState(false)
     const setSingupStep = useSetAtom(singupStepAtom)
@@ -60,18 +61,44 @@ export default function SignupPayment() {
 
                 {displayCardFields && 
                 (<PayPalCardFieldsProvider createOrder={createOrder} onApprove={onApprove} onError={onError}>
+                    {/* Card Number Field */}
                     <label className="relative w-full">
-                        <span className="absolute top-[8px] left-[25px] z-50 text-[#391F0F] font-medium w-[24vw]">Card number</span>
-                        <PayPalNumberField style={fieldStyle} placeholder="" />
+                        <span className="absolute top-[8px] left-[25px] z-50 text-[#391F0F] font-medium w-[24vw]">
+                            Card number <span className="text-red-600 font-bold" aria-hidden="true">*</span>
+                        </span>
+                        <PayPalNumberField 
+                            style={fieldStyle} 
+                            placeholder="" 
+                            aria-required="true"
+                            aria-label="Card number, required"
+                        />
                     </label>
+                    
                     <div className="flex gap-[2%] mb-[4%]">
+                        {/* Expiration Date Field */}
                         <label className="relative w-full">
-                            <span className="absolute top-[8px] left-[15px] z-50 text-[#391F0F] font-medium w-[24vw]">Expiration date</span>
-                            <PayPalExpiryField style={fieldStyle} placeholder="" />
+                            <span className="absolute top-[8px] left-[15px] z-50 text-[#391F0F] font-medium w-[24vw]">
+                                Expiration date <span className="text-red-600 font-bold" aria-hidden="true">*</span>
+                            </span>
+                            <PayPalExpiryField 
+                                style={fieldStyle} 
+                                placeholder="" 
+                                aria-required="true"
+                                aria-label="Expiration date, required"
+                            />
                         </label>
+                        
+                        {/* CVC Field */}
                         <label className="relative w-full">
-                            <span className="absolute top-[8px] left-[15px] z-50 text-[#391F0F] font-medium w-[24vw]">CVC</span>
-                            <PayPalCVVField style={fieldStyle} placeholder="" />
+                            <span className="absolute top-[8px] left-[15px] z-50 text-[#391F0F] font-medium w-[24vw]">
+                                CVC <span className="text-red-600 font-bold" aria-hidden="true">*</span>
+                            </span>
+                            <PayPalCVVField 
+                                style={fieldStyle} 
+                                placeholder="" 
+                                aria-required="true"
+                                aria-label="CVC, required"
+                            />
                         </label>
                     </div>
                     {/* <Checkbox>
