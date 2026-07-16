@@ -33,17 +33,43 @@ export async function getUserMembership() {
             },
             credentials: 'include',
         });
-        // Parse response
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to retrieve user membership details');
+
+        // parse response (json or text)
+        const contentType = response.headers.get('content-type') || '';
+        let data: any = null;
+        if (contentType.includes('application/json')) {
+            try { data = await response.json(); } catch { data = null; }
+        } else {
+            try { const text = await response.text(); data = text || null; } catch { data = null; }
         }
-        return data; // Return the membership details for the authenticated user
+
+        // successful response
+        if (response.ok) {
+            return data;
+        }
+        // These correspond to the backend membership error codes
+        // non-active membership states
+        if (response.status === 404) {
+            return null;
+        }
+        // expired membership
+        if (response.status === 410) {
+            return null;
+        }
+        if (response.status === 401) {
+            throw new Error('Unauthorized');
+        }
+
+        // other errors
+        const message = typeof data === 'object' && data?.message
+            ? data.message
+            : 'Failed to retrieve user membership details';
+        throw new Error(message);
     } catch (error: any) {
       throw new Error(error.message || 'An error occurred while retrieving user membership details');
     }
 }
- 
+
 export async function validateCouponCode(memberId: number, couponCode: string) {
     try {
         // Send GET request to the backend
