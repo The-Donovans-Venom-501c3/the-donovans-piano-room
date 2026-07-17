@@ -16,6 +16,7 @@ export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState('')
     const [disabled, setDiabled] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const router = useRouter();
 
     const fetchUserData = async () => {
@@ -35,7 +36,7 @@ export default function LoginForm() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
-        const { data, ok } = await login(email, password)
+        const { data, ok } = await login(email, password, rememberMe)
         if (ok) {
             if (await fetchUserData()) {
                 router.push('/dashboard');
@@ -86,7 +87,9 @@ export default function LoginForm() {
                         <label className="relative flex items-center p-3 rounded-full cursor-pointer" htmlFor="check">
                             <input type="checkbox"
                                 className="before:content[''] peer relative h-6 w-6 4xl:h-8 4xl:w-8 cursor-pointer appearance-none rounded-md border before:border-[#391f0f] checked:border-primary-yellow transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:opacity-0 before:transition-opacity checked:bg-primary-yellow bg-[#fef8ee] hover:before:opacity-10"
-                                id="check" />
+                                id="check"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)} />
                             <span
                                 className="absolute text-primary-purple transition-opacity opacity-0 pointer-events-none top-2/4 left-2/4 -translate-y-2/4 -translate-x-2/4 peer-checked:opacity-100">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 4xl:h-7 4xl:w-7" viewBox="0 0 20 20" fill="currentColor"

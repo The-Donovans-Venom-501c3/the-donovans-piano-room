@@ -1,3 +1,5 @@
+import { fetchWithAuth } from "./fetchWithAuth";
+
 export async function getMembershipById({ memberId }: { memberId: string }) {
     try {
         // Validate input
@@ -5,12 +7,11 @@ export async function getMembershipById({ memberId }: { memberId: string }) {
             throw new Error("Member ID is required.");
         }
         // Send GET request to the backend
-        const response = await fetch(`/api/membership/${memberId}`, {
+        const response = await fetchWithAuth(`/api/membership/${memberId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            credentials: 'include',
+            }
         });
         // Parse response
         const data = await response.json();
@@ -26,12 +27,11 @@ export async function getMembershipById({ memberId }: { memberId: string }) {
 export async function getUserMembership() {
     try {
         // Send GET request to the backend
-        const response = await fetch('/api/membership/user', {
+        const response = await fetchWithAuth('/api/membership/user', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json', 
-            },
-            credentials: 'include',
+            }
         });
 
         // parse response (json or text)
@@ -73,12 +73,11 @@ export async function getUserMembership() {
 export async function validateCouponCode(memberId: number, couponCode: string) {
     try {
         // Send GET request to the backend
-        const response = await fetch(`http://localhost:3333/api/membership/${memberId}/apply-coupon`, {
+        const response = await fetchWithAuth(`/api/membership/${memberId}/apply-coupon`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json', 
             },
-            credentials: 'include',
             body: JSON.stringify({ couponCode }),
         });
         // Parse response
@@ -97,12 +96,11 @@ export async function getPlanInfo(levelId: string) {
         if (!levelId) {
             throw new Error('levelId is required');
         }
-        const response = await fetch(`/api/member-info/${encodeURIComponent(levelId)}/level`, {
+        const response = await fetchWithAuth(`/api/member-info/${encodeURIComponent(levelId)}/level`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            credentials: 'include',
+            }
         });
         const data = await response.json();
         if (!response.ok) {
@@ -127,9 +125,8 @@ export async function getPlanInfo(levelId: string) {
 
 export async function cancelUserMembership() {
     try {
-        const response = await fetch('/api/membership/user/cancel', {
+        const response = await fetchWithAuth('/api/membership/user/cancel', {
             method: 'POST',
-            credentials: 'include',
         });
         let data: any = null;
         const contentType = response.headers.get('content-type') || '';
@@ -150,9 +147,8 @@ export async function cancelUserMembership() {
 
 export async function toggleAutoRenew() {
     try {
-        const response = await fetch('/api/membership/user/auto-renew', {
+        const response = await fetchWithAuth('/api/membership/user/auto-renew', {
             method: 'POST',
-            credentials: 'include',
         });
         let data: any = null;
         const contentType = response.headers.get('content-type') || '';
@@ -174,12 +170,11 @@ export async function toggleAutoRenew() {
 // Payment Methods API functions
 export async function getPaymentMethods() {
     try {
-        const response = await fetch('/api/payment-methods', {
+        const response = await fetchWithAuth('/api/payment-methods', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            credentials: 'include',
+            }
         });
         
         const data = await response.json();
@@ -195,12 +190,11 @@ export async function getPaymentMethods() {
 
 export async function previewMembershipUpgrade(newMembershipId: string) {
     try {
-        const response = await fetch('/api/membership/user/upgrade/preview', {
+        const response = await fetchWithAuth('/api/membership/user/upgrade/preview', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
             body: JSON.stringify({ newMembershipId }),
         });
         
@@ -221,12 +215,11 @@ export async function requestMembershipUpgrade(
     prorationPreference: 'immediate' | 'next_cycle' = 'immediate'
 ) {
     try {
-        const response = await fetch('/api/membership/user/upgrade/request', {
+        const response = await fetchWithAuth('/api/membership/user/upgrade/request', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
             body: JSON.stringify({
                 newMembershipId,
                 vaultTokenId,
@@ -247,12 +240,11 @@ export async function requestMembershipUpgrade(
 
 export async function getUpgradeStatus() {
     try {
-        const response = await fetch('/api/membership/user/upgrade/status', {
+        const response = await fetchWithAuth('/api/membership/user/upgrade/status', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         });
         
         const data = await response.json();
@@ -268,7 +260,7 @@ export async function getUpgradeStatus() {
 
 export async function reactivateMembership(membershipId: string, vaultTokenId: string) {
     try {
-        const response = await fetch('/api/membership/user/reactivate', {
+        const response = await fetchWithAuth('/api/membership/user/reactivate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

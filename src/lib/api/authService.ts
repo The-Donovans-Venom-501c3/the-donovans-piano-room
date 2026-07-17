@@ -1,5 +1,4 @@
-import { profileAtom } from "@/utils/stores"
-import { useSetAtom } from "jotai"
+import { fetchWithAuth } from "./fetchWithAuth"
 
 export const signup  = async (fullName: string, email: string, password: string) =>{
     fullName = fullName.trim()
@@ -62,16 +61,18 @@ export const refreshOTP = async (email: string) => {
     }
 }
 
-export const login = async (email: string, password: string) => {
+export const login = async (email: string, password: string, rememberMe: boolean = false) => {
     const response  = await fetch('/api/auth/login', {
-        method: "POST", 
+        method: "POST",
+        credentials: 'include',
         headers:{
             "Content-Type": "application/json"
         },
         body: JSON.stringify(
             {
                 email,
-                password
+                password,
+                rememberMe
             }
         )
     })
@@ -127,10 +128,9 @@ export const resetPassword = async (passwordResetToken: string, newPassword: str
 }
 
 export const refreshToken = async () => {
-    const response = await fetch('/api/auth/refresh', {
-        method: 'POST', 
-        credentials: 'include'
-    })
+    const response = await fetchWithAuth('/api/auth/refresh', {
+        method: 'POST'
+    }, { enableRefreshRetry: false })
     const data = await response.json()
     return {data, ok: response.ok}
 }

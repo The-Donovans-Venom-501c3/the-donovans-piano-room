@@ -19,28 +19,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-    const accessToken = request.cookies.get('access_token')?.value;
-    const refreshToken = request.cookies.get('refresh_token')?.value;
-    if (!accessToken) {      
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  const accessToken = request.cookies.get('access_token')?.value;
+  const refreshToken = request.cookies.get('refresh_token')?.value;
 
-    try {       
-        const verifyResponse = await fetch(`${BACKEND_BASE_URL}/api/user/`, {
-          method: 'GET',
-          headers: {
-            Cookie: `access_token=${accessToken}; refresh_token=${refreshToken}`,
-          },
-          credentials: 'include',
-        });         
-        if (verifyResponse.status !==200) {           
-          return NextResponse.redirect(new URL('/login', request.url));
-        }
-    
-      } catch (error) {
-        console.error('Error verifying session:', error);
-        return NextResponse.redirect(new URL('/login', request.url));
-      }
+  if (!accessToken && !refreshToken) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   return NextResponse.next();
 }
 
