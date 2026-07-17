@@ -45,6 +45,8 @@ export const profileAtom = atomWithStorage<profileInterface>("profile", {
     pronouns: "",
 })
 
+export const isLoggedInAtom = atom(false);
+
 //////////////
 /////NAV//////
 //////////////

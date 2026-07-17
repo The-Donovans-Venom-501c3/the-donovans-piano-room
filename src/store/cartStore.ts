@@ -1,14 +1,19 @@
 import { bookCartItemInterface, bookInterface } from '@/interfaces/bookInterface';
 import { atom, useAtom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
+import { useEffect } from 'react';
 
 export const addedCartItemAtom = atom<null | bookInterface>(null) 
 
-
-export const addedCartItemsAtom = atom<bookCartItemInterface[]>([]);
+// export const addedCartItemsAtom = atom<bookCartItemInterface[]>([]);
+// This atom now automatically syncs with localStorage
+export const addedCartItemsAtom = atomWithStorage<bookCartItemInterface[]>('cartItems', []);
+export const paymentSuccessAtom = atom(false);
+export const orderIdAtom = atom('');
 
 export function useCartOperations() {
     const [cartItems, setCartItems] = useAtom(addedCartItemsAtom);
-  
+
     // Add item to cart
     const addToCart = (item: bookInterface, quantity = 1) => {
       setCartItems((prevItems) => {
