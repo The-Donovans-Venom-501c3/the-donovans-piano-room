@@ -16,6 +16,7 @@ export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState('')
     const [disabled, setDiabled] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     const fetchUserData = async () => {
@@ -35,6 +36,16 @@ export default function LoginForm() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Add domain restriction check
+        console.log("Domain restriction enabled:",process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN);
+        if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
+            if (!email.toLowerCase().endsWith('@thedonovan.org')) {
+                setError('Only @thedonovan.org email addresses are allowed!');
+                return;
+            }
+        }
+
         const { data, ok } = await login(email, password)
         if (ok) {
             if (await fetchUserData()) {
@@ -71,7 +82,7 @@ export default function LoginForm() {
                     }}
                     onChange={(e: any) => setEmail(e.target.value)}
                     text={email}
-                    error={""}
+                    error={error || ""}
                 />
                 <PasswordInput
                     onChange={(e: any) => setPassword(e.target.value)}
