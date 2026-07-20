@@ -12,6 +12,7 @@ import { profileAtom } from '@/utils/stores'
 
 export default function AccountForm() {
     const [profile, setProfile] = useAtom(profileAtom)
+    const [error, setError] = useState<string | null>(null);
     const [isDataSaved, setIsDataSaved] = useState(false)
 
 
@@ -21,6 +22,15 @@ export default function AccountForm() {
     const submitChanges = async (e: any) => {
         e.preventDefault()
         const {fullName, displayName, email, phoneNumber, pronouns, DOB} = profile;
+
+        // Add domain restriction check
+        console.log("Domain restriction enabled:",process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN);
+        if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
+            if (!email.toLowerCase().endsWith('@thedonovan.org')) {
+                setError('Only @thedonovan.org email addresses are allowed!');
+                return;
+            }
+        }
         const {data, ok} = await updateUser({fullName, displayName, email, phoneNumber, pronouns, DOB});
         if (ok){
             setIsDataSaved(true)
@@ -44,7 +54,7 @@ export default function AccountForm() {
                 <div className='w-[49%] flex flex-col gap-[1vw]'>
                     <InputForm error='' text={profile.fullName} onChange={onChange} field={{label: "Full name", type: "text", name: "fullName"}}/>
                     <SelectInput label='Pronouns' name='pronouns' onChange={onChange} options={allPronouns} value={profile.pronouns}/>
-                    <InputForm error='' text={profile.email} onChange={onChange} field={{label: "Email", type: "email", name: "email"}}/>
+                    <InputForm error={error || ''} text={profile.email} onChange={onChange} field={{label: "Email", type: "email", name: "email"}}/>
 
                 </div>
                 <div className='w-[49%] flex flex-col gap-[1vw]'>
