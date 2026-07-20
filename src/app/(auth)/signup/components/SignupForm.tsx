@@ -24,6 +24,7 @@ export default function SignupForm() {
     "terms",
   );
   const [isChecked, setIsChecked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleOpenModal = (type: "terms" | "privacy") => {
     setModalContent(type);
@@ -39,6 +40,16 @@ export default function SignupForm() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setDiabled(!disabled);
+
+    // Add domain restriction check
+    console.log("Domain restriction enabled:",process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN);
+    if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
+        if (!email.toLowerCase().endsWith('@thedonovan.org')) {
+            setError('Only @thedonovan.org email addresses are allowed!');
+            return;
+        }
+    }
+
     const { data, ok } = await signup(fullName, email, password);
     if (ok) {
       setProfileAtom((obj: profileInterface) => ({
@@ -103,7 +114,7 @@ export default function SignupForm() {
           }}
           onChange={(e: any) => setEmail(e.target.value)}
           text={email}
-          error={""}
+          error={error || ""}
         />
         <PasswordInput
           onChange={(e: any) => setPassword(e.target.value)}
