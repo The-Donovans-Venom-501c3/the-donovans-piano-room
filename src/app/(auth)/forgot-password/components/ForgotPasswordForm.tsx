@@ -71,16 +71,13 @@ export default function ForgotPasswordForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         // Add domain restriction check
-        console.log("Domain restriction enabled:",process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN);
         if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
-            if (!email.toLowerCase().endsWith('@thedonovan.org')) {
+            if(!email.trim().toLowerCase().endsWith('@thedonovan.org')) {
                 setError('Please use your thedonovan.org email!');
                 return;
             }
         }
-
         const {data, ok} = await forgotPassword(email)
         if(ok){
             setForgotPasswordStep(2);
