@@ -8,7 +8,7 @@ export default function Footer3() {
         <div className='flex justify-between h-[50px]' style={{width: '84.7%'}}>
             <h2 className='text-black'
             style={{width: '290px'}}
-            >Copyright © 2025 The Donovan&apos;s Piano Room. Powered by <Link className='text-yellow-500 underline' target='_blank' href='https://www.thedonovan.org/'>The Donovan&apos;s Venom</Link>, a 501(c)(3) nonprofit organization.</h2>
+            >Copyright © {new Date().getFullYear()} The Donovan&apos;s Piano Room. Powered by <Link className='text-yellow-500 underline' target='_blank' href='https://www.thedonovan.org/'>The Donovan&apos;s Venom</Link>, a 501(c)(3) nonprofit organization.</h2>
             <div className='flex gap-8'>
 
             <div className="relative h-[4vh] w-[5vh]">

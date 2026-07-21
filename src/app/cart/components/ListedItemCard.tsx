@@ -8,7 +8,7 @@ import { addedCartItemsAtom, useCartOperations } from '@/store/cartStore';
 import { applyBookCoupon } from '@/lib/api/membershipService';
 
 const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: number }) => {
-  const setAddedCartItems = useSetAtom(addedCartItemsAtom)
+  const setAddedCartItems = useSetAtom(addedCartItemsAtom);
   const { updateQuantity, removeFromCart } = useCartOperations();
   const [bookCoupon, setBookCoupon] = useState("")
   const [couponLoading, setCouponLoading] = useState(false)
@@ -36,7 +36,7 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
   };
 
   return (
-    <div className="flex flex-row  items-center p-8 gap-6 w-[62%] h-full tablet:w-full tablet:h-[72%] laptop:w-full laptop:h-[75%] bg-white rounded-[12px] shadow-md">
+    <div className="flex flex-row items-center p-8 gap-6 w-[62%] h-full tablet:w-full tablet:h-[72%] laptop:w-full laptop:h-[75%] bg-white rounded-[12px] shadow-md">
       {/* Image Section */}
       <div className="relative h-[28vh] w-[14vw]">
         <Image
