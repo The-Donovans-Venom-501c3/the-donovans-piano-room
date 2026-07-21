@@ -80,7 +80,10 @@ export default function LoginForm() {
                         name: "email",
                         label: "Email",
                     }}
-                    onChange={(e: any) => setEmail(e.target.value)}
+                    onChange={(e: any) => {
+                        setEmail(e.target.value);
+                        setError(null);
+                    }}
                     text={email}
                     error={error || ""}
                 />

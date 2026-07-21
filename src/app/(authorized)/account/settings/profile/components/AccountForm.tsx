@@ -18,6 +18,7 @@ export default function AccountForm() {
 
     const onChange = (e: any) => {
         setProfile({...profile, [e.target.name]: e.target.value})
+        setError(null);
     }
     const submitChanges = async (e: any) => {
         e.preventDefault()
