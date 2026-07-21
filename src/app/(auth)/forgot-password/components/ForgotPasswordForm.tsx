@@ -66,10 +66,18 @@ import { forgotPassword } from "@/lib/api/authService";
 
 export default function ForgotPasswordForm() {
     const [email, setEmail] = useState("");
+    const [error, setError] = useState<string | null>(null);
     const setForgotPasswordStep = useSetAtom(forgotPasswordStepAtom);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // Add domain restriction check
+        if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
+            if(!email.trim().toLowerCase().endsWith('@thedonovan.org')) {
+                setError('Please use your thedonovan.org email!');
+                return;
+            }
+        }
         const {data, ok} = await forgotPassword(email)
         if(ok){
             setForgotPasswordStep(2);
@@ -98,9 +106,12 @@ export default function ForgotPasswordForm() {
                         name: "email",
                         label: "Email",
                     }}
-                    onChange={(e: any) => setEmail(e.target.value)}
+                    onChange={(e: any) => {
+                        setEmail(e.target.value);
+                        setError(null);
+                    }}
                     text={email}
-                    error={""}
+                    error={error || ""}
                 />
                 <div>
                     <Button1 text="Send code to email" onClick={handleSubmit} />

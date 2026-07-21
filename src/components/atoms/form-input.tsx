@@ -48,7 +48,7 @@ export default function InputForm({
           disabled={disabled}
         />
       </FormControl>
-      {error && (<p className='mt-1 text-[#FFA480]'>{error}</p>)}
+      {error && (<p className='mt-1 text-[#FFA480] text-base font-medium'>{error}</p>)}
     </div>
   );
 }
