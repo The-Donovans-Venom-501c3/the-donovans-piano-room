@@ -45,7 +45,7 @@ export default function SignupForm() {
     console.log("Domain restriction enabled:",process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN);
     if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
         if (!email.toLowerCase().endsWith('@thedonovan.org')) {
-            setError('Only @thedonovan.org email addresses are allowed!');
+            setError('Please use your thedonovan.org email!');
             return;
         }
     }
