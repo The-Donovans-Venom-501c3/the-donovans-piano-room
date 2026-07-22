@@ -16,6 +16,7 @@ export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState('')
     const [disabled, setDiabled] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     const fetchUserData = async () => {
@@ -35,6 +36,14 @@ export default function LoginForm() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
+        // Add domain restriction check
+        if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
+            if(!email.trim().toLowerCase().endsWith('@thedonovan.org')) {
+                setError('Please use your thedonovan.org email!');
+                return;
+            }
+        }
+
         const { data, ok } = await login(email, password)
         if (ok) {
             if (await fetchUserData()) {
@@ -69,9 +78,12 @@ export default function LoginForm() {
                         name: "email",
                         label: "Email",
                     }}
-                    onChange={(e: any) => setEmail(e.target.value)}
+                    onChange={(e: any) => {
+                        setEmail(e.target.value);
+                        setError(null);
+                    }}
                     text={email}
-                    error={""}
+                    error={error || ""}
                 />
                 <PasswordInput
                     onChange={(e: any) => setPassword(e.target.value)}
