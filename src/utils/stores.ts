@@ -17,6 +17,7 @@ export const membershipTypes = {
     "24-hours": "24-hours",
     "yearly-access": "yearly-access",
     "monthly-access": "monthly-access",
+    "basic": "basic",
     "scholarship": "scholarship"
 }
 
