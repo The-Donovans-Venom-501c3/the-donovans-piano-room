@@ -151,6 +151,30 @@ export default function SignupForm() {
             inputValue={confirmPassword}
           />
         )}
+        <Checkbox checked={isChecked} onChange={setIsChecked}>
+          <label
+            htmlFor="check"
+            className="text-l ms-2 mt-4 font-medium text-white 2xl:mt-6 2xl:text-2xl 4xl:mt-2"
+          >
+            I agree to The Donovan&apos;s piano room{" "}
+            <button
+              type="button"
+              onClick={() => handleOpenModal("terms")}
+              className="cursor-pointer text-primary-yellow underline"
+            >
+              terms of use
+            </button>{" "}
+            and{" "}
+            <button
+              type="button"
+              onClick={() => handleOpenModal("privacy")}
+              className="cursor-pointer text-primary-yellow underline"
+            >
+              privacy policy
+            </button>
+            .
+          </label>
+        </Checkbox>
         <div>
           <Button1
             onClick={handleSubmit}
@@ -158,28 +182,6 @@ export default function SignupForm() {
             text="Continue to verify account"
           />
         </div>
-        <Checkbox checked={isChecked} onChange={setIsChecked}>
-          <label
-            htmlFor="check"
-            className="text-l ms-2 mt-4 font-medium text-white 2xl:mt-6 2xl:text-2xl 4xl:mt-2"
-          >
-            I agree to The Donovan&apos;s piano room{" "}
-            <span
-              onClick={() => handleOpenModal("terms")}
-              className="cursor-pointer text-primary-yellow underline"
-            >
-              terms of use
-            </span>{" "}
-            and{" "}
-            <span
-              onClick={() => handleOpenModal("privacy")}
-              className="cursor-pointer text-primary-yellow underline"
-            >
-              privacy policy
-            </span>
-            .
-          </label>
-        </Checkbox>
       </form>
       <p className="2xl:rounded-4xl mt-9 mt-[10px] w-full rounded-3xl  bg-primary-purple py-3 text-center text-[12px] text-lg text-white 2xl:py-5 3xl:py-8 3xl:text-2xl">
         Already have an account?{" "}

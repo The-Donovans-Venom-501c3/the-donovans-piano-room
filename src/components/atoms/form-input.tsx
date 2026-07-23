@@ -36,6 +36,7 @@ export default function InputForm({
           {field.required && <span className="text-red-500 ml-1">*</span>}
         </InputLabel>
         <Input
+          id={field.name}
           className='w-full pl-5 text-[16px]'
           type={field.type}
           value={text}

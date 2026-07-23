@@ -67,11 +67,16 @@ function EbooksComponent() {
                         <div
                             key={book.id}
                             className={`
-                                relative 
+                                relative
                                 transition-all duration-300
-                                
+
                             `}
-                            style={{ cursor: "pointer" }}
+                        >
+                        <button
+                            type="button"
+                            aria-label={`Select ${book.title}`}
+                            aria-pressed={selected === i}
+                            style={{ cursor: "pointer", background: "none", border: "none", padding: 0 }}
                             onClick={() => setSelected(i)}
                             onDoubleClick={() => {
                                 setSelected(i);
@@ -83,19 +88,19 @@ function EbooksComponent() {
                                 <Image
                                     className="object-contain w-[210px] h-[210px] transition-all duration-300"
                                     src={book.imgsrc}
-                                    alt="ebook image"
+                                    alt={`${book.title} cover (selected)`}
                                     width={210}
                                     height={210}
                                 />
                             </SelectedCard>:<Image
                                     className="object-contain w-[210px] h-[210px] transition-all duration-300"
                                     src={book.imgsrc}
-                                    alt="ebook image"
+                                    alt={`${book.title} cover`}
                                     width={210}
                                     height={210}
                                 />
                             }
-                            
+                        </button>
                         </div>
                     ))}
                 </div>
@@ -112,9 +117,10 @@ function EbooksComponent() {
                     <div className="flex-[1]">
                         <button
                             className="bg-primary-purple text-white text-xl block mx-auto my-4 px-10 py-3 rounded-3xl"
+                            aria-label={`Read and practice ${ebooks[selected].title}`}
                             onClick={handleRead}
                         >
-                            Read & Practice
+                            Read &amp; Practice
                         </button>
                     </div>
 
@@ -123,6 +129,16 @@ function EbooksComponent() {
             {
                 read && <div>
                     <button onClick={handleBack}>Go Back to All Books</button>
+                    <p className="text-sm text-primary-gray mt-2 mb-1">
+                        Having trouble accessing this e-book with assistive technology?{" "}
+                        <a
+                            href="mailto:info@theDonovan.org"
+                            className="text-primary-purple underline"
+                        >
+                            Contact us
+                        </a>{" "}
+                        to request an accessible version.
+                    </p>
                     <ReaderPortal onClose={() => setRead(false)}>
                         <iframe
                             src={ebooks[selected].url}
