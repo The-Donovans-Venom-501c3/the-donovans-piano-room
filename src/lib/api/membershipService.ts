@@ -33,62 +33,44 @@ export async function getUserMembership() {
             },
             credentials: 'include',
         });
-
-        // parse response (json or text)
-        const contentType = response.headers.get('content-type') || '';
-        let data: any = null;
-        if (contentType.includes('application/json')) {
-            try { data = await response.json(); } catch { data = null; }
-        } else {
-            try { const text = await response.text(); data = text || null; } catch { data = null; }
+        // Parse response
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to retrieve user membership details');
         }
-
-        // successful response
-        if (response.ok) {
-            return data;
-        }
-        // These correspond to the backend membership error codes
-        // non-active membership states
-        if (response.status === 404) {
-            return null;
-        }
-        // expired membership
-        if (response.status === 410) {
-            return null;
-        }
-        if (response.status === 401) {
-            throw new Error('Unauthorized');
-        }
-
-        // other errors
-        const message = typeof data === 'object' && data?.message
-            ? data.message
-            : 'Failed to retrieve user membership details';
-        throw new Error(message);
+        return data; // Return the membership details for the authenticated user
     } catch (error: any) {
       throw new Error(error.message || 'An error occurred while retrieving user membership details');
     }
 }
 
-export async function validateCouponCode(memberId: number, couponCode: string) {
+// Updated to match new backend endpoint: /api/coupon/apply-coupon/{couponCode}
+// Changes from backend (GAMES-001):
+//   - applicableTo removed: backend now verifies coupon type internally
+//   - totalAmt is now mandatory: required to calculate discount
+//   - bookId is now mandatory for book coupons
+//   - Response shape: { message, discountAmt, totalAmt }
+export async function applyBookCoupon(couponCode: string, totalAmt: number, bookId: string) {
     try {
-        // Send GET request to the backend
-        const response = await fetch(`http://localhost:3333/api/membership/${memberId}/apply-coupon`, {
-            method: 'PUT',
+        const response = await fetch(`/api/coupon/apply-coupon/${encodeURIComponent(couponCode)}`, {
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json', 
+                'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ couponCode }),
+            body: JSON.stringify({
+                totalAmt,
+                bookId,
+            }),
         });
-        // Parse response
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || 'Invalid discount code, please try again');
         }
-        return data; // Return the membership details for the authenticated user
+        // Returns: { message: string, discountAmt: number, totalAmt: number }
+        return data;
     } catch (error: any) {
-      throw new Error(error.message || 'An error occurred while applying coupon code');
+        throw new Error(error.message || 'An error occurred while applying coupon code');
     }
 }
 

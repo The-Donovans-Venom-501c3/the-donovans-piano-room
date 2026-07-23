@@ -41,7 +41,7 @@ export default function Navbar6({ page }: { page: string }) {
           <Link
             className="relative flex items-center text-xl font-bold text-[#F0D454] hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.games === page ? highlightLink : {}}
-            href="https://thedonovansmusicgames.netlify.app/"
+            href="/api/games"
           >
             <p>GAMES</p>
             {navigationPages.games === page && displayBorder()}
