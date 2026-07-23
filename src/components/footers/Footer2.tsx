@@ -22,7 +22,7 @@ export default function Footer2() {
             </div>
 
             <div className="relative h-[4.5vh] w-[4.5vh]">
-                <Link href="https://www.youtube.com/@thedonovansvenom2848" target="_blank">
+                <Link href="https://www.youtube.com/@TDV501C3" target="_blank">
                  <Image src="/footer/YellowYoutube.svg" fill alt='Youtube' />
                 </Link>
             </div>

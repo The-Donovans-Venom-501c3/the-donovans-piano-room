@@ -24,7 +24,7 @@ export default function Footer3() {
             </div>
 
             <div className="relative h-[4vh] w-[5vh]">
-                <Link href="https://www.youtube.com/@thedonovansvenom2848" target="_blank">
+                <Link href="https://www.youtube.com/@TDV501C3" target="_blank">
                  <Image src="/footer/Youtube.svg" fill alt='Youtube' />
                 </Link>
             </div>
