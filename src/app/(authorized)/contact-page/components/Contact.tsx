@@ -161,11 +161,11 @@ export default function Contact() {
                     src="/footer/Facebook.svg"
                     width={40}
                     height={40}
-                    alt="Twitter"
+                    alt="Facebook"
                   />
                 </Link>
-                <a
-                  href="https://www.youtube.com/@thedonovansvenom2848"
+                <Link
+                  href="https://www.youtube.com/@TDV501C3"
                   target="_blank"
                   className="w-15 h-15 flex items-center justify-between rounded-full text-white transition duration-300 hover:bg-purple-800"
                 >
@@ -173,9 +173,9 @@ export default function Contact() {
                     src="/footer/Youtube.svg"
                     width={40}
                     height={40}
-                    alt="Twitter"
+                    alt="YouTube"
                   />
-                </a>
+                </Link>
               </div>
             </div>
           </div>
