@@ -4,13 +4,22 @@ import { ButtonConfig } from "../config";
 
 interface BenefitAccessCardProps {
   planName: string;
-  headerColor: string;
-  textColor: string;
+  headerColor?: string;
+  textColor?: string;
   benefits: string[];
   closeButton?: ButtonConfig;
+  isBeta?: boolean; // Controls Beta UI state
 }
 
-export default function BenefitAccessCard({ planName, headerColor, textColor, benefits, closeButton}: BenefitAccessCardProps) {
+export default function BenefitAccessCard({
+  planName,
+  headerColor,
+  textColor,
+  benefits,
+  closeButton,
+  isBeta = true, // Defaults to true for Beta Launch
+}: BenefitAccessCardProps) {
+  const displayPlanName = isBeta ? "Free Beta Access Benefits" : planName;
 
   return (
     <div>
@@ -22,6 +31,7 @@ export default function BenefitAccessCard({ planName, headerColor, textColor, be
             alt="Character with headphones"
             width={190}
             height={180}
+            priority
           />
         </div>
       </div>
@@ -30,11 +40,17 @@ export default function BenefitAccessCard({ planName, headerColor, textColor, be
         {/* Header */}
         <div className="relative rounded-t-xl px-5 py-3">
           <div className="flex items-center justify-between">
-            <div className="text-2xl font-semibold text-[#59371D]">{planName}</div>
+            <div className="text-2xl font-semibold text-[#59371D]">
+              {displayPlanName}
+            </div>
             <button 
+              type="button"
               onClick={closeButton?.onClick}
-              disabled={closeButton?.disabled}
-              className={closeButton?.style || "text-[#59371D] hover:opacity-75 transition-colors text-3xl font-bold leading-none"}
+              disabled={closeButton?.disabled || closeButton?.loading}
+              className={
+                closeButton?.style ||
+                "text-[#59371D] hover:opacity-75 transition-colors text-3xl font-bold leading-none"
+              }
             >
               {closeButton?.loading 
                 ? (closeButton.loadingText || 'Loading...') 
@@ -53,12 +69,18 @@ export default function BenefitAccessCard({ planName, headerColor, textColor, be
         <div className="p-6">
           {/* Benefits list */}
           <div className="space-y-4">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-black rounded-full mt-3 shrink-0"></div>
-                <p className="text-black text-lg leading-relaxed">{benefit}</p>
-              </div>
-            ))}
+            {benefits && benefits.length > 0 ? (
+              benefits.map((benefit, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-black rounded-full mt-3 shrink-0"></div>
+                  <p className="text-black text-lg leading-relaxed">{benefit}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-black text-lg text-center py-2">
+                All Piano Room features are unlocked during the Beta testing phase!
+              </p>
+            )}
           </div>
         </div>
       </div>

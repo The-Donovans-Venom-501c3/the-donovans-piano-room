@@ -1,19 +1,46 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function SignupHeader(
-    {stepNum, navLink, navName, stepName, onClickNav=null}:
-    {stepNum: number, navLink: string, navName: string, stepName: string, onClickNav?: any}) {
+interface SignupHeaderProps {
+  stepNum: number;
+  totalSteps?: number;
+  navLink: string;
+  navName: string;
+  stepName: string;
+  onClickNav?: (e: React.MouseEvent) => void;
+}
+
+export default function SignupHeader({
+  stepNum,
+  totalSteps = 5,
+  navLink,
+  navName,
+  stepName,
+  onClickNav = undefined,
+}: SignupHeaderProps) {
   return (
     <>
-        <Link onClick={onClickNav} href={navLink} className="text-primary-yellow text-xl 3xl:text-3xl font-bold flex relative w-[15%] mb-5"><Image src="/YellowBackIcon.svg" width={30} height={30} alt=""/><p className="mt-2">{navName}</p></Link>
-        <h1 className="text-7xl 3xl:text-8xl font-bold leading-tight font-montserrat tracking-tight text-white mb-5">
+      <Link
+        onClick={onClickNav}
+        href={navLink}
+        className="relative mb-5 flex items-center gap-2 text-xl font-bold text-primary-yellow 3xl:text-3xl"
+      >
+        <Image src="/YellowBackIcon.svg" width={30} height={30} alt="Back" />
+        <span>{navName}</span>
+      </Link>
+
+      <h1 className="font-montserrat mb-5 text-7xl font-bold leading-tight tracking-tight text-white 3xl:text-8xl">
         Sign Up
-        </h1>
-        <div className='mb-5 2xl:mt-5 2xl:mb-[20px]'>
-            <p className='text-white text-lg 3xl:text-2xl 3xl:mb-4 font-semibold'>Step {stepNum} of 4</p>
-            <p className='text-primary-yellow text-2xl 3xl:text-4xl font-semibold'>{stepName}</p>
-        </div>
+      </h1>
+
+      <div className="mb-5 2xl:mb-[20px] 2xl:mt-5">
+        <p className="text-lg font-semibold text-white 3xl:mb-4 3xl:text-2xl">
+          Step {stepNum} of {totalSteps}
+        </p>
+        <p className="text-2xl font-semibold text-primary-yellow 3xl:text-4xl">
+          {stepName}
+        </p>
+      </div>
     </>
-  )
+  );
 }

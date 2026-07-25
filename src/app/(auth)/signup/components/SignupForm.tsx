@@ -1,8 +1,10 @@
+"use client";
+
 import PasswordCases from "@/components/auth/PasswordCases";
 import InputForm from "@/components/atoms/form-input";
 import PasswordInput from "@/components/auth/password-input";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import SignupHeader from "./SignupHeader";
 import { useSetAtom } from "jotai";
 import { singupStepAtom, profileAtom } from "@/utils/stores";
@@ -19,11 +21,12 @@ export default function SignupForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [allPasswordCasesCorrect, setAllPasswordCasesCorrect] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [disabled, setDiabled] = useState(true);
-  const [modalContent, setModalContent] = useState<"terms" | "privacy">(
-    "terms",
-  );
-  const [isChecked, setIsChecked] = useState(false);
+  const [disabled, setDisabled] = useState(true);
+  const [modalContent, setModalContent] = useState<"terms" | "privacy">("terms");
+
+  const [isAckChecked, setIsAckChecked] = useState(false);
+  const [isTermsChecked, setIsTermsChecked] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
 
   const handleOpenModal = (type: "terms" | "privacy") => {
@@ -34,19 +37,20 @@ export default function SignupForm() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+
   const setSingupStep = useSetAtom(singupStepAtom);
   const setProfileAtom = useSetAtom(profileAtom);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setDiabled(!disabled);
+    setDisabled(true);
 
-    // Add domain restriction check
-    if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
-        if(!email.trim().toLowerCase().endsWith('@thedonovan.org')) {
-            setError('Please use your thedonovan.org email!');
-            return;
-        }
+    if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === "true") {
+      if (!email.trim().toLowerCase().endsWith("@thedonovan.org")) {
+        setError("Please use your thedonovan.org email!");
+        setDisabled(false);
+        return;
+      }
     }
 
     const { data, ok } = await signup(fullName, email, password);
@@ -55,52 +59,59 @@ export default function SignupForm() {
         ...obj,
         fullName: fullName,
         email: email,
-      }))
-      setSingupStep(prev => prev + 1);
-    } 
-    else{
-      console.log("Failed")
-      alert(`Error: ${data.message}`)
+      }));
+      setSingupStep((prev) => prev + 1);
+    } else {
+      console.log("Failed");
+      alert(`Error: ${data.message}`);
+      setDisabled(false);
     }
-    setDiabled(!disabled);
   };
 
   useEffect(() => {
     const isFormValid =
-      isChecked &&
-      fullName &&
-      email &&
-      password &&
-      confirmPassword &&
+      isAckChecked &&
+      isTermsChecked &&
+      fullName.trim().length > 0 &&
+      email.trim().length > 0 &&
+      password.length > 0 &&
+      confirmPassword.length > 0 &&
       allPasswordCasesCorrect &&
       password === confirmPassword;
 
-    setDiabled(!isFormValid);
+    setDisabled(!isFormValid);
   }, [
     fullName,
     email,
     password,
     confirmPassword,
     allPasswordCasesCorrect,
-    isChecked,
+    isAckChecked,
+    isTermsChecked,
   ]);
 
   return (
-    <section className="w-[24vw] 3xl:w-[26vw]">
+    <section className="w-full max-w-[420px] mx-auto py-6 flex flex-col justify-center">
       <SignupHeader
         navName="Home"
         navLink="/"
         stepNum={1}
+        totalSteps={5}
         stepName="Create your account"
       />
-      <form className="space-y-4 md:space-y-6">
+      
+      <p className="text-[11px] md:text-xs text-white/80 mb-3 mt-1">
+        Fields marked * are required.
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
         <InputForm
           field={{
             type: "text",
             name: "fullName",
-            label: "Full name",
+            label: "Full name *",
           }}
-          onChange={(e: any) => setFullName(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)}
           text={fullName}
           error={""}
         />
@@ -109,41 +120,44 @@ export default function SignupForm() {
           field={{
             type: "email",
             name: "email",
-            label: "Email",
+            label: "Email *",
           }}
-          onChange={(e: any) => {
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
             setEmail(e.target.value);
             setError(null);
           }}
           text={email}
           error={error || ""}
         />
+
         <PasswordInput
-          onChange={(e: any) => setPassword(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
           name="password"
-          label="Password"
+          label="Password *"
           error={
             allPasswordCasesCorrect &&
-            confirmPassword.length &&
+            confirmPassword.length > 0 &&
             password !== confirmPassword
               ? "The password you entered does not match"
               : ""
           }
           inputValue={password}
         />
+
         <PasswordCases
           password={password}
           testCasesCB={setAllPasswordCasesCorrect}
           allCasesIsCorrect={allPasswordCasesCorrect}
         />
+
         {(allPasswordCasesCorrect || !password) && (
           <PasswordInput
-            onChange={(e: any) => setConfirmPassword(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
             name="confirm password"
-            label="Confirm password"
+            label="Confirm password *"
             error={
               allPasswordCasesCorrect &&
-              confirmPassword.length &&
+              confirmPassword.length > 0 &&
               password !== confirmPassword
                 ? "The password you entered does not match"
                 : ""
@@ -151,42 +165,54 @@ export default function SignupForm() {
             inputValue={confirmPassword}
           />
         )}
-        <div>
+
+        {/* Checkbox Group */}
+        <div className="space-y-2.5 pt-2">
+          <Checkbox checked={isAckChecked} onChange={setIsAckChecked}>
+            <span className="ms-2.5 text-[11px] leading-tight font-medium text-white block">
+              I acknowledge that all information above is correct, as I will not be able to change my Full Name or Email after creating an account
+            </span>
+          </Checkbox>
+
+          <Checkbox checked={isTermsChecked} onChange={setIsTermsChecked}>
+            <span className="ms-2.5 text-[11px] leading-tight font-medium text-white block">
+              I agree to The Donovan&apos;s piano room{" "}
+              <button
+                type="button"
+                onClick={() => handleOpenModal("terms")}
+                className="text-primary-yellow underline font-semibold focus:outline-none"
+              >
+                terms of use
+              </button>{" "}
+              and{" "}
+              <button
+                type="button"
+                onClick={() => handleOpenModal("privacy")}
+                className="text-primary-yellow underline font-semibold focus:outline-none"
+              >
+                privacy policy
+              </button>
+              .
+            </span>
+          </Checkbox>
+        </div>
+
+        <div className="pt-3">
           <Button1
-            onClick={handleSubmit}
+            type="submit"
             disabled={disabled}
             text="Continue to verify account"
           />
         </div>
-        <Checkbox checked={isChecked} onChange={setIsChecked}>
-          <label
-            htmlFor="check"
-            className="text-l ms-2 mt-4 font-medium text-white 2xl:mt-6 2xl:text-2xl 4xl:mt-2"
-          >
-            I agree to The Donovan&apos;s piano room{" "}
-            <span
-              onClick={() => handleOpenModal("terms")}
-              className="cursor-pointer text-primary-yellow underline"
-            >
-              terms of use
-            </span>{" "}
-            and{" "}
-            <span
-              onClick={() => handleOpenModal("privacy")}
-              className="cursor-pointer text-primary-yellow underline"
-            >
-              privacy policy
-            </span>
-            .
-          </label>
-        </Checkbox>
       </form>
-      <p className="2xl:rounded-4xl mt-9 mt-[10px] w-full rounded-3xl  bg-primary-purple py-3 text-center text-[12px] text-lg text-white 2xl:py-5 3xl:py-8 3xl:text-2xl">
+
+      <p className="mt-5 text-center text-xs md:text-sm text-white">
         Already have an account?{" "}
-        <Link href="/login" className="text-primary-yellow underline">
+        <Link href="/login" className="text-primary-yellow underline font-semibold">
           Log in
         </Link>
       </p>
+
       <TermsandCondition
         isOpen={isModalOpen}
         onClose={handleCloseModal}
