@@ -24,6 +24,7 @@ export default function LoginForm() {
     const [bannerError, setBannerError] = useState<string | null>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [now, setNow] = useState<number>(Date.now());
+    const [isSubmitting, setIsSubmitting] = useState(false); // NEW: guards against double-submit
 
     const router = useRouter();
 
@@ -78,48 +79,53 @@ export default function LoginForm() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (isLocked) return;
+        if (isLocked || isSubmitting) return; // NEW: block re-entrant submits
 
+        setIsSubmitting(true); // NEW
         setBannerError(null);
         setInputError(null);
 
-        if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === "true") {
-            if (!email.trim().toLowerCase().endsWith("@thedonovan.org")) {
-                setInputError("Please use your thedonovan.org email!");
-                return;
+        try {
+            if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === "true") {
+                if (!email.trim().toLowerCase().endsWith("@thedonovan.org")) {
+                    setInputError("Please use your thedonovan.org email!");
+                    return;
+                }
             }
-        }
 
-        const { data, ok, status } = await login(email, password);
+            const { data, ok, status } = await login(email, password);
 
-        if (ok) {
-            if (await fetchUserData()) {
-                setFailedAttempts(0);
-                setLockoutUntil(null);
-                router.push("/dashboard");
+            if (ok) {
+                if (await fetchUserData()) {
+                    setFailedAttempts(0);
+                    setLockoutUntil(null);
+                    router.push("/dashboard");
+                } else {
+                    setBannerError("Cannot get Profile information");
+                }
             } else {
-                setBannerError("Cannot get Profile information");
-            }
-        } else {
-            const nextAttempts = failedAttempts + 1;
-            setFailedAttempts(nextAttempts);
+                const nextAttempts = failedAttempts + 1;
+                setFailedAttempts(nextAttempts);
 
-            // Trigger 15-minute lockout on 5th failure or 429 status code
-            if (nextAttempts >= 5 || status === 429 || data?.status === 429) {
-                const fifteenMinutesFromNow = Date.now() + 15 * 60 * 1000;
-                setLockoutUntil(fifteenMinutesFromNow);
-                setBannerError(
-                    "Due to repeated failed attempts, your access to The Donovan's piano room is temporarily disabled. Try again in 15 minutes."
-                );
-            } else {
-                setBannerError("Incorrect Email or Password.\n\nPlease try again.");
+                // Trigger 15-minute lockout on 5th failure or 429 status code
+                if (nextAttempts >= 5 || status === 429 || data?.status === 429) {
+                    const fifteenMinutesFromNow = Date.now() + 15 * 60 * 1000;
+                    setLockoutUntil(fifteenMinutesFromNow);
+                    setBannerError(
+                        "Due to repeated failed attempts, your access to The Donovan's piano room is temporarily disabled. Try again in 15 minutes."
+                    );
+                } else {
+                    setBannerError("Incorrect Email or Password.\n\nPlease try again.");
+                }
             }
+        } finally {
+            setIsSubmitting(false); // NEW: always release the guard
         }
     };
 
     useEffect(() => {
-        setDisabled(!(email && password) || isLocked);
-    }, [email, password, isLocked]);
+        setDisabled(!(email && password) || isLocked || isSubmitting); // UPDATED: added isSubmitting
+    }, [email, password, isLocked, isSubmitting]);
 
     return (
         <div className="w-[24vw] 3xl:w-[26vw]">
@@ -232,7 +238,7 @@ export default function LoginForm() {
                     </Link>
                 </div>
                 <div>
-                    <Button1 text="Log In" type="submit" disabled={disabled} />
+                    <Button1 text={isSubmitting ? "Logging in..." : "Log In"} type="submit" disabled={disabled} />
                 </div>
             </form>
 
