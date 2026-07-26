@@ -6,21 +6,21 @@ import { profileInterface } from "@/interfaces/profileInterface";
 ////SIGN UP////
 ///////////////
 
-export const signupStepAtom = atom(1);
+export const signupStepAtom = atom<number>(1);
 
 // Membership
-export const membershipChoiceAtom = atom("");
+export const membershipChoiceAtom = atom<string>("");
 
 export const membershipTypes = {
     "24-hours": "24-hours",
     "yearly-access": "yearly-access",
     "monthly-access": "monthly-access",
-    scholarship: "scholarship"
+    scholarship: "scholarship",
 } as const;
 
 // Forgot Password / Reset Password
-export const forgotPasswordStepAtom = atom(1);
-export const resetPasswordStepAtom = atom(1);
+export const forgotPasswordStepAtom = atom<number>(1);
+export const resetPasswordStepAtom = atom<number>(1);
 
 //****************//
 //***** AUTH *****//
@@ -37,7 +37,7 @@ export const profileAtom = atomWithStorage<profileInterface>("profile", {
     lastName: "",
     picture: "",
     DOB: "",
-    pronouns: ""
+    pronouns: "",
 });
 
 // Stores lockout timestamp to persist the 15-minute timer across page refreshes
@@ -50,7 +50,7 @@ export const failedAttemptsAtom = atomWithStorage<number>("failed_attempts", 0);
 ///// NAV ////
 //////////////
 
-export const isNavOpenAtom = atom(false);
+export const isNavOpenAtom = atom<boolean>(false);
 
 export const nav4leftLinks = {
     dashboard: "dashboard",
@@ -58,14 +58,14 @@ export const nav4leftLinks = {
     games: "games",
     musicTools: "music-tools",
     planner: "planner",
-    contactUs: "contact-us"
+    contactUs: "contact-us",
 } as const;
 
-export const hasUnreadAtom = atom(false);
-export const showNotificationAtom = atom(false);
+export const hasUnreadAtom = atom<boolean>(false);
+export const showNotificationAtom = atom<boolean>(false);
 
 //*************//
 //**BOOKSTORE**//
 //*************//
 
-export const highlightBookAtom = atom(2);
+export const highlightBookAtom = atom<number>(2);

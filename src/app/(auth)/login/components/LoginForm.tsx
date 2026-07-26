@@ -33,7 +33,7 @@ export default function LoginForm() {
         setNow(Date.now());
     }, []);
 
-    // Active timer ticker to handle live unlock when lockout expires
+    // Live ticker to automatically unlock when timer expires
     useEffect(() => {
         if (!lockoutUntil) return;
 
@@ -44,7 +44,7 @@ export default function LoginForm() {
         return () => clearInterval(interval);
     }, [lockoutUntil]);
 
-    // Determine lock state dynamically based on active time
+    // Active lock state
     const isLocked = Boolean(isMounted && lockoutUntil && now < lockoutUntil);
 
     // Sync banner errors and reset lockout state when timer expires
@@ -56,7 +56,6 @@ export default function LoginForm() {
                 "Due to repeated failed attempts, your access to The Donovan's piano room is temporarily disabled. Try again in 15 minutes."
             );
         } else if (lockoutUntil && now >= lockoutUntil) {
-            // Lockout expired: reset lockout and attempt tracking
             setLockoutUntil(null);
             setFailedAttempts(0);
             setBannerError(null);
@@ -105,7 +104,7 @@ export default function LoginForm() {
             const nextAttempts = failedAttempts + 1;
             setFailedAttempts(nextAttempts);
 
-            // Lock out after 5 failed attempts or server rate limit (429)
+            // Trigger 15-minute lockout on 5th failure or 429 status code
             if (nextAttempts >= 5 || status === 429 || data?.status === 429) {
                 const fifteenMinutesFromNow = Date.now() + 15 * 60 * 1000;
                 setLockoutUntil(fifteenMinutesFromNow);
@@ -113,7 +112,7 @@ export default function LoginForm() {
                     "Due to repeated failed attempts, your access to The Donovan's piano room is temporarily disabled. Try again in 15 minutes."
                 );
             } else {
-                setBannerError("Incorrect Email or Password.\nPlease try again.");
+                setBannerError("Incorrect Email or Password.\n\nPlease try again.");
             }
         }
     };
@@ -142,7 +141,7 @@ export default function LoginForm() {
                 </p>
             </div>
 
-            {/* In-Page Error Banner matching Figma specifications */}
+            {/* Error Banner positioned directly between subtext and input forms */}
             {bannerError && (
                 <div className="mb-5 flex items-start gap-3.5 rounded-2xl bg-[#FDE8E8] border border-[#F8B4B4] p-4 text-[#1C1B1F]">
                     <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#B3261E] text-white">
@@ -190,7 +189,7 @@ export default function LoginForm() {
                     error=""
                     inputValue={password}
                 />
-                <div className="flex justify-between w-full">
+                <div className="flex justify-between items-center w-full">
                     <div className="flex items-center">
                         <label
                             className="relative flex items-center p-3 rounded-full cursor-pointer"
@@ -220,14 +219,14 @@ export default function LoginForm() {
                         </label>
                         <label
                             htmlFor="check"
-                            className="text-lg font-medium text-white mt-1 2xl:mt-2 3xl:text-2xl 4xl:text-[16px] cursor-pointer"
+                            className="text-lg font-medium text-white 3xl:text-2xl 4xl:text-[16px] cursor-pointer"
                         >
                             Remember me
                         </label>
                     </div>
                     <Link
                         href="/forgot-password"
-                        className="text-lg font-medium text-primary-yellow mt-3 2xl:mt-4 3xl:text-2xl 4xl:text-[16px]"
+                        className="text-lg font-medium text-primary-yellow 3xl:text-2xl 4xl:text-[16px]"
                     >
                         Forgot password?
                     </Link>
@@ -236,6 +235,7 @@ export default function LoginForm() {
                     <Button1 text="Log In" type="submit" disabled={disabled} />
                 </div>
             </form>
+
             <p className="w-full text-center text-lg text-white bg-primary-purple py-3 rounded-3xl text-[12px] mt-9 2xl:py-5 2xl:rounded-full 3xl:text-2xl 4xl:text-[16px] 3xl:py-8">
                 Don&apos;t have an account?{" "}
                 <Link href="/signup" className="text-primary-yellow underline">

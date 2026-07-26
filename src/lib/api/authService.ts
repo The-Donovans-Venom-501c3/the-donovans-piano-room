@@ -1,4 +1,15 @@
-export const signup = async (fullName: string, email: string, password: string) => {
+interface ApiResponse<T = any> {
+    data: T | null;
+    ok: boolean;
+    status: number;
+    error?: string;
+}
+
+export const signup = async (
+    fullName: string,
+    email: string,
+    password: string
+): Promise<ApiResponse> => {
     try {
         const trimmedName = fullName.trim();
         const response = await fetch("/api/auth/signup", {
@@ -20,7 +31,7 @@ export const signup = async (fullName: string, email: string, password: string) 
     }
 };
 
-export const verify = async (email: string, otp: string) => {
+export const verify = async (email: string, otp: string): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/verify", {
             method: "POST",
@@ -40,7 +51,7 @@ export const verify = async (email: string, otp: string) => {
     }
 };
 
-export const refreshOTP = async (email: string) => {
+export const refreshOTP = async (email: string): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/refresh-otp", {
             method: "POST",
@@ -59,7 +70,7 @@ export const refreshOTP = async (email: string) => {
     }
 };
 
-export const login = async (email: string, password: string) => {
+export const login = async (email: string, password: string): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/login", {
             method: "POST",
@@ -79,7 +90,7 @@ export const login = async (email: string, password: string) => {
     }
 };
 
-export const logout = async () => {
+export const logout = async (): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/logout", {
             method: "POST",
@@ -98,7 +109,7 @@ export const logout = async () => {
     }
 };
 
-export const forgotPassword = async (email: string) => {
+export const forgotPassword = async (email: string): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/forgot-password", {
             method: "POST",
@@ -117,7 +128,10 @@ export const forgotPassword = async (email: string) => {
     }
 };
 
-export const resetPassword = async (passwordResetToken: string, newPassword: string) => {
+export const resetPassword = async (
+    passwordResetToken: string,
+    newPassword: string
+): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/reset-password", {
             method: "POST",
@@ -137,7 +151,7 @@ export const resetPassword = async (passwordResetToken: string, newPassword: str
     }
 };
 
-export const refreshToken = async () => {
+export const refreshToken = async (): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/refresh", {
             method: "POST",
