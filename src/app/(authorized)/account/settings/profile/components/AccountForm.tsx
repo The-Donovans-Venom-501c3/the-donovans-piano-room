@@ -111,7 +111,7 @@ export default function AccountForm() {
             {/* Support Message */}
             <p className='mt-[4vh] text-2xl 3xl:text-3xl text-primary-brown'>
                 To update your Full Name or Email Address, please{' '}
-                <Link href='/contact' className='underline font-medium text-primary-purple'>
+                <Link href='/contact-page' className='underline font-medium text-primary-purple'>
                     contact us
                 </Link>
                 .
