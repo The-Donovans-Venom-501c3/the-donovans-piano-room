@@ -5,65 +5,33 @@ import InputForm from '@/components/atoms/form-input';
 import { bookCartItemInterface } from '@/interfaces/bookInterface';
 import { useSetAtom } from 'jotai';
 import { addedCartItemsAtom, useCartOperations } from '@/store/cartStore';
+import { applyBookCoupon } from '@/lib/api/membershipService';
 
 const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: number }) => {
   const setAddedCartItems = useSetAtom(addedCartItemsAtom);
   const { updateQuantity, removeFromCart } = useCartOperations();
-  
-  // States for handling the coupon flow
-  const [bookCoupon, setBookCoupon] = useState("");
-  const [couponError, setCouponError] = useState("");
-  const [isApplying, setIsApplying] = useState(false);
+  const [bookCoupon, setBookCoupon] = useState("")
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState("")
+  const [couponResult, setCouponResult] = useState<{ message: string; discountAmt: number; totalAmt: number } | null>(null)
 
   const increaseQuantity = () => updateQuantity(book.id, book.quantity + 1);
   const removeItem = () => removeFromCart(book.id);
   const decreaseQuantity = () => updateQuantity(book.id, book.quantity - 1);
 
-  // Function to apply and validate the coupon
   const handleApplyCoupon = async () => {
-    setCouponError(""); // Clear any previous errors
-
-    if (!bookCoupon.trim()) {
-      setCouponError("Please enter a coupon code");
-      return;
-    }
-
-    setIsApplying(true);
-
+    if (!bookCoupon.trim()) return;
+    setCouponLoading(true);
+    setCouponError("");
+    setCouponResult(null);
     try {
-      // NOTE: Ensure '/api/coupons/validate' is your exact backend/API validation endpoint
-      const response = await fetch('/api/coupons/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          code: bookCoupon, 
-          bookId: book.id 
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        // If API responds with an error status or validation failure
-        setCouponError(data.message || "Invalid coupon code");
-      } else {
-        // SUCCESS: Update global state item price so the total updates
-        setAddedCartItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === book.id && data.discountedPrice
-              ? { ...item, price: data.discountedPrice }
-              : item
-          )
-        );
-        console.log("Coupon applied successfully!", data);
-      }
-    } catch (err) {
-      // Fallback if the network call fails completely
-      setCouponError("Invalid coupon code");
+      const totalAmt = parseFloat(String(book.price)) * book.quantity;
+      const result = await applyBookCoupon(bookCoupon.trim(), totalAmt, book.id);
+      setCouponResult(result);
+    } catch (error: any) {
+      setCouponError(error.message || 'Failed to apply coupon');
     } finally {
-      setIsApplying(false);
+      setCouponLoading(false);
     }
   };
 
@@ -127,48 +95,28 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
         </div>
 
         {/* Coupon Section */}
-        <div className="flex flex-col gap-2 mt-[4%] w-full">
+        <div className="flex flex-col gap-[8px] w-full mt-[4%]">
           <div className="flex flex-row items-center gap-[24px] w-full">
-            <InputForm 
-              field={{ label: "Coupon code", name: "coupon-field", type: "text" }} 
+            <InputForm
+              field={{ label: "Coupon code", name: "coupon-field", type: "text" }}
               onChange={(e: any) => {
                 setBookCoupon(e.target.value);
-                if (couponError) setCouponError(""); // Instantly clear error on typing
-              }} 
-              text={bookCoupon} 
-              error={couponError} // Passes the dynamic error state to your styled input
-            />
-            <Button4 
-              text={isApplying ? "Applying..." : "Apply Coupon"}
-              onClick={handleApplyCoupon} // Execute verification click
-              style={{ 
-                display: 'flex', 
-                flexDirection: 'row', 
-                justify: 'center', 
-                alignItems: 'center', 
-                paddingLeft: '24px', 
-                paddingRight: '24px', 
-                paddingTop: '8px', 
-                paddingBottom: '8px', 
-                width: '200px', 
-                height: '40px', 
-                border: '1px solid #6F219E', 
-                borderRadius: '31px', 
-                fontFamily: 'Roboto, sans-serif', 
-                fontWeight: 'bold', 
-                fontSize: '14px', 
-                color: '#6F219E',
-                opacity: isApplying ? 0.6 : 1,
-                cursor: isApplying ? 'not-allowed' : 'pointer'
+                setCouponError("");
+                setCouponResult(null);
               }}
+              text={bookCoupon}
+              error={couponError}
+            />
+            <Button4
+              text={couponLoading ? "Applying..." : "Apply Coupon"}
+              onClick={handleApplyCoupon}
+              style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingLeft: '24px', paddingRight: '24px', paddingTop: '8px', paddingBottom: '8px', width: '200px', height: '40px', border: '1px solid #6F219E', borderRadius: '31px', fontFamily: 'Roboto, sans-serif', fontWeight: 'bold', fontSize: '14px', color: '#6F219E', opacity: couponLoading ? 0.6 : 1, cursor: couponLoading ? 'not-allowed' : 'pointer' }}
             />
           </div>
-          
-          {/* Safeguard: If InputForm has layout styles that hide its internal "error" prop message, this directly displays it */}
-          {couponError && (
-            <p className="text-red-500 font-roboto text-sm font-semibold tracking-wide ml-1">
-              {couponError}
-            </p>
+          {couponResult && (
+            <div className="text-sm text-green-600 font-roboto">
+              {couponResult.message} — Discount: <span className="font-bold">-${couponResult.discountAmt.toFixed(2)}</span>, Total: <span className="font-bold">${couponResult.totalAmt.toFixed(2)}</span>
+            </div>
           )}
         </div>
       </div>
@@ -177,22 +125,3 @@ const ListedItemCard = ({ book, index }: { book: bookCartItemInterface, index: n
 };
 
 export default ListedItemCard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -50,7 +50,7 @@ export default function Navbar5({ page }: { page: string }) {
             <Link 
               className='text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative' 
               style={navigationPages.games === page ? highlightLink: {}} 
-              href="https://thedonovansmusicgames.netlify.app/"
+              href="/api/games"
               >
               <p>GAMES</p>
               {navigationPages.games === page && displayBorder()}
