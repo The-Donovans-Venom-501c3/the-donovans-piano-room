@@ -1,34 +1,29 @@
-import {bookCartItemInterface, bookInterface} from "../interfaces/bookInterface";
 import { atom } from "jotai";
-import {atomWithStorage} from "jotai/utils"
+import { atomWithStorage } from "jotai/utils";
 import { profileInterface } from "@/interfaces/profileInterface";
-
-
-
 
 ///////////////
 ////SIGN UP////
 ///////////////
-export const singupStepAtom = atom(1)
-//Membership//
-export const membershipChoiceAtom = atom("")
+
+export const signupStepAtom = atom(1);
+
+// Membership
+export const membershipChoiceAtom = atom("");
 
 export const membershipTypes = {
     "24-hours": "24-hours",
     "yearly-access": "yearly-access",
     "monthly-access": "monthly-access",
-    "scholarship": "scholarship"
-}
+    scholarship: "scholarship"
+} as const;
 
-//forgot-password//
+// Forgot Password / Reset Password
 export const forgotPasswordStepAtom = atom(1);
-
-//reset-password//
-export const resetPasswordStepAtom = atom(1)
-
+export const resetPasswordStepAtom = atom(1);
 
 //****************//
-//*****Auth*******//
+//***** AUTH *****//
 //****************//
 
 export const profileAtom = atomWithStorage<profileInterface>("profile", {
@@ -42,14 +37,20 @@ export const profileAtom = atomWithStorage<profileInterface>("profile", {
     lastName: "",
     picture: "",
     DOB: "",
-    pronouns: "",
-})
+    pronouns: ""
+});
+
+// Stores lockout timestamp to persist the 15-minute timer across page refreshes
+export const lockoutUntilAtom = atomWithStorage<number | null>("lockout_until", null);
+
+// Stores failed attempts counter across page refreshes
+export const failedAttemptsAtom = atomWithStorage<number>("failed_attempts", 0);
 
 //////////////
-/////NAV//////
+///// NAV ////
 //////////////
 
-export const IsNavOpenAtom = atom(false)
+export const isNavOpenAtom = atom(false);
 
 export const nav4leftLinks = {
     dashboard: "dashboard",
@@ -58,16 +59,13 @@ export const nav4leftLinks = {
     musicTools: "music-tools",
     planner: "planner",
     contactUs: "contact-us"
-}
+} as const;
 
-export const hasUnreadAtom = atom(false)
-
-export const showNotificationAtom = atom(false)
+export const hasUnreadAtom = atom(false);
+export const showNotificationAtom = atom(false);
 
 //*************//
-//**bookstore**//
+//**BOOKSTORE**//
 //*************//
-
-
 
 export const highlightBookAtom = atom(2);
