@@ -15,7 +15,6 @@ import PaymentMethodSelectionPopup from "./components/PaymentMethodSelectionPopu
 import RenewMembership from "./components/RenewMembership";
 import { UserMembership, MembershipStatus, MembershipLevelId, Plan, PaymentMethod } from "@/interfaces/membershipInterface";
 import { formatRenewalDate, MEMBERSHIP_UI_CONFIG, ButtonConfig, PopupType } from "./config";
-// @ts-expect-error - CSS import is resolved by Next.js at build time
 import "@/styles/primary-purple-scrollbar.css";
 
 export default function Page() {
