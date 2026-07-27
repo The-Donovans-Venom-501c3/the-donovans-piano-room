@@ -1,433 +1,283 @@
 "use client";
-import { logout } from "@/lib/api/authService";
-import { IsNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
-import { Skeleton } from "@mui/material";
-import { useAtom, useAtomValue } from "jotai";
-import { useRef } from "react";
+
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Skeleton } from "@mui/material";
+import { useAtom, useAtomValue } from "jotai";
+
+import { logout } from "@/lib/api/authService";
+import { isNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
 
 export default function Navbar4Left({
   openedLink = "",
 }: {
   openedLink: string;
 }) {
-  const [isNavOpen, setIsNavOpen] = useAtom(IsNavOpenAtom);
+  const [isNavOpen, setIsNavOpen] = useAtom(isNavOpenAtom);
   const profile = useAtomValue(profileAtom);
-  const timerRef = useRef<any>(null);
-  const linkDynamicSyle = { justifyContent: isNavOpen ? "start" : "center" };
-  const toggleOpenNav = () => setIsNavOpen((state) => !state);
-  const handleLogout = async () => {
-    const response = await logout();
-    window.location.replace('/');
-  }
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMouseOver = () => {
+  const toggleOpenNav = () => setIsNavOpen((state: boolean) => !state);
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.replace("/");
+  };
+
+  const handleMouseEnter = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
     setIsNavOpen(true);
-  }
+  };
 
   const handleMouseLeave = () => {
     timerRef.current = setTimeout(() => {
       setIsNavOpen(false);
-    }, 800)
-  }
+    }, 800);
+  };
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const linkDynamicStyle = { justifyContent: isNavOpen ? "start" : "center" };
+
+  // Menu items config for DRY rendering
+  const navItems = [
+    {
+      href: "/dashboard",
+      label: "DASHBOARD",
+      key: nav4leftLinks.dashboard,
+      icon: "/navbar/NavBar4Left/Dashboard.svg",
+      alt: "D",
+      disabled: false,
+    },
+    {
+      href: "/lessons",
+      label: "LESSONS",
+      key: nav4leftLinks.lessons,
+      icon: "/navbar/NavBar4Left/Lessons.svg",
+      alt: "L",
+      disabled: false,
+    },
+    {
+      href: "/games",
+      label: "GAMES",
+      key: nav4leftLinks.games,
+      icon: "/navbar/NavBar4Left/Games.svg",
+      alt: "G",
+      disabled: false,
+    },
+    {
+      href: "",
+      label: "MUSIC TOOLS",
+      key: nav4leftLinks.musicTools,
+      icon: "/navbar/NavBar4Left/MusicTools.svg",
+      alt: "MT",
+      disabled: true,
+    },
+    {
+      href: "",
+      label: "PLANNER",
+      key: nav4leftLinks.planner,
+      icon: "/navbar/NavBar4Left/Planner.svg",
+      alt: "P",
+      disabled: true,
+    },
+    {
+      href: "/contact-page",
+      label: "CONTACT",
+      key: nav4leftLinks.contactUs,
+      icon: "/navbar/NavBar4Left/Contact.svg",
+      alt: "C",
+      disabled: false,
+    },
+  ];
 
   return (
     <div
-      className="relative z-50 h-[100vh] transition-all duration-300 ease-in-out "
+      className="relative z-50 h-[100vh] transition-all duration-300 ease-in-out"
       style={{ width: isNavOpen ? "20vw" : "8vw" }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
+      {/* Top Header Section */}
       <div className="flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
         {isNavOpen ? (
           <div className="relative h-[60%] w-[80%]">
-            <Image src="/navbar/Logo2.svg" fill alt="" />
+            <Image src="/navbar/Logo2.svg" fill alt="Logo" />
           </div>
         ) : (
           <div className="relative h-[60%] w-[60%]">
-            <Image src="/navbar/MiniLogo.svg" fill alt="" />
+            <Image src="/navbar/MiniLogo.svg" fill alt="Mini Logo" />
           </div>
         )}
 
-        {isNavOpen ? (
-          <div
-            className="absolute left-[15.5vw] top-[6vh] cursor-pointer transition-all duration-300 ease-in-out"
-            onClick={toggleOpenNav}
-          >
-            <div className="relative h-[8vh] w-[3vw]">
-              <Image
-                src="/navbar/NavBar4Left/CloseButtons.svg"
-                fill
-                alt="close"
-              />
-            </div>
+        <div
+          className={`absolute top-[6vh] cursor-pointer transition-all duration-300 ease-in-out ${
+            isNavOpen ? "left-[15.5vw]" : "left-[6vw]"
+          }`}
+          onClick={toggleOpenNav}
+        >
+          <div className="relative h-[8vh] w-[3vw]">
+            <Image
+              src={
+                isNavOpen
+                  ? "/navbar/NavBar4Left/CloseButtons.svg"
+                  : "/navbar/NavBar4Left/OpenButton.svg"
+              }
+              fill
+              alt={isNavOpen ? "close" : "open"}
+            />
           </div>
-        ) : (
-          <div
-            className="absolute left-[6vw] top-[6vh] cursor-pointer transition-all duration-300 ease-in-out"
-            onClick={toggleOpenNav}
-          >
-            <div className="relative h-[8vh] w-[3vw]">
-              <Image src="/navbar/NavBar4Left/OpenButton.svg" fill alt="open" />
-            </div>
-          </div>
-        )}
+        </div>
       </div>
+
+      {/* Main Content & Navigation Section */}
       <div className="flex h-[79vh] w-full justify-center bg-primary-purple">
         <div
           className="mt-[5vh] h-[80%]"
           style={{ width: isNavOpen ? "80%" : "50%" }}
         >
-          {
-            profile.id ? <>
-              <div className="relative h-[8vh] w-[8vh]">
-                <Image src={profile.picture} fill alt="" />
+          {/* User Profile */}
+          {profile.id ? (
+            <div className="flex flex-col items-center w-full">
+              <div className="relative h-[8vh] w-[8vh] shrink-0">
+                <Image src={profile.picture} fill alt="Profile Picture" />
               </div>
               <p
-                className="mt-[1vh] text-center font-montserrat text-4xl font-bold text-white 3xl:text-5xl 4xl:text-6xl"
+                className="mt-[1vh] w-full font-montserrat text-4xl font-bold text-white 3xl:text-5xl 4xl:text-6xl truncate leading-normal"
                 style={{ textAlign: isNavOpen ? "start" : "center" }}
               >
-                {
-                  (() => {
-                    const hasSpace = profile.fullName.indexOf(" ") !== -1;
-                    const str = profile.fullName[0] + (hasSpace ? " " + profile.fullName[profile.fullName.indexOf(" ") + 1] : "");
-                    return isNavOpen ? profile.fullName : str;
-                  })()
-                }
+                {(() => {
+                  const hasSpace = profile.fullName.indexOf(" ") !== -1;
+                  const str =
+                    profile.fullName[0] +
+                    (hasSpace
+                      ? " " + profile.fullName[profile.fullName.indexOf(" ") + 1]
+                      : "");
+                  return isNavOpen ? profile.fullName : str;
+                })()}
               </p>
-              <p
-                className="mt-[0.5vh] text-xl font-bold text-white 3xl:text-2xl 4xl:text-3xl"
-                style={{ textAlign: isNavOpen ? "start" : "center" }}
+
+              {/* Fixed Edit container line height & block layout */}
+              <div
+                className="mt-[0.5vh] flex items-center w-full h-[32px] text-xl font-bold text-white 3xl:text-2xl 4xl:text-3xl leading-none"
+                style={{ justifyContent: isNavOpen ? "flex-start" : "center" }}
               >
-                {isNavOpen ? profile.pronouns : ""}
+                {isNavOpen && profile.pronouns && (
+                  <span className="mr-2 leading-none">{profile.pronouns}</span>
+                )}
                 <Link
                   href="/account/settings/profile"
-                  className="text-primary-yellow-accent underline"
-                  style={{ marginLeft: isNavOpen ? ".5vw" : "" }}
+                  className="inline-block shrink-0 text-primary-yellow-accent underline leading-none transition-opacity hover:opacity-80"
                 >
                   Edit
                 </Link>
-              </p></> : <>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center w-full">
               <Skeleton variant="rectangular" width={52} height={52} />
-              <Skeleton variant="rectangular" width={40} height={10} className="mt-[1vh]" />
-              <Skeleton variant="rectangular" width={40} height={10} className="mt-[0.5vh]" />
-            </>
-          }
+              <Skeleton
+                variant="rectangular"
+                width={40}
+                height={10}
+                className="mt-[1vh]"
+              />
+              <Skeleton
+                variant="rectangular"
+                width={40}
+                height={10}
+                className="mt-[0.5vh]"
+              />
+            </div>
+          )}
 
-
-          <div className="mt-[1vh] flex flex-col gap-[1vh]" onMouseOver={handleMouseOver}
-            onMouseLeave={handleMouseLeave}>
-            <Link href="/dashboard">
-              <div
-                className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
-
-                style={
-                  openedLink === nav4leftLinks.dashboard
-                    ? {
-                      borderColor: "white",
-                      backgroundColor: "#F6E892",
-                      ...linkDynamicSyle,
-                    }
-                    : linkDynamicSyle
-                }
-              >
+          {/* Navigation Links */}
+          <div className="mt-[1vh] flex flex-col gap-[1vh]">
+            {navItems.map((item) => {
+              const isActive = openedLink === item.key;
+              const linkContent = (
                 <div
-
-                  className="relative h-[4vh] w-[4vh]"
-                  style={isNavOpen ? { marginLeft: "1vw" } : {}}
+                  className={`flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white ${
+                    item.disabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  style={{
+                    ...(isActive
+                      ? {
+                          borderColor: "white",
+                          backgroundColor: "#F6E892",
+                          ...linkDynamicStyle,
+                        }
+                      : linkDynamicStyle),
+                    ...(item.disabled ? { filter: "grayscale(90%)" } : {}),
+                  }}
                 >
-                  <Image src="/navbar/NavBar4Left/Dashboard.svg" fill alt="D" />
-                </div>
-                {isNavOpen ? (
-                  <p className="ml-[.5vw] w-[80%] text-2xl font-semibold text-primary-purple 3xl:text-3xl 4xl:text-4xl">
-                    DASHBOARD
-                  </p>
-                ) : (
-                  <></>
-                )}
-                {isNavOpen && (
                   <div
-                    className="float-right flex h-full w-[25%] items-center justify-center rounded-r-2xl bg-primary-yellow-accent"
-                    style={
-                      openedLink === nav4leftLinks.dashboard
-                        ? { backgroundColor: "#E9BB18" }
-                        : {}
-                    }
+                    className="relative h-[4vh] w-[4vh]"
+                    style={isNavOpen ? { marginLeft: "1vw" } : {}}
                   >
-                    <div className="relative h-[2vh] w-[2vh]">
-                      <Image
-                        className="rotate-[-90deg]"
-                        src="/about/FAQs/DropdownIcon.svg"
-                        fill
-                        alt=""
-                      />
-                    </div>
+                    <Image src={item.icon} fill alt={item.alt} />
                   </div>
-                )}
-              </div>
-            </Link>
-            <Link href="/lessons">
-              <div
-                className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
+                  {isNavOpen && (
+                    <p className="ml-[.5vw] w-[80%] text-2xl font-semibold text-primary-purple 3xl:text-3xl 4xl:text-4xl">
+                      {item.label}
+                    </p>
+                  )}
+                  {isNavOpen && (
+                    <div
+                      className="float-right flex h-full w-[25%] items-center justify-center rounded-r-2xl bg-primary-yellow-accent"
+                      style={isActive ? { backgroundColor: "#E9BB18" } : {}}
+                    >
+                      <div className="relative h-[2vh] w-[2vh]">
+                        <Image
+                          className="rotate-[-90deg]"
+                          src="/about/FAQs/DropdownIcon.svg"
+                          fill
+                          alt=""
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
 
-                style={
-                  openedLink === nav4leftLinks.lessons
-                    ? {
-                      borderColor: "white",
-                      backgroundColor: "#F6E892",
-                      ...linkDynamicSyle,
-                    }
-                    : linkDynamicSyle
-                }
-              >
-                <div
-
-                  className="relative h-[4vh] w-[4vh]"
-                  style={isNavOpen ? { marginLeft: "1vw" } : {}}
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={item.disabled ? "pointer-events-none" : ""}
                 >
-                  <Image src="/navbar/NavBar4Left/Lessons.svg" fill alt="L" />
-                </div>
-                {isNavOpen ? (
-                  <p className="ml-[.5vw] w-[80%] text-2xl font-semibold text-primary-purple 3xl:text-3xl 4xl:text-4xl">
-                    LESSONS
-                  </p>
-                ) : (
-                  <></>
-                )}
-                {isNavOpen && (
-                  <div
-                    className="float-right flex h-full w-[25%] items-center justify-center rounded-r-2xl bg-primary-yellow-accent"
-                    style={
-                      openedLink === nav4leftLinks.lessons
-                        ? { backgroundColor: "#E9BB18" }
-                        : {}
-                    }
-                  >
-                    <div className="relative h-[2vh] w-[2vh]">
-                      <Image
-                        className="rotate-[-90deg]"
-                        src="/about/FAQs/DropdownIcon.svg"
-                        fill
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Link>
-            <Link href="/games">
-              <div
-                className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
-
-                style={
-                  openedLink === nav4leftLinks.games
-                    ? {
-                      borderColor: "white",
-                      backgroundColor: "#F6E892",
-                      ...linkDynamicSyle,
-                    }
-                    : linkDynamicSyle
-                }
-              >
-                <div
-                  className="relative h-[4vh] w-[4vh]"
-                  style={isNavOpen ? { marginLeft: "1vw" } : {}}
-                >
-                  <Image src="/navbar/NavBar4Left/Games.svg" fill alt="G" />
-                </div>
-                {isNavOpen ? (
-                  <p className="ml-[.5vw] w-[80%] text-2xl font-semibold text-primary-purple 3xl:text-3xl 4xl:text-4xl">
-                    GAMES
-                  </p>
-                ) : (
-                  <></>
-                )}
-                {isNavOpen && (
-                  <div
-                    className="float-right flex h-full w-[25%] items-center justify-center rounded-r-2xl bg-primary-yellow-accent"
-                    style={
-                      openedLink === nav4leftLinks.games
-                        ? { backgroundColor: "#E9BB18" }
-                        : {}
-                    }
-                  >
-                    <div className="relative h-[2vh] w-[2vh]">
-                      <Image
-                        className="rotate-[-90deg]"
-                        src="/about/FAQs/DropdownIcon.svg"
-                        fill
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Link>
-            <Link href="" className="pointer-events-none">
-              <div
-                className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white opacity-50 cursor-not-allowed"
-                style={{
-                  ...(openedLink === nav4leftLinks.musicTools
-                    ? {
-                      borderColor: "white",
-                      backgroundColor: "#F6E892",
-                      ...linkDynamicSyle,
-                    }
-                    : linkDynamicSyle),
-                  filter: "grayscale(90%)",
-                }}
-              >
-                <div
-                  className="relative h-[4vh] w-[4vh]"
-                  style={isNavOpen ? { marginLeft: "1vw" } : {}}
-                >
-                  <Image
-                    src="/navbar/NavBar4Left/MusicTools.svg"
-                    fill
-                    alt="MT"
-                  />
-                </div>
-                {isNavOpen ? (
-                  <p className="ml-[.5vw] w-[80%] text-2xl font-semibold text-primary-purple 3xl:text-3xl 4xl:text-4xl">
-                    MUSIC TOOLS
-                  </p>
-                ) : (
-                  <></>
-                )}
-                {isNavOpen && (
-                  <div
-                    className="float-right flex h-full w-[25%] items-center justify-center rounded-r-2xl bg-primary-yellow-accent"
-                    style={
-                      openedLink === nav4leftLinks.musicTools
-                        ? { backgroundColor: "#E9BB18" }
-                        : {}
-                    }
-                  >
-                    <div className="relative h-[2vh] w-[2vh]">
-                      <Image
-                        className="rotate-[-90deg]"
-                        src="/about/FAQs/DropdownIcon.svg"
-                        fill
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Link>
-            <Link href="" className="pointer-events-none">
-              <div
-                className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white opacity-50 cursor-not-allowed"
-
-                style={{
-                  ...(openedLink === nav4leftLinks.planner
-                    ? {
-                      borderColor: "white",
-                      backgroundColor: "#F6E892",
-                      ...linkDynamicSyle,
-                    }
-                    : linkDynamicSyle),
-                  filter: "grayscale(90%)",
-                }}
-              >
-                <div
-                  className="relative h-[4vh] w-[4vh]"
-                  style={isNavOpen ? { marginLeft: "1vw" } : {}}
-                >
-                  <Image src="/navbar/NavBar4Left/Planner.svg" fill alt="P" />
-                </div>
-                {isNavOpen ? (
-                  <p className="ml-[.5vw] w-[80%] text-2xl font-semibold text-primary-purple 3xl:text-3xl 4xl:text-4xl">
-                    PLANNER
-                  </p>
-                ) : (
-                  <></>
-                )}
-                {isNavOpen && (
-                  <div
-                    className="float-right flex h-full w-[25%] items-center justify-center rounded-r-2xl bg-primary-yellow-accent"
-                    style={
-                      openedLink === nav4leftLinks.planner
-                        ? { backgroundColor: "#E9BB18" }
-                        : {}
-                    }
-                  >
-                    <div className="relative h-[2vh] w-[2vh]">
-                      <Image
-                        className="rotate-[-90deg]"
-                        src="/about/FAQs/DropdownIcon.svg"
-                        fill
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Link>
-            <Link href="/contact-page">
-              <div
-                className="flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white"
-
-                style={
-                  openedLink === nav4leftLinks.contactUs
-                    ? {
-                      borderColor: "white",
-                      backgroundColor: "#F6E892",
-                      ...linkDynamicSyle,
-                    }
-                    : linkDynamicSyle
-                }
-              >
-                <div
-                  className="relative h-[4vh] w-[4vh]"
-                  style={isNavOpen ? { marginLeft: "1vw" } : {}}
-                >
-                  <Image src="/navbar/NavBar4Left/Contact.svg" fill alt="C" />
-                </div>
-                {isNavOpen ? (
-                  <p className="ml-[.5vw] w-[80%] text-2xl font-semibold text-primary-purple 3xl:text-3xl 4xl:text-4xl">
-                    CONTACT
-                  </p>
-                ) : (
-                  <></>
-                )}
-                {isNavOpen && (
-                  <div
-                    className="float-right flex h-full w-[25%] items-center justify-center rounded-r-2xl bg-primary-yellow-accent"
-                    style={
-                      openedLink === nav4leftLinks.contactUs
-                        ? { backgroundColor: "#E9BB18" }
-                        : {}
-                    }
-                  >
-                    <div className="relative h-[2vh] w-[2vh]">
-                      <Image
-                        className="rotate-[-90deg]"
-                        src="/about/FAQs/DropdownIcon.svg"
-                        fill
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Link>
+                  {linkContent}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
+
+      {/* Footer Section / Logout Button */}
       <div className="flex h-[9vh] w-full items-center justify-center rounded-br-[20px] bg-[#601d86]">
         <div style={{ width: isNavOpen ? "80%" : "50%" }}>
-          <button onMouseOver={handleMouseOver}
-            onMouseLeave={handleMouseLeave} className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl" onClick={handleLogout}>
+          <button
+            className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl"
+            onClick={handleLogout}
+          >
             {isNavOpen && (
               <p className="mr-[.3vw] mt-1 text-center text-primary-yellow-accent 3xl:mt-[4px] 3xl:text-2xl 4xl:text-3xl">
                 Log out
               </p>
             )}
-            <div className="relative h-[3vh] w-[3vh]" >
-              <Image src="/navbar/Logout.svg" fill alt="" />
+            <div className="relative h-[3vh] w-[3vh]">
+              <Image src="/navbar/Logout.svg" fill alt="Logout" />
             </div>
           </button>
         </div>
