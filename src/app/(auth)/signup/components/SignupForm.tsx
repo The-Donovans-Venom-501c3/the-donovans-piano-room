@@ -38,7 +38,7 @@ export default function SignupForm() {
     setIsModalOpen(false);
   };
 
-  const setSingupStep = useSetAtom(signupStepAtom);
+  const setSignupStep = useSetAtom(signupStepAtom);
   const setProfileAtom = useSetAtom(profileAtom);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -60,7 +60,7 @@ export default function SignupForm() {
         fullName: fullName,
         email: email,
       }));
-      setSingupStep((prev) => prev + 1);
+      setSignupStep((prev) => prev + 1);
     } else {
       console.log("Failed");
       alert(`Error: ${data.message}`);

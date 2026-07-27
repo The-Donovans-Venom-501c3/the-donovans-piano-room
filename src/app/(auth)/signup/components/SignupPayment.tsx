@@ -4,10 +4,10 @@ import Link from "next/link";
 import SignupHeader from "./SignupHeader";
 import Button1 from "@/components/atoms/Button1";
 import { useSetAtom } from "jotai";
-import { singupStepAtom } from "@/utils/stores";
+import { signupStepAtom } from "@/utils/stores";
 
 export default function SignupPayment() {
-  const setSignupStep = useSetAtom(singupStepAtom);
+  const setSignupStep = useSetAtom(signupStepAtom);
 
   const handleNextStep = () => {
     // Advance to Step 5 (Summary)

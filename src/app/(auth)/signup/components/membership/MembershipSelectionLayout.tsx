@@ -1,4 +1,4 @@
-import { membershipChoiceAtom, membershipTypes, singupStepAtom } from "@/utils/stores";
+import { membershipChoiceAtom, membershipTypes, signupStepAtom } from "@/utils/stores";
 import { useAtom, useSetAtom } from "jotai";
 import Link from "next/link";
 import SignupHeader from "../SignupHeader";
@@ -13,7 +13,7 @@ export default function MembershipSelectionLayout({
   isBeta = true, // Defaults to true for Beta Launch
 }: MembershipSelectionLayoutProps) {
   const [membershipChoice, setMembershipChoice] = useAtom(membershipChoiceAtom);
-  const setSingupStep = useSetAtom(singupStepAtom);
+  const setSignupStep = useSetAtom(signupStepAtom);
 
   // Checks if the user selected Scholarship
   const isScholarship = membershipChoice === membershipTypes["scholarship"];
@@ -24,7 +24,7 @@ export default function MembershipSelectionLayout({
   const goToPayment = (e: FormEvent) => {
     e.preventDefault();
     if (membershipChoice && !isButtonDisabled) {
-      setSingupStep((stepN) => stepN + 1);
+      setSignupStep((stepN) => stepN + 1);
     }
   };
 
@@ -49,7 +49,7 @@ export default function MembershipSelectionLayout({
         navName="Account"
         onClickNav={(e) => {
           e.preventDefault();
-          setSingupStep(1);
+          setSignupStep(1);
         }}
       />
 

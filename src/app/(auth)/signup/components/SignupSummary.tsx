@@ -4,7 +4,7 @@ import Link from "next/link";
 import Button1 from "@/components/atoms/Button1";
 import SignupHeader from "./SignupHeader";
 import { useAtomValue, useSetAtom } from "jotai";
-import { membershipChoiceAtom, singupStepAtom } from "@/utils/stores";
+import { membershipChoiceAtom, signupStepAtom } from "@/utils/stores";
 
 interface SignupSummaryProps {
   isBeta?: boolean;
@@ -15,7 +15,7 @@ export default function SignupSummary({
   isBeta = true,
   onComplete,
 }: SignupSummaryProps) {
-  const setSingupStep = useSetAtom(singupStepAtom);
+  const setSignupStep = useSetAtom(signupStepAtom);
   const membershipChoice = useAtomValue(membershipChoiceAtom);
 
   const handleFinish = () => {
@@ -36,7 +36,7 @@ export default function SignupSummary({
         stepName="Summary"
         onClickNav={(e) => {
           e.preventDefault();
-          setSingupStep(4);
+          setSignupStep(4);
         }}
       />
 
