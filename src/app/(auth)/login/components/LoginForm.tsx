@@ -24,17 +24,15 @@ export default function LoginForm() {
     const [bannerError, setBannerError] = useState<string | null>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [now, setNow] = useState<number>(Date.now());
-    const [isSubmitting, setIsSubmitting] = useState(false); // NEW: guards against double-submit
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const router = useRouter();
 
-    // Prevent hydration mismatch when accessing localStorage state
     useEffect(() => {
         setIsMounted(true);
         setNow(Date.now());
     }, []);
 
-    // Live ticker to automatically unlock when timer expires
     useEffect(() => {
         if (!lockoutUntil) return;
 
@@ -45,10 +43,8 @@ export default function LoginForm() {
         return () => clearInterval(interval);
     }, [lockoutUntil]);
 
-    // Active lock state
     const isLocked = Boolean(isMounted && lockoutUntil && now < lockoutUntil);
 
-    // Sync banner errors and reset lockout state when timer expires
     useEffect(() => {
         if (!isMounted) return;
 
@@ -79,9 +75,9 @@ export default function LoginForm() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (isLocked || isSubmitting) return; // NEW: block re-entrant submits
+        if (isLocked || isSubmitting) return;
 
-        setIsSubmitting(true); // NEW
+        setIsSubmitting(true);
         setBannerError(null);
         setInputError(null);
 
@@ -107,7 +103,6 @@ export default function LoginForm() {
                 const nextAttempts = failedAttempts + 1;
                 setFailedAttempts(nextAttempts);
 
-                // Trigger 15-minute lockout on 5th failure or 429 status code
                 if (nextAttempts >= 5 || status === 429 || data?.status === 429) {
                     const fifteenMinutesFromNow = Date.now() + 15 * 60 * 1000;
                     setLockoutUntil(fifteenMinutesFromNow);
@@ -115,16 +110,16 @@ export default function LoginForm() {
                         "Due to repeated failed attempts, your access to The Donovan's piano room is temporarily disabled. Try again in 15 minutes."
                     );
                 } else {
-                    setBannerError("Incorrect Email or Password.\n\nPlease try again.");
+                    setBannerError("Incorrect Email or Password.\nPlease try again.");
                 }
             }
         } finally {
-            setIsSubmitting(false); // NEW: always release the guard
+            setIsSubmitting(false);
         }
     };
 
     useEffect(() => {
-        setDisabled(!(email && password) || isLocked || isSubmitting); // UPDATED: added isSubmitting
+        setDisabled(!(email && password) || isLocked || isSubmitting);
     }, [email, password, isLocked, isSubmitting]);
 
     return (
@@ -147,7 +142,6 @@ export default function LoginForm() {
                 </p>
             </div>
 
-            {/* Error Banner positioned directly between subtext and input forms */}
             {bannerError && (
                 <div className="mb-5 flex items-start gap-3.5 rounded-2xl bg-[#FDE8E8] border border-[#F8B4B4] p-4 text-[#1C1B1F]">
                     <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#B3261E] text-white">
