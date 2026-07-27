@@ -1,6 +1,6 @@
 "use client";
 
-import { singupStepAtom } from "@/utils/stores";
+import { signupStepAtom } from "@/utils/stores";
 import { useAtom } from "jotai";
 import SignupForm from "./SignupForm";
 import SignupMembershipContent from "./membership/SignupMembershipContent";
@@ -10,7 +10,7 @@ import SignupSummary from "./SignupSummary";
 import SignUpConfirmation from "./SignUpConfirmation";
 
 export default function AllSignupSteps() {
-  const [signupStep] = useAtom(singupStepAtom);
+  const [signupStep] = useAtom(signupStepAtom);
 
   return (
     <>

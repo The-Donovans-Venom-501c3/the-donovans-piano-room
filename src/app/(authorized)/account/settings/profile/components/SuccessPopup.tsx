@@ -1,9 +1,9 @@
-import { IsNavOpenAtom } from "@/utils/stores"
+import { isNavOpenAtom } from "@/utils/stores"
 import { useAtomValue } from "jotai"
 import Image from "next/image"
 
 export default function SuccessPopup({ closeSuccessPopup }: { closeSuccessPopup: any }) {
-    const isNavOpen = useAtomValue(IsNavOpenAtom)
+    const isNavOpen = useAtomValue(isNavOpenAtom)
     return (
         <div className="fixed z-50 flex items-center justify-between h-[48px] w-[78vw] bottom-[1vh] bg-primary-yellow-accent rounded-2xl" style={isNavOpen ? { width: '70vw' } : {}}>
             <div className="flex items-center">

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import SignupHeader from "./SignupHeader";
 import { useSetAtom } from "jotai";
-import { singupStepAtom, profileAtom } from "@/utils/stores";
+import { signupStepAtom, profileAtom } from "@/utils/stores";
 import Button1 from "@/components/atoms/Button1";
 import TermsandCondition from "./TermsandCondition";
 import Checkbox from "@/components/atoms/Checkbox";
@@ -38,7 +38,7 @@ export default function SignupForm() {
     setIsModalOpen(false);
   };
 
-  const setSingupStep = useSetAtom(singupStepAtom);
+  const setSingupStep = useSetAtom(signupStepAtom);
   const setProfileAtom = useSetAtom(profileAtom);
 
   const handleSubmit = async (e: FormEvent) => {

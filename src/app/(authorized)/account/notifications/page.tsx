@@ -2,20 +2,21 @@
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import { authorizedWrapperTitles, beenTimeAgo, dummyNoticationsData, settingsNavigation } from "@/utils/general";
-import { hasUnreadAtom, IsNavOpenAtom, profileAtom } from "@/utils/stores";
+import { hasUnreadAtom, isNavOpenAtom, profileAtom } from "@/utils/stores";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import AllOrUnread from "./components/AllOrUnread";
 import AllCatchUp from "./components/AllCatchUp";
 import { notification } from "../../../../interfaces/notificationInterface";
 import NotificationItem from "./components/NotificationItem";
+// @ts-ignore: allow importing global css without type declarations
 import "@/styles/primary-purple-scrollbar.css"
 
 export default function Page() {
     const [allNotifications, setAllNotifications] = useState<[notification[], notification[]]>([[],[]])
     const [displayedNotifications, setDisplayedNotifications] = useState<[notification[], notification[]]>([[],[]])
     const [unreadsNumber, setUnreadsNumber] = useState(0)
-    const isNavOpen = useAtomValue(IsNavOpenAtom)
+    const isNavOpen = useAtomValue(isNavOpenAtom)
     const setHasUnread = useSetAtom(hasUnreadAtom)
     const Profile = useAtomValue(profileAtom)
     const initNotifications = (notifications: notification[]) => {

@@ -1,5 +1,5 @@
 import Button3 from '@/components/atoms/Button3'
-import { IsNavOpenAtom } from '@/utils/stores'
+import { isNavOpenAtom } from '@/utils/stores'
 import { useAtomValue } from 'jotai'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -7,7 +7,7 @@ import { useState } from 'react'
 
 
 export default function FirstLesson() {
-    const isNavOpen = useAtomValue(IsNavOpenAtom)
+    const isNavOpen = useAtomValue(isNavOpenAtom)
     const [isOpen, setIsOpen] = useState(false);
 
     type EventDetails = {

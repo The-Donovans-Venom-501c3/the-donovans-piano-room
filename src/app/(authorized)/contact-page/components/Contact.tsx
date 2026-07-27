@@ -2,11 +2,11 @@ import InputForm from "@/components/atoms/form-input";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
-import { IsNavOpenAtom } from "@/utils/stores";
+import { isNavOpenAtom } from "@/utils/stores";
 import { useAtomValue } from "jotai";
 
 export default function Contact() {
-  const isNavOpen = useAtomValue(IsNavOpenAtom);
+  const isNavOpen = useAtomValue(isNavOpenAtom);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
