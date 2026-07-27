@@ -12,7 +12,7 @@ export default function NotificationPopup() {
     useEffect(() => {
         const { timeAgo } = beenTimeAgo(item.date)
         setTimeAgo(timeAgo)
-    })
+    }, [item.date])
     return (
         <div className="absolute w-[100vw] h-[100vh]">
             <div className='absolute z-50 right-[5%] top-[-2%] flex w-[35%] p-6 bg-[#FEF8EE] rounded-2xl mt-[2%] hover:bg-[#FBF5FF] border border-[#FCF0D8] hover:border-white shadow-[#AC7A2280] shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px]'>

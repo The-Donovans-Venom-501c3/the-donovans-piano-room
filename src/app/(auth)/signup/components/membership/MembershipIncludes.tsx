@@ -47,7 +47,9 @@ export default function MembershipIncludes() {
   const [showDiscountInput, setShowDiscountInput] = useState(false);
   const [discountCode, setDiscountCode] = useState("");
   const membershipChoice = useAtomValue(membershipChoiceAtom);
-  const membershipChoiceContent = membershipChoice ? membershipIncludes[membershipChoice] : null;
+const membershipChoiceContent = membershipChoice && membershipChoice in membershipIncludes
+  ? membershipIncludes[membershipChoice as keyof typeof membershipIncludes]
+  : null;
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 

@@ -16,16 +16,6 @@ export default function BooksPreview() {
   const setAddedCartItem = useSetAtom(addedCartItemAtom);
   const { addToCart, isAdded } = useCartOperations();
   const params = useParams();
-  const fetchBook = async () => {
-
-    const bookId: string = params.id as string;
-    if (!bookId) {
-      console.error("No book ID found in URL");
-      return;
-    }
-    const response: backendBookInterface = await getBookById(bookId);
-    setBook(mapBackendToFrontend(response));
-  }
 
   const handleAddToCart = () => {
     if (!book) return;
@@ -38,8 +28,17 @@ export default function BooksPreview() {
   }
 
   useEffect(() => {
+    const fetchBook = async () => {
+      const bookId: string = params.id as string;
+      if (!bookId) {
+        console.error("No book ID found in URL");
+        return;
+      }
+      const response: backendBookInterface = await getBookById(bookId);
+      setBook(mapBackendToFrontend(response));
+    };
     fetchBook();
-  }, []);
+  }, [params.id]);
 
   return (
     book && (
