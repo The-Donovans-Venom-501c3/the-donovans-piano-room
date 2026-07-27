@@ -20,6 +20,9 @@ interface PlanCardProps {
   // Benefit access card behavior
   useBenefitAccessCard?: boolean; // if true, shows BenefitAccessCard instead of expanding inline
   onBenefitAccessCardToggle?: () => void; // callback to parent when benefit access card should be toggled
+
+  // Beta launch configuration
+  isBeta?: boolean; // Controls Beta UI state
 }
 
 export default function PlanCard({
@@ -31,6 +34,7 @@ export default function PlanCard({
   showExpirationMessage = false,
   useBenefitAccessCard = false,
   onBenefitAccessCardToggle,
+  isBeta = true, // Defaults to true for Beta Launch
 }: PlanCardProps) {
   const [showMoreBenefits, setShowMoreBenefits] = useState(false);
 
@@ -50,7 +54,9 @@ export default function PlanCard({
       <div className="w-full rounded-2xl border border-[#FCF0D8] bg-white shadow-custom">
         {/* Header ribbon */}
         <div className={`relative rounded-t-xl px-5 py-3 ${uiConfig.headerColor} ${uiConfig.headerTextColor}`}>
-          <div className="text-2xl font-semibold">{plan.planName}</div>
+          <div className="text-2xl font-semibold">
+            {isBeta ? "Free Beta Access" : plan.planName}
+          </div>
           {plan.isCurrent && showCurrentInHeader && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <span className="inline-flex items-center gap-2 rounded-md border border-[#D9D9D9] bg-[#ffffffcc] px-3 py-1 text-xl font-medium text-primary-brown">
@@ -65,14 +71,14 @@ export default function PlanCard({
               </span>
             </div>
           )}
-          {!plan.isCurrent && plan.isPopular && (
+          {!isBeta && !plan.isCurrent && plan.isPopular && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <span className="rounded-md bg-[#F8D867] px-3 py-1 text-xl font-medium text-black">
                 Popular
               </span>
             </div>
           )}
-          {!plan.isCurrent && plan.isRecommended && (
+          {!isBeta && !plan.isCurrent && plan.isRecommended && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <span className="inline-flex items-center gap-2 rounded-md bg-[#CDE6CC] px-3 py-1 text-xl font-medium text-yellow-950">
                 <Image
@@ -92,31 +98,32 @@ export default function PlanCard({
         <div className={`relative flex flex-col items-center justify-center overflow-hidden ${uiConfig.priceBlockSize || "py-10"} ${uiConfig.priceBackgroundColor} space-y-2`}>
           {/* Background assets */}
           {uiConfig.backgroundAssets.map((asset, index) => (
-            (
-              <Image
-                key={index}
-                src={asset.src}
-                alt="background pattern"
-                fill
-                className={`pointer-events-none opacity-60 ${asset.className}`}
-                priority
-              />
-            )
-            )
-          )}
+            <Image
+              key={index}
+              src={asset.src}
+              alt="background pattern"
+              fill
+              className={`pointer-events-none opacity-60 ${asset.className || ""}`} // Fallback added to prevent undefined string
+              priority
+            />
+          ))}
           
           <div className="relative z-10 font-montserrat text-4xl font-semibold text-primary-brown 3xl:text-6xl 4xl:text-7xl flex flex-col items-center gap-1">
-            {plan.formattedPrice}
+            {isBeta ? "$0.00" : plan.formattedPrice}
           </div>
-          {plan.planName !== "Scholarship" && (
-            <div className="relative z-10 mt-1 text-2xl text-primary-gray min-h-[1.5rem]">
-              {plan.planName === "Monthly" || plan.planName === "Yearly" ? "per month" : "one day"}
-            </div>
-          )}
+
+          <div className="relative z-10 mt-1 text-2xl text-primary-gray min-h-[1.5rem]">
+            {isBeta ? "Beta Access" : (plan.planName === "Monthly" || plan.planName === "Yearly" ? "per month" : "one day")}
+          </div>
+
           {/* Yearly price and billing message */}
-          <div className="relative z-10 text-center text-lg text-primary-gray font-medium">
-              {plan.planName !== "Scholarship" ? `${plan.yearlyPrice} annually, billed ${plan.period}` : "Eligibility for the scholarships is based on family income being below the Federal Poverty Level (FPL)."}
+          <div className="relative z-10 text-center text-lg text-primary-gray font-medium px-4">
+            {isBeta
+              ? "Enjoy full complimentary access to all Piano Room features during our Beta testing phase!"
+              : (plan.planName !== "Scholarship" ? `${plan.yearlyPrice} annually, billed ${plan.period}` : "Eligibility for the scholarships is based on family income being below the Federal Poverty Level (FPL).")
+            }
           </div>
+
           {plan.isCurrent && !showCurrentInHeader && (
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-2xl bg-gray-200 px-4 py-6 text-2xl font-medium text-black">
@@ -129,14 +136,16 @@ export default function PlanCard({
                 />
                 Current plan
               </div>
-              {showExpirationMessage && plan.expirationDays !== undefined && (
+              {!isBeta && showExpirationMessage && plan.expirationDays !== undefined && (
                 <p className="text-lg text-[#817676]">
                   * Membership expires after {plan.expirationDays} Day{plan.expirationDays !== 1 ? 's' : ''}
                 </p>
               )}
             </div>
           )}
-          {showChooseButton && chooseButton && (
+
+          {/* Hide choose/upgrade button during Beta mode */}
+          {!isBeta && showChooseButton && chooseButton && (
             <button
               type="button"
               disabled={chooseButton.disabled || chooseButton.loading}
@@ -156,24 +165,25 @@ export default function PlanCard({
 
         {/* Benefits */}
         <div className="py-6 p-4">
-        {plan.benefits && plan.benefits.length > 0 && 
-          <div className={`grid grid-cols-1 gap-y-3 gap-x-6 ${uiConfig.useSingleColumn ? '' : 'md:grid-cols-2'}`}>
-            {plan.benefits.map((label) => (
-              <div key={label} className="flex items-center gap-3 text-primary-brown">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full">
-                  <Image
-                    className="shrink-0"
-                    src={uiConfig.successIcon}
-                    alt="Success"
-                    width={16}
-                    height={16}
-                  />
-                </span>
-                <span className="text-2xl">{label}</span>
-              </div>
-            ))}
-          </div>
-        }
+          {plan.benefits && plan.benefits.length > 0 && 
+            <div className={`grid grid-cols-1 gap-y-3 gap-x-6 ${uiConfig.useSingleColumn ? '' : 'md:grid-cols-2'}`}>
+              {plan.benefits.map((label) => (
+                <div key={label} className="flex items-center gap-3 text-primary-brown">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full">
+                    <Image
+                      className="shrink-0"
+                      src={uiConfig.successIcon}
+                      alt="Success"
+                      width={16}
+                      height={16}
+                    />
+                  </span>
+                  <span className="text-2xl">{label}</span>
+                </div>
+              ))}
+            </div>
+          }
+
           {/* More benefits button */}
           {plan.moreBenefits && plan.moreBenefits.length > 0 && (
             <div className="pb-2 pt-4">
