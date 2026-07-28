@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // @ts-ignore: CSS module declaration not found in current TypeScript setup
 import "./globals.css";
 import { Providers } from "./providers";
+import MobileWarningPopup from "@/components/atoms/MobileWarningPopup";
 
 export const metadata: Metadata = {
   title: "The Donovan's Piano Room",
@@ -24,7 +25,10 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <MobileWarningPopup />
+        </Providers>
       </body>
     </html>
   );

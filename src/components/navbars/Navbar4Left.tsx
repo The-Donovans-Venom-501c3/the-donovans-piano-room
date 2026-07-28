@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Skeleton } from "@mui/material";
@@ -17,6 +18,8 @@ export default function Navbar4Left({
   const [isNavOpen, setIsNavOpen] = useAtom(isNavOpenAtom);
   const profile = useAtomValue(profileAtom);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverNavTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   const toggleOpenNav = () => setIsNavOpen((state: boolean) => !state);
 
@@ -43,6 +46,9 @@ export default function Navbar4Left({
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+      }
+      if (hoverNavTimerRef.current) {
+        clearTimeout(hoverNavTimerRef.current);
       }
     };
   }, []);
@@ -100,6 +106,23 @@ export default function Navbar4Left({
       disabled: false,
     },
   ];
+
+  // Delayed Navigation Helper (Redirects on hover after 400ms)
+  const handleMouseEnterLink = (path: string) => {
+    if (hoverNavTimerRef.current) {
+      clearTimeout(hoverNavTimerRef.current);
+    }
+    // Set a 400ms delay before redirecting on hover
+    hoverNavTimerRef.current = setTimeout(() => {
+      router.push(path);
+    }, 400); 
+  };
+
+  const handleMouseLeaveLink = () => {
+    if (hoverNavTimerRef.current) {
+      clearTimeout(hoverNavTimerRef.current);
+    }
+  };
 
   return (
     <div

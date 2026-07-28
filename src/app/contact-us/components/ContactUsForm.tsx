@@ -34,8 +34,8 @@ export default function ContactUsForm() {
         setMessage("");
         setSubmitted(true);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -142,16 +142,40 @@ export default function ContactUsForm() {
                 Contact info
               </h3>
             </div>
-            <hr className="mb-5 h-1 border-[#734920]" />
-            <p className="text-lg">SEND YOUR LETTERS OR DONATIONS TO</p>
-            <p className="mb-4 text-lg">P.O. Box 452 Redan Georgia 30074</p>
-            <p className="text-lg">CALL US TO</p>
-            <p className="mb-4 text-lg">+1 678.369.3748</p>
-            <p className="text-lg">EMAIL US AT:</p>
-            <p className="mb-5 text-lg">info@theDonovan.org</p>
-            <hr className="mb-5 h-1 border-[#734920]" />
-            <p className="text-lg">FOLLOW US ON OUR SOCIAL MEDIA</p>
-            <div className="mt-4 flex space-x-3">
+
+            {/* Contact Details */}
+            <div className="mt-6 space-y-5 tracking-wider">
+              <div>
+                <p className="text-sm font-bold text-white/80">
+                  SEND YOUR LETTERS OR DONATIONS TO
+                </p>
+                <p className="mt-1 text-base font-semibold text-white md:text-lg">
+                  P.O. Box 452 Redan Georgia 30074
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-white/80">CALL US AT</p>
+                <p className="mt-1 text-base font-semibold text-white md:text-lg">
+                  +1 678.369.3748
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-white/80">EMAIL US AT</p>
+                <p className="mt-1 text-base font-semibold text-white md:text-lg">
+                  info@theDonovan.org
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Social Icons Section */}
+          <div className="mt-8 border-t border-white/10 pt-5">
+            <p className="text-sm font-bold tracking-wider text-white/80">
+              FOLLOW US ON OUR SOCIAL MEDIA
+            </p>
+            <div className="mt-3 flex items-center gap-4">
               <Link
                 href="https://twitter.com/IamTheDonovan"
                 target="_blank"
@@ -176,7 +200,7 @@ export default function ContactUsForm() {
                   alt="Facebook"
                 />
               </Link>
-              <a
+              <Link
                 href="https://www.youtube.com/@TDV501C3"
                 target="_blank"
                 className="flex h-15 w-15 items-center justify-between rounded-full text-white transition duration-300 hover:bg-purple-800"
@@ -187,7 +211,7 @@ export default function ContactUsForm() {
                   height={40}
                   alt="YouTube"
                 />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

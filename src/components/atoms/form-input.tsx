@@ -1,4 +1,5 @@
 import { FormControl, Input, InputLabel } from '@mui/material'
+
 export interface InputData {
   name: string;
   type: string;
@@ -23,7 +24,16 @@ export default function InputForm({
 }) {
   return (
     <div>
-      <FormControl variant="filled" sx={{ border: 1, borderColor: '#391f0f' }} className='bg-[#fef8ee] block rounded-3xl w-full 2xl:py-2 3xl:py-3 hover:bg-[#FCF0D8] focus:bg-[#FCF0D8]' error={!!error}>
+      <FormControl 
+        variant="filled" 
+        sx={{ border: 1, borderColor: '#391f0f' }} 
+        className={`bg-[#fef8ee] block rounded-3xl w-full 2xl:py-2 3xl:py-3 ${
+          disabled 
+            ? 'opacity-60 cursor-not-allowed' 
+            : 'hover:bg-[#FCF0D8] focus:bg-[#FCF0D8]'
+        }`} 
+        error={!!error}
+      >
         <InputLabel
           className="3xl:text-2xl 3xl:mt-2"
           sx={[

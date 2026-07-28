@@ -1,3 +1,4 @@
+"use client";
 import InputForm from "@/components/atoms/form-input";
 import Image from "next/image";
 import Link from "next/link";
@@ -197,6 +198,7 @@ export default function Contact() {
           </div>
 
         </div>
+
       </div>
     </div>
   );

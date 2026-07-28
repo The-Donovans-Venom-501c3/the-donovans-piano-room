@@ -59,12 +59,12 @@ export default function SignupForm() {
         ...obj,
         fullName: fullName,
         email: email,
-      }));
-      setSignupStep((prev) => prev + 1);
-    } else {
-      console.log("Failed");
-      alert(`Error: ${data.message}`);
-      setDisabled(false);
+      }))
+      setSignupStep(prev => prev + 1);
+    } 
+    else{
+      console.log("Failed")
+      alert(`Error: ${data.message}`)
     }
   };
 
