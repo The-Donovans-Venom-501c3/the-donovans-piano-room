@@ -1,11 +1,6 @@
 import { TermsOfUseContent } from './TermsOfUseContent';
 import { PrivacyPolicyContent } from './PrivacyPolicyContent';
 import CloseIcon from '@mui/icons-material/Close';
-<<<<<<< HEAD
-=======
-// @ts-ignore
-import '@/styles/primary-purple-scrollbar.css'
->>>>>>> b2179fb (feat: add mobile warning popup and update signup, account, and layout UI components)
 
 interface TermsandConditionProps {
   isOpen: boolean;
