@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 import Button1 from '@/components/atoms/Button1'
 import Button2 from '@/components/atoms/Button2'
-import { profileAtom, singupStepAtom } from '@/utils/stores'
+import { profileAtom, signupStepAtom } from '@/utils/stores'
 import { useAtomValue, useSetAtom } from 'jotai'
 // import { verify, refreshOTP } from '@/lib/api/authService'
 
@@ -18,7 +18,7 @@ import VerificationCodeInput from './VerificationCodeInput'
 export default function EmailVerificationForm({ setToIsVerified }: { setToIsVerified: any }) {
     const [verificationCode, setVerificationCode] = useState(Array(6).fill(''))
     const { email } = useAtomValue(profileAtom);
-    const setSingupStep = useSetAtom(singupStepAtom);
+    const setSignupStep = useSetAtom(signupStepAtom);
     const [resendBtnTimer, setResendBtnTimeLeft] = useState(0)
     const [loading, setLoading] = useState(false)
 
@@ -41,7 +41,7 @@ export default function EmailVerificationForm({ setToIsVerified }: { setToIsVeri
         const {data, ok} = await sendVerificationCode(email, otp)
 
         if (ok) {
-            setSingupStep(prev => prev + 1);
+            setSignupStep(prev => prev + 1);
             setToIsVerified();
         }
         else{

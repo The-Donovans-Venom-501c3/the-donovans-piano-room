@@ -20,14 +20,14 @@ export default function AccountForm() {
 
     const submitChanges = async (e: any) => {
         e.preventDefault()
-        // Omit fullName and email since they cannot be edited
-        const { displayName, phoneNumber, pronouns, DOB } = profile
-        const { data, ok } = await updateUser({ displayName, phoneNumber, pronouns, DOB })
+        // Extract updatable values from profile state
+        const { fullName, displayName, email, phoneNumber, pronouns, DOB } = profile
+        const { data, ok } = await updateUser({ fullName, displayName, email, phoneNumber, pronouns, DOB })
         
         if (ok) {
             setIsDataSaved(true)
         } else {
-            alert(`Error: ${data.message}`)
+            alert(`Error: ${data?.message || 'Something went wrong'}`)
             window.location.href = "/login"
         }
     }
@@ -37,87 +37,106 @@ export default function AccountForm() {
     }
 
     return (
-        <div className='w-[60%] font-montserrat'>
-            <h1 className='text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-medium mt-[3vh]'>
+        <div className='w-full lg:w-[70%] xl:w-[60%] font-montserrat px-4 md:px-0'>
+            {/* Header Title */}
+            <h1 className='mt-[3vh] text-4xl font-medium text-primary-brown md:text-5xl 3xl:text-6xl 4xl:text-7xl'>
                 Your profile
             </h1>
-            <p className='text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl w-[90%] mt-2'>
+            
+            {/* Header Subtext */}
+            <p className='mt-2 w-full text-lg text-primary-gray md:text-2xl 3xl:text-3xl 4xl:text-4xl md:w-[90%]'>
                 Update your profile information to ensure your account reflects the latest details about you.
             </p>
-            <div className='mt-[5vh] mb-[5vh] bg-[#FED2AA] h-1'></div>
+            
+            {/* Divider Line */}
+            <div className='my-[4vh] h-1 bg-[#FED2AA]'></div>
 
-            <form className='flex flex-col gap-[4%]' onSubmit={submitChanges}>
-                <div className='flex gap-[2vh]'>
+            {/* Profile Form */}
+            <form className='flex flex-col gap-6' onSubmit={submitChanges}>
+                <div className='flex flex-col gap-6 md:flex-row md:items-stretch md:gap-[2vh]'>
+                    
                     {/* Left Column */}
-                    <div className='w-[49%] flex flex-col gap-[1vw]'>
-                        {/* Read-only / Non-editable Full Name */}
-                        <div className='flex flex-col gap-1'>
-                            <label className='text-xl 3xl:text-2xl text-[#8E8E8E] font-medium'>
-                                Full name
-                            </label>
-                            <div className='bg-[#FFF8EE] px-5 py-3 rounded-2xl text-2xl 3xl:text-3xl text-primary-brown font-normal select-none cursor-not-allowed'>
-                                {profile.fullName}
-                            </div>
-                        </div>
+                    <div className='flex w-full flex-col justify-between gap-[1.5vw] md:w-[49%]'>
+                        {/* Disabled Full Name */}
+                        <InputForm 
+                            error='' 
+                            text={profile?.fullName || ''} 
+                            onChange={onChange} 
+                            disabled={true}
+                            field={{ label: "Full name", type: "text", name: "fullName" }} 
+                        />
 
+                        {/* Pronouns Selection */}
                         <SelectInput 
                             label='Pronouns' 
                             name='pronouns' 
                             onChange={onChange} 
                             options={allPronouns} 
-                            value={profile.pronouns} 
+                            value={profile?.pronouns || ''} 
                         />
 
-                        {/* Read-only / Non-editable Email */}
-                        <div className='flex flex-col gap-1'>
-                            <label className='text-xl 3xl:text-2xl text-[#8E8E8E] font-medium'>
-                                Email address
-                            </label>
-                            <div className='bg-[#FFF8EE] px-5 py-3 rounded-2xl text-2xl 3xl:text-3xl text-primary-brown font-normal select-none cursor-not-allowed'>
-                                {profile.email}
-                            </div>
-                        </div>
+                        {/* Disabled Email */}
+                        <InputForm 
+                            error='' 
+                            text={profile?.email || ''} 
+                            onChange={onChange} 
+                            disabled={true}
+                            field={{ label: "Email address", type: "email", name: "email" }} 
+                        />
                     </div>
 
                     {/* Right Column */}
-                    <div className='w-[49%] flex flex-col gap-[1vw]'>
+                    <div className='flex w-full flex-col justify-between gap-[1.5vw] md:w-[49%]'>
+                        {/* Display Name */}
                         <InputForm 
                             error='' 
-                            text={profile.displayName} 
+                            text={profile?.displayName || ''} 
                             onChange={onChange} 
                             field={{ label: "Display name", type: "text", name: "displayName" }} 
                         />
+
+                        {/* Date of Birth */}
                         <DateInput 
                             label='Date of birth' 
                             onChange={onChange} 
-                            defaultValue={profile.DOB} 
+                            defaultValue={profile?.DOB} 
                             name="DOB" 
                         />
+
+                        {/* Phone Number */}
                         <InputForm 
                             error='' 
-                            text={profile.phoneNumber} 
+                            text={profile?.phoneNumber || ''} 
                             onChange={onChange} 
                             field={{ label: "Phone number", type: "text", name: "phoneNumber" }} 
                         />
                     </div>
                 </div>
 
-                <Button3 
-                    text='Save changes' 
-                    style={{ width: "11vw", marginTop: "3%", alignSelf: "flex-end" }} 
-                />
+                {/* Save Changes Button */}
+                <div className="flex justify-end mt-4">
+                    <Button3 
+                        text='Save changes' 
+                        style={{ minWidth: "140px", width: "11vw" }} 
+                    />
+                </div>
             </form>
 
+            {/* Inline Success Popup Banner */}
+            {isDataSaved && (
+                <div className="mt-6">
+                    <SuccessPopup closeSuccessPopup={closeSuccessPopup} />
+                </div>
+            )}
+
             {/* Support Message */}
-            <p className='mt-[4vh] text-2xl 3xl:text-3xl text-primary-brown'>
+            <p className='mt-[4vh] text-lg font-normal text-primary-brown md:text-2xl 3xl:text-3xl'>
                 To update your Full Name or Email Address, please{' '}
-                <Link href='/contact-page' className='underline font-medium text-primary-purple'>
+                <Link href='/contact-page' className='font-medium text-primary-purple underline hover:opacity-80 transition-opacity'>
                     contact us
                 </Link>
                 .
             </p>
-
-            {isDataSaved && <SuccessPopup closeSuccessPopup={closeSuccessPopup} />}
         </div>
     )
 }

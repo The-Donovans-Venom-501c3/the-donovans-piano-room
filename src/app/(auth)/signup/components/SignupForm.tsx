@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import SignupHeader from "./SignupHeader";
 import { useSetAtom } from "jotai";
-import { singupStepAtom, profileAtom } from "@/utils/stores";
+import { signupStepAtom, profileAtom } from "@/utils/stores";
 import Button1 from "@/components/atoms/Button1";
 import TermsandCondition from "./TermsandCondition";
 import Checkbox from "@/components/atoms/Checkbox";
@@ -37,8 +37,12 @@ export default function SignupForm() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+<<<<<<< HEAD
 
   const setSingupStep = useSetAtom(singupStepAtom);
+=======
+  const setSignupStep = useSetAtom(signupStepAtom);
+>>>>>>> b2179fb (feat: add mobile warning popup and update signup, account, and layout UI components)
   const setProfileAtom = useSetAtom(profileAtom);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -59,12 +63,21 @@ export default function SignupForm() {
         ...obj,
         fullName: fullName,
         email: email,
+<<<<<<< HEAD
       }));
       setSingupStep((prev) => prev + 1);
     } else {
       console.log("Failed");
       alert(`Error: ${data.message}`);
       setDisabled(false);
+=======
+      }))
+      setSignupStep(prev => prev + 1);
+    } 
+    else{
+      console.log("Failed")
+      alert(`Error: ${data.message}`)
+>>>>>>> b2179fb (feat: add mobile warning popup and update signup, account, and layout UI components)
     }
   };
 

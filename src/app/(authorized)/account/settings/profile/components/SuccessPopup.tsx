@@ -1,22 +1,44 @@
-import { IsNavOpenAtom } from "@/utils/stores"
-import { useAtomValue } from "jotai"
 import Image from "next/image"
 
-export default function SuccessPopup({ closeSuccessPopup }: { closeSuccessPopup: any }) {
-    const isNavOpen = useAtomValue(IsNavOpenAtom)
+export default function SuccessPopup({ closeSuccessPopup }: { closeSuccessPopup: () => void }) {
     return (
-        <div className="fixed z-50 flex items-center justify-between h-[48px] w-[78vw] bottom-[1vh] bg-primary-yellow-accent rounded-2xl" style={isNavOpen ? { width: '70vw' } : {}}>
-            <div className="flex items-center">
-                <div className="relative h-[3vh] w-[3vh] ml-[1vw]">
-                    <Image src="/about/membership/Icon-include.svg" fill alt="" />
+        <div className="w-full h-[64px] bg-[#FFD700] rounded-2xl flex items-center justify-between px-6 shadow-sm transition-all my-4">
+            {/* Left Section: Icon + Big Text */}
+            <div className="flex items-center gap-3">
+                <div className="relative h-7 w-7 flex-shrink-0">
+                    <Image 
+                        src="/about/membership/Icon-include.svg" 
+                        alt="Success" 
+                        fill 
+                        className="object-contain"
+                    />
                 </div>
-                <h5 className="text-xl 3xl:text-2xl 4xl:text-3xl ml-[.5vw]">New changed saved!</h5>
+                <span className="text-2xl 3xl:text-3xl font-semibold text-gray-900">
+                    New changes saved!
+                </span>
             </div>
-            <div className="flex items-center">
-                <p className="text-xl 3xl:text-2xl 4xl:text-3xl ml-[.5vw] underline text-primary-purple font-semibold">Undo</p>
-                <div className="relative h-[5vh] w-[5vh] mr-[1vw]" onClick={closeSuccessPopup}>
-                    <Image src="/Close.svg" fill alt="" />
-                </div>
+
+            {/* Right Section: Undo + Close Button */}
+            <div className="flex items-center gap-6">
+                <button 
+                    type="button"
+                    className="text-2xl 3xl:text-3xl font-bold text-primary-purple underline transition-opacity hover:opacity-75 cursor-pointer"
+                >
+                    Undo
+                </button>
+                <button 
+                    type="button" 
+                    onClick={closeSuccessPopup}
+                    className="relative h-7 w-7 flex-shrink-0 cursor-pointer transition-opacity hover:opacity-75"
+                    aria-label="Close notification"
+                >
+                    <Image 
+                        src="/Close.svg" 
+                        alt="Close" 
+                        fill 
+                        className="object-contain"
+                    />
+                </button>
             </div>
         </div>
     )
