@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+// @ts-ignore: CSS module declaration not found in current TypeScript setup
 import "./globals.css";
 import { Providers } from "./providers";
 import MobileWarningPopup from "@/components/atoms/MobileWarningPopup";
@@ -15,6 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <head>
         {/* Import Google Fonts */}
         <link

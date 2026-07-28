@@ -9,6 +9,7 @@ import AllOrUnread from "./components/AllOrUnread";
 import AllCatchUp from "./components/AllCatchUp";
 import { notification } from "../../../../interfaces/notificationInterface";
 import NotificationItem from "./components/NotificationItem";
+// @ts-ignore: allow importing global css without type declarations
 import "@/styles/primary-purple-scrollbar.css"
 
 export default function Page() {

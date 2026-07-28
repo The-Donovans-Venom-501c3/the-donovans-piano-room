@@ -1,5 +1,4 @@
 import Image from "next/image";
-import "./GamesHighlights.css"
 import { useAtomValue } from "jotai";
 import { isNavOpenAtom } from "@/utils/stores";
 

@@ -1,6 +1,9 @@
+import { isNavOpenAtom } from "@/utils/stores"
+import { useAtomValue } from "jotai"
 import Image from "next/image"
 
-export default function SuccessPopup({ closeSuccessPopup }: { closeSuccessPopup: () => void }) {
+export default function SuccessPopup({ closeSuccessPopup }: { closeSuccessPopup: any }) {
+    const isNavOpen = useAtomValue(isNavOpenAtom)
     return (
         <div className="w-full h-[64px] bg-[#FFD700] rounded-2xl flex items-center justify-between px-6 shadow-sm transition-all my-4">
             {/* Left Section: Icon + Big Text */}

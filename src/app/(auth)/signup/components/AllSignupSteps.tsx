@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 "use client";
 
-import { singupStepAtom } from "@/utils/stores";
+import { signupStepAtom } from "@/utils/stores";
 import { useAtom } from "jotai";
 import SignupForm from "./SignupForm";
 import SignupMembershipContent from "./membership/SignupMembershipContent";
@@ -19,7 +19,7 @@ import SignupPayment from './SignupPayment'
 >>>>>>> b2179fb (feat: add mobile warning popup and update signup, account, and layout UI components)
 
 export default function AllSignupSteps() {
-  const [signupStep] = useAtom(singupStepAtom);
+  const [signupStep] = useAtom(signupStepAtom);
 
 <<<<<<< HEAD
 =======

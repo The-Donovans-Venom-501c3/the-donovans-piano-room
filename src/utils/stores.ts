@@ -40,10 +40,7 @@ export const profileAtom = atomWithStorage<profileInterface>("profile", {
     pronouns: "",
 });
 
-// Stores lockout timestamp to persist the 15-minute timer across page refreshes
 export const lockoutUntilAtom = atomWithStorage<number | null>("lockout_until", null);
-
-// Stores failed attempts counter across page refreshes
 export const failedAttemptsAtom = atomWithStorage<number>("failed_attempts", 0);
 
 //////////////

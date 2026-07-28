@@ -37,12 +37,8 @@ export default function SignupForm() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
-<<<<<<< HEAD
 
-  const setSingupStep = useSetAtom(singupStepAtom);
-=======
   const setSignupStep = useSetAtom(signupStepAtom);
->>>>>>> b2179fb (feat: add mobile warning popup and update signup, account, and layout UI components)
   const setProfileAtom = useSetAtom(profileAtom);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -63,21 +59,12 @@ export default function SignupForm() {
         ...obj,
         fullName: fullName,
         email: email,
-<<<<<<< HEAD
-      }));
-      setSingupStep((prev) => prev + 1);
-    } else {
-      console.log("Failed");
-      alert(`Error: ${data.message}`);
-      setDisabled(false);
-=======
       }))
       setSignupStep(prev => prev + 1);
     } 
     else{
       console.log("Failed")
       alert(`Error: ${data.message}`)
->>>>>>> b2179fb (feat: add mobile warning popup and update signup, account, and layout UI components)
     }
   };
 

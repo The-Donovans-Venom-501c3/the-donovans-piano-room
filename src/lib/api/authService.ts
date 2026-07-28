@@ -14,14 +14,8 @@ export const signup = async (
         const trimmedName = fullName.trim();
         const response = await fetch("/api/auth/signup", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                fullName: trimmedName,
-                email,
-                password
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fullName: trimmedName, email, password })
         });
         const data = await response.json().catch(() => null);
         return { data, ok: response.ok, status: response.status };
@@ -35,13 +29,8 @@ export const verify = async (email: string, otp: string): Promise<ApiResponse> =
     try {
         const response = await fetch("/api/auth/verify", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email,
-                otp
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, otp })
         });
         const data = await response.json().catch(() => null);
         return { data, ok: response.ok, status: response.status };
@@ -55,12 +44,8 @@ export const refreshOTP = async (email: string): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/refresh-otp", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
         });
         const data = await response.json().catch(() => null);
         return { data, ok: response.ok, status: response.status };
@@ -74,13 +59,8 @@ export const login = async (email: string, password: string): Promise<ApiRespons
     try {
         const response = await fetch("/api/auth/login", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email,
-                password
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
         });
         const data = await response.json().catch(() => null);
         return { data, ok: response.ok, status: response.status };
@@ -113,12 +93,8 @@ export const forgotPassword = async (email: string): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/forgot-password", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
         });
         const data = await response.json().catch(() => null);
         return { data, ok: response.ok, status: response.status };
@@ -135,13 +111,8 @@ export const resetPassword = async (
     try {
         const response = await fetch("/api/auth/reset-password", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                passwordResetToken,
-                newPassword
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ passwordResetToken, newPassword })
         });
         const data = await response.json().catch(() => null);
         return { data, ok: response.ok, status: response.status };

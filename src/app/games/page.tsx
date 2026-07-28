@@ -12,45 +12,45 @@ const Games = () => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const handleGameRoute = async () => {
-    try {
-      // First, try to get user with current access token
-      let { data, ok } = await getUser();
-
-      // If user is not authenticated, try refreshing the token
-      if (!ok) {
-        try {
-          const refreshResult = await refreshToken();
-          if (refreshResult.ok) {
-            // After refreshing token, try to get user info again
-            const retryResult = await getUser();
-            ok = retryResult.ok;
-            data = retryResult.data;
-          }
-        } catch (refreshError) {
-          console.error('Error refreshing token:', refreshError);
-        }
-      }
-
-      // Final authentication check after potential token refresh
-      if (ok) {
-        setIsAuthenticated(true);
-        router.replace("https://thedonovansmusicgames.netlify.app/");
-        return;
-      } else {
-        setIsAuthenticated(false);
-      }
-    } catch (error) {
-      console.error('Error in game route handler:', error);
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const handleGameRoute = async () => {
+      try {
+        // First, try to get user with current access token
+        let { data, ok } = await getUser();
+
+        // If user is not authenticated, try refreshing the token
+        if (!ok) {
+          try {
+            const refreshResult = await refreshToken();
+            if (refreshResult.ok) {
+              // After refreshing token, try to get user info again
+              const retryResult = await getUser();
+              ok = retryResult.ok;
+              data = retryResult.data;
+            }
+          } catch (refreshError) {
+            console.error('Error refreshing token:', refreshError);
+          }
+        }
+
+        // Final authentication check after potential token refresh
+        if (ok) {
+          setIsAuthenticated(true);
+          router.replace("https://thedonovansmusicgames.netlify.app/");
+          return;
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Error in game route handler:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     handleGameRoute();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (

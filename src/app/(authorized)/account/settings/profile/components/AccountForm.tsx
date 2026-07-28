@@ -13,21 +13,32 @@ import Link from 'next/link'
 export default function AccountForm() {
     const [profile, setProfile] = useAtom(profileAtom)
     const [isDataSaved, setIsDataSaved] = useState(false)
+    const [error, setError] = useState('')
 
     const onChange = (e: any) => {
         setProfile({ ...profile, [e.target.name]: e.target.value })
+        if (error) {
+            setError('')
+        }
     }
 
     const submitChanges = async (e: any) => {
         e.preventDefault()
-        // Extract updatable values from profile state
-        const { fullName, displayName, email, phoneNumber, pronouns, DOB } = profile
-        const { data, ok } = await updateUser({ fullName, displayName, email, phoneNumber, pronouns, DOB })
-        
-        if (ok) {
+        const {fullName, displayName, email, phoneNumber, pronouns, DOB} = profile;
+
+        // Add domain restriction check
+        if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
+            if(!email.trim().toLowerCase().endsWith('@thedonovan.org')) {
+                setError('Please use your thedonovan.org email!');
+                return;
+            }
+        }
+        const {data, ok} = await updateUser({fullName, displayName, email, phoneNumber, pronouns, DOB});
+        if (ok){
             setIsDataSaved(true)
-        } else {
-            alert(`Error: ${data?.message || 'Something went wrong'}`)
+        }
+        else{
+            alert(`Error: ${data.message}`);
             window.location.href = "/login"
         }
     }
@@ -35,108 +46,29 @@ export default function AccountForm() {
     const closeSuccessPopup = () => {
         setIsDataSaved(false)
     }
+  return (
+    <div className='w-[60%]'>
+        <h1 className='text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-montserrat font-medium mt-[3vh]'>Your profile</h1>
+        <p className='text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl w-[90%]'>Update your profile information to ensure your account reflects the latest details about you.</p>
+        <div className='mt-[5vh] mb-[5vh] bg-[#FED2AA] h-1'></div>
+        <form className='flex flex-col gap-[4%]' onSubmit={submitChanges}>
+            <div className='flex gap-[2vh]'>
 
-    return (
-        <div className='w-full lg:w-[70%] xl:w-[60%] font-montserrat px-4 md:px-0'>
-            {/* Header Title */}
-            <h1 className='mt-[3vh] text-4xl font-medium text-primary-brown md:text-5xl 3xl:text-6xl 4xl:text-7xl'>
-                Your profile
-            </h1>
-            
-            {/* Header Subtext */}
-            <p className='mt-2 w-full text-lg text-primary-gray md:text-2xl 3xl:text-3xl 4xl:text-4xl md:w-[90%]'>
-                Update your profile information to ensure your account reflects the latest details about you.
-            </p>
-            
-            {/* Divider Line */}
-            <div className='my-[4vh] h-1 bg-[#FED2AA]'></div>
+                <div className='w-[49%] flex flex-col gap-[1vw]'>
+                    <InputForm error='' text={profile.fullName} onChange={onChange} field={{label: "Full name", type: "text", name: "fullName"}}/>
+                    <SelectInput label='Pronouns' name='pronouns' onChange={onChange} options={allPronouns} value={profile.pronouns}/>
+                    <InputForm error={error || ''} text={profile.email} onChange={onChange} field={{label: "Email", type: "email", name: "email"}}/>
 
-            {/* Profile Form */}
-            <form className='flex flex-col gap-6' onSubmit={submitChanges}>
-                <div className='flex flex-col gap-6 md:flex-row md:items-stretch md:gap-[2vh]'>
-                    
-                    {/* Left Column */}
-                    <div className='flex w-full flex-col justify-between gap-[1.5vw] md:w-[49%]'>
-                        {/* Disabled Full Name */}
-                        <InputForm 
-                            error='' 
-                            text={profile?.fullName || ''} 
-                            onChange={onChange} 
-                            disabled={true}
-                            field={{ label: "Full name", type: "text", name: "fullName" }} 
-                        />
-
-                        {/* Pronouns Selection */}
-                        <SelectInput 
-                            label='Pronouns' 
-                            name='pronouns' 
-                            onChange={onChange} 
-                            options={allPronouns} 
-                            value={profile?.pronouns || ''} 
-                        />
-
-                        {/* Disabled Email */}
-                        <InputForm 
-                            error='' 
-                            text={profile?.email || ''} 
-                            onChange={onChange} 
-                            disabled={true}
-                            field={{ label: "Email address", type: "email", name: "email" }} 
-                        />
-                    </div>
-
-                    {/* Right Column */}
-                    <div className='flex w-full flex-col justify-between gap-[1.5vw] md:w-[49%]'>
-                        {/* Display Name */}
-                        <InputForm 
-                            error='' 
-                            text={profile?.displayName || ''} 
-                            onChange={onChange} 
-                            field={{ label: "Display name", type: "text", name: "displayName" }} 
-                        />
-
-                        {/* Date of Birth */}
-                        <DateInput 
-                            label='Date of birth' 
-                            onChange={onChange} 
-                            defaultValue={profile?.DOB} 
-                            name="DOB" 
-                        />
-
-                        {/* Phone Number */}
-                        <InputForm 
-                            error='' 
-                            text={profile?.phoneNumber || ''} 
-                            onChange={onChange} 
-                            field={{ label: "Phone number", type: "text", name: "phoneNumber" }} 
-                        />
-                    </div>
                 </div>
-
-                {/* Save Changes Button */}
-                <div className="flex justify-end mt-4">
-                    <Button3 
-                        text='Save changes' 
-                        style={{ minWidth: "140px", width: "11vw" }} 
-                    />
+                <div className='w-[49%] flex flex-col gap-[1vw]'>
+                    <InputForm error='' text={profile.displayName} onChange={onChange} field={{label: "Display name", type: "text", name: "displayName"}}/>
+                    <DateInput label='Date of birth' onChange={onChange} defaultValue={profile.DOB} name="DOB"/>
+                    <InputForm error='' text={profile.phoneNumber} onChange={onChange} field={{label: "Phone number", type: "text", name: "phoneNumber"}}/>
                 </div>
-            </form>
-
-            {/* Inline Success Popup Banner */}
-            {isDataSaved && (
-                <div className="mt-6">
-                    <SuccessPopup closeSuccessPopup={closeSuccessPopup} />
-                </div>
-            )}
-
-            {/* Support Message */}
-            <p className='mt-[4vh] text-lg font-normal text-primary-brown md:text-2xl 3xl:text-3xl'>
-                To update your Full Name or Email Address, please{' '}
-                <Link href='/contact-page' className='font-medium text-primary-purple underline hover:opacity-80 transition-opacity'>
-                    contact us
-                </Link>
-                .
-            </p>
-        </div>
-    )
+            </div>
+            <Button3 text='Save changes' style={{width: "11vw", marginTop: "3%", alignSelf: "flex-end"}}/>
+        </form>
+        {isDataSaved && <SuccessPopup closeSuccessPopup={closeSuccessPopup}/>}
+    </div>
+  )
 }

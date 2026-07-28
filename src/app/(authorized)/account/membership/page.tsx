@@ -84,7 +84,7 @@ export default function Page() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [router]);
 
   const refresh = async () => {
     try {
