@@ -72,8 +72,8 @@ export async function getUserMembership() {
 
 export async function validateCouponCode(memberId: number, couponCode: string) {
     try {
-        // Send GET request to the backend
-        const response = await fetch(`http://localhost:3333/api/membership/${memberId}/apply-coupon`, {
+        // Send PUT request to the backend through Next.js API rewrite
+        const response = await fetch(`/api/membership/${memberId}/apply-coupon`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json', 
