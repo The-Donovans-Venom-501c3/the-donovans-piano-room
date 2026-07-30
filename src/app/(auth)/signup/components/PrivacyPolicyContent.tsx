@@ -154,3 +154,5 @@ export const PrivacyPolicyContent = () => (
     </section>
   </div>
 );
+
+export default PrivacyPolicyContent;

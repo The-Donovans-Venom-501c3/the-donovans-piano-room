@@ -1,144 +1,215 @@
-import Button1 from "@/components/atoms/Button1";
-import InputForm from "@/components/atoms/form-input";
+"use client";
+
 import { validateCouponCode } from "@/lib/api/membershipService";
-import { membershipTypes, membershipChoiceAtom } from "@/utils/stores";
-import { useAtomValue } from "jotai";
-import Image from "next/image";
-import { useEffect, useState, ChangeEvent } from "react";
+import { membershipTypes, membershipChoiceAtom, couponVerifiedAtom } from "@/utils/stores";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useState } from "react";
 
 const membershipIncludes = {
   [membershipTypes["24-hours"]]: {
     id: 1,
     title: "24 hour access",
     content: [
-      ["Flexibility:", "A great way to explore all the wonderful games, tools, and resources The Donovan's Piano Room offers, without the long-term commitment."],
-      ["Full Access:", "The 24-hour Membership allows you to explore all of our musical education tools for a day, including voice lessons, ear training, and more."],
-      ["Low Cost:", "This option is great if you are curious about what we have to offer, but want to explore our programs before deciding on a long-term commitment."]
+      ["Flexibility", "A great way to explore all the wonderful games, tools, and resources without long-term commitment."],
+      ["Full Access", "Explore all of our musical education tools for a day, including voice lessons and ear training."],
+      ["Low Cost", "Great if you are curious to explore our programs before committing."]
     ]
   },
   [membershipTypes["monthly-access"]]: {
     id: 2,
     title: "Monthly access",
     content: [
-      ["Flexibility:", "A great way to explore all the wonderful games, tools, and resources The Donovans Piano Room offers, without the long-term commitment. Members can cancel their subscription anytime."],
-      ["Full Access:", "The Monthly Membership allows you to explore all of our musical education tools, including voice lessons, ear training, and more. Monthly members can take advantage of live lessons and their recordings, as well as new and exciting content."],
-      ["Progress Tracking:", "With a monthly membership, you have access to your personalized game scoreboard. You can track your progress and see how much you've learned over time!"]
+      ["Flexibility", "Explore all games, tools, and resources. Cancel your subscription anytime."],
+      ["Full Access", "Access voice lessons, ear training, live lessons, and new content updates."],
+      ["Progress Tracking", "Personalized scoreboard to track your progress over time."]
     ]
   },
   [membershipTypes["scholarship"]]: {
     id: 3,
-    title: "Scholarship access",
+    title: "Scholarship Access",
     content: [
-      ["Full Access:", "Students are provided with full access to The Donovan's Piano Room, where they can use the many games, tools, and resources, to enhance their musical education."],
-      ["Eligibility:", "Scholarships are available for individuals aged 21 and younger, and those aged 60 and older. Eligibility for the scholarships is based on family income being below the Federal Poverty Level (FPL)."]
+      ["Full access", "Enjoy the same benefits as a paid membership, which includes the complete library of games, tools, and resources."],
+      ["Eligibility", "Available for learners aged 21 and younger (or 60 and older) based on family income requirements."],
+      ["Apply or redeem", "Enter a scholarship code if you already have one, or apply to request eligibility."]
     ]
   },
   [membershipTypes["yearly-access"]]: {
     id: 4,
     title: "Yearly access",
     content: [
-      ["Cost savings:", "By opting for the yearly subscription, you generally receive a discounted rate compared to the monthly subscription. In this case, the yearly option offers a cost savings of $59.89 compared to paying for 12 months individually."],
-      ["Long-term commitment:", "Choosing the yearly subscription shows a commitment to the program, which can be beneficial if you have a positive experience and intend to use it consistently throughout the year."]
+      ["Cost savings", "By opting for the yearly subscription, you generally receive a discounted rate compared to the monthly subscription."],
+      ["Long-term commitment", "Choosing the yearly subscription shows a commitment to the program, beneficial if you intend to use it consistently."]
+    ]
+  },
+  [membershipTypes["basic-access"]]: {
+    id: 5,
+    title: "Basic access",
+    content: [
+      ["Free to start", "Sign up at no cost and explore the platform."],
+      ["Limited access", "Try a small set of games and resources to preview the experience."],
+      ["Upgrade Path", "Unlock full features by moving to a paid membership or scholarship."]
     ]
   }
 };
 
-export default function MembershipIncludes() {
-  const [showDiscountInput, setShowDiscountInput] = useState(false);
+const YellowCheck = () => (
+  <div className="w-6 h-6 rounded-full bg-[#FACC15] flex items-center justify-center shrink-0 mt-0.5">
+    <svg width="14" height="10" viewBox="0 0 12 9" fill="none">
+      <path d="M1 4L4.5 7.5L11 1" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </div>
+);
+
+interface DiscountSectionProps {
+  membershipId: number;
+  currentKey: string;
+  isBeta?: boolean;
+}
+
+function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSectionProps) {
   const [discountCode, setDiscountCode] = useState("");
-  const membershipChoice = useAtomValue(membershipChoiceAtom);
-const membershipChoiceContent = membershipChoice && membershipChoice in membershipIncludes
-  ? membershipIncludes[membershipChoice as keyof typeof membershipIncludes]
-  : null;
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Reset inputs when membershipChoice changes
-    setShowDiscountInput(false);
-    setDiscountCode("");
-    setStatus(null);
-  }, [membershipChoice]);
+  const setIsCouponVerified = useSetAtom(couponVerifiedAtom);
+  const isScholarship = currentKey === membershipTypes["scholarship"];
+
+  if (isBeta && !isScholarship) {
+    return (
+      <div className="pt-2 text-center">
+        <p className="text-sm sm:text-base font-bold text-purple-100 tracking-wide">
+          Promo codes for this tier are available at a later date.
+        </p>
+      </div>
+    );
+  }
 
   const applyCouponCode = async () => {
-    if (!discountCode.trim() || !membershipChoiceContent) return;
+    if (!discountCode.trim()) return;
 
     try {
       setIsLoading(true);
-      const isValid = await validateCouponCode(membershipChoiceContent.id, discountCode);
+      const isValid = await validateCouponCode(membershipId, discountCode);
       if (isValid) {
         setStatus("success");
+        setIsCouponVerified(true); // <--- UNLOCKS THE BUTTON IN STEP 3
       } else {
         setStatus("error");
+        setIsCouponVerified(false);
       }
     } catch (error) {
       setStatus("error");
+      setIsCouponVerified(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!membershipChoice || !membershipChoiceContent) return null;
+  return (
+    <div className="pt-2">
+      {status === "success" && (
+        <div className="mb-3 space-y-2">
+          <p className="flex items-center gap-2 text-sm font-semibold text-emerald-400">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="8" fill="#10B981"/>
+              <path d="M4 8L6.5 10.5L12 5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Scholarship code verified successfully
+          </p>
+          <div className="bg-[#E3DFD5] p-3.5 rounded-2xl text-gray-900">
+            <p className="text-xs text-gray-600 font-medium">Scholarship code</p>
+            <p className="text-base font-bold tracking-wide mt-0.5">{discountCode}</p>
+          </div>
+        </div>
+      )}
+
+      {status === "error" && (
+        <p className="flex items-center gap-2 text-sm font-bold text-red-400 mb-2">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="8" fill="#EF4444"/>
+            <path d="M5 5L11 11M11 5L5 11" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          Incorrect code. Please try again.
+        </p>
+      )}
+
+      {status !== "success" && (
+        <div>
+          <p className="text-sm text-gray-200 font-medium">Already have a code? Enter it below.</p>
+          <div className="mt-2.5 flex items-center gap-2.5">
+            <input
+              type="text"
+              placeholder="12345678"
+              value={discountCode}
+              onChange={(e) => {
+                setDiscountCode(e.target.value);
+                if (status === "error") setStatus(null);
+              }}
+              className={`w-full text-gray-900 text-base font-semibold px-4 py-3 rounded-2xl border transition-all focus:outline-none ${
+                status === "error" 
+                  ? "bg-red-50 border-red-400 text-red-900" 
+                  : "bg-[#FFFDF6] border-transparent"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={applyCouponCode}
+              disabled={isLoading}
+              className="bg-[#FACC15] text-black font-extrabold text-base px-6 py-3 rounded-2xl hover:bg-[#eab308] transition-all shrink-0 cursor-pointer"
+            >
+              {isLoading ? "..." : "Apply"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function MembershipIncludes({ isBeta = true }: { isBeta?: boolean }) {
+  const membershipChoice = useAtomValue(membershipChoiceAtom);
+
+  const currentKey =
+    membershipChoice && membershipChoice in membershipIncludes
+      ? membershipChoice
+      : membershipTypes["basic-access"];
+
+  const membershipChoiceContent = membershipIncludes[currentKey as keyof typeof membershipIncludes];
 
   return (
-    <div className="fixed right-[25vw] top-1/4 z-10 h-auto w-[24vw] rounded-3xl bg-tertiary-purple p-6 3xl:right-[23vw] 3xl:w-[26vw]">
-      <h3 className="flex items-center gap-2 border-b-2 border-b-primary-yellow pb-3 text-[16px] font-semibold text-primary-yellow 2xl:text-3xl 4xl:pb-6 4xl:text-4xl">
-        <Image src="/auth/membershipTitleWaring.svg" width={20} height={20} alt="" />
-        {membershipChoiceContent.title}
-      </h3>
-
-      <ul className="my-4 border-b-2 border-primary-purple pb-3 4xl:pb-6">
-        {membershipChoiceContent.content.map((item, i) => (
-          <li className="mt-2 text-white 4xl:mt-4" key={i}>
-            <p className="text-[12px] 2xl:text-2xl 4xl:text-3xl">
-              <span className="mr-1 font-semibold">{item[0]}</span>
-              {item[1]}
-            </p>
-          </li>
-        ))}
-      </ul>
-
+    <div className="w-full max-w-[420px] rounded-[32px] bg-[#2A0845] border border-[#3E115E] p-7 text-white flex flex-col justify-between shadow-2xl shrink-0">
       <div>
-        {status === "success" ? (
-          <p className="mb-2 flex items-center gap-2">
-            <Image src="/Success.svg" width={18} height={18} alt="" />
-            <span className="text-[12px] text-white 2xl:text-4xl 4xl:text-2xl">
-              Discount code applied
-            </span>
-          </p>
-        ) : (
-          <p className="mb-2 text-[12px] text-white 2xl:text-4xl 4xl:mt-4 4xl:text-2xl">
-            Enter your discount code{" "}
-            <span
-              className="cursor-pointer text-primary-yellow underline"
-              onClick={() => setShowDiscountInput((prev) => !prev)}
-            >
-              here
-            </span>
-          </p>
-        )}
-
-        {showDiscountInput && (
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex-1">
-              <InputForm
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setDiscountCode(e.target.value)}
-                field={{ type: "text", name: "discount-code", label: "Discount code" }}
-                text={discountCode}
-                error={status === "error" ? "Invalid discount code, please try again" : ""}
-                disabled={status === "success"}
-              />
-            </div>
-            {status !== "success" && (
-              <Button1
-                style={{ width: "89px", height: "40px" }}
-                disabled={isLoading}
-                text={isLoading ? "..." : "Apply"}
-                onClick={applyCouponCode}
-              />
-            )}
+        <h3 className="flex items-center gap-3 border-b border-purple-800/80 pb-4 text-2xl sm:text-3xl font-bold text-[#FACC15]">
+          <div className="w-7 h-7 rounded-full border-2 border-[#FACC15] flex items-center justify-center text-[#FACC15] text-sm font-bold shrink-0">
+            i
           </div>
-        )}
+          <span>{membershipChoiceContent.title}</span>
+        </h3>
+
+        <ul className="my-6 flex flex-col gap-4">
+          {membershipChoiceContent.content.map((item, i) => (
+            <li className="flex items-start gap-3.5" key={i}>
+              <YellowCheck />
+              <div>
+                <p className="text-base sm:text-lg font-extrabold text-white leading-tight">
+                  {item[0]}
+                </p>
+                <p className="text-sm sm:text-base text-purple-200/90 mt-1 leading-relaxed font-normal">
+                  {item[1]}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="border-t border-purple-800/60 pt-4 shrink-0">
+        <DiscountSection 
+          key={currentKey} 
+          membershipId={membershipChoiceContent.id} 
+          currentKey={currentKey}
+          isBeta={isBeta}
+        />
       </div>
     </div>
   );

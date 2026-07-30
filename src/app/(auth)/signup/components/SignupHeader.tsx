@@ -1,46 +1,50 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 interface SignupHeaderProps {
+  navName?: string;
+  navLink?: string;
   stepNum: number;
-  totalSteps?: number;
-  navLink: string;
-  navName: string;
+  totalSteps: number;
   stepName: string;
-  onClickNav?: (e: React.MouseEvent) => void;
 }
 
 export default function SignupHeader({
+  navName = "Home",
+  navLink = "/",
   stepNum,
-  totalSteps = 5,
-  navLink,
-  navName,
+  totalSteps,
   stepName,
-  onClickNav = undefined,
 }: SignupHeaderProps) {
   return (
-    <>
+    <header className="flex flex-col gap-2 w-full text-left">
+      {/* Scaled-up Home Link */}
       <Link
-        onClick={onClickNav}
         href={navLink}
-        className="relative mb-5 flex items-center gap-2 text-xl font-bold text-primary-yellow 3xl:text-3xl"
+        className="inline-flex items-center gap-2 text-[#FACC15] hover:opacity-80 transition-opacity font-bold text-lg sm:text-xl w-fit mb-2"
       >
-        <Image src="/YellowBackIcon.svg" width={30} height={30} alt="Back" />
+        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#FACC15] text-purple-900">
+          <ArrowBackIcon className="!text-xl font-bold" />
+        </span>
         <span>{navName}</span>
       </Link>
 
-      <h1 className="font-montserrat mb-5 text-7xl font-bold leading-tight tracking-tight text-white 3xl:text-8xl">
-        Sign Up
+      {/* Main Title */}
+      <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+        Sign up
       </h1>
 
-      <div className="mb-5 2xl:mb-[20px] 2xl:mt-5">
-        <p className="text-lg font-semibold text-white 3xl:mb-4 3xl:text-2xl">
-          Step {stepNum} of {totalSteps}
-        </p>
-        <p className="text-2xl font-semibold text-primary-yellow 3xl:text-4xl">
-          {stepName}
-        </p>
-      </div>
-    </>
+      {/* Step Info */}
+      <p className="text-white/80 font-semibold text-base sm:text-lg">
+        Step {stepNum} of {totalSteps}
+      </p>
+
+      {/* Step Subtitle */}
+      <h2 className="text-[#FACC15] text-2xl sm:text-3xl font-extrabold mt-1">
+        {stepName}
+      </h2>
+    </header>
   );
 }

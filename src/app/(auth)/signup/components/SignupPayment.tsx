@@ -10,33 +10,33 @@ export default function SignupPayment() {
   const setSignupStep = useSetAtom(signupStepAtom);
 
   const handleNextStep = () => {
-    // Advance to Step 5 (Summary)
     setSignupStep(5);
   };
 
   return (
-    <section className="w-full max-w-lg mx-auto py-8 md:py-12 px-4 flex flex-col justify-center">
+    <section className="w-[26vw] min-w-[420px] max-w-[560px] mx-auto py-6 flex flex-col justify-center">
       <SignupHeader
         navName="Membership"
         navLink="#"
         stepNum={4}
         totalSteps={5}
-        stepName="Beta Launch Access"
-        onClickNav={(e) => {
-          e.preventDefault();
-          setSignupStep(3);
-        }}
+        stepName="Add your payment method"
       />
 
-      <div className="my-6 space-y-4 rounded-2xl bg-[#FEF8EE] p-6 text-primary-brown">
-        <h3 className="text-xl font-bold text-primary-purple">
-          No Payment Required During Beta!
-        </h3>
-        <p className="text-sm md:text-base leading-relaxed">
-          During our Beta testing phase, access to all piano games, voice lessons, and educational tools is completely complimentary.
+      <div className="my-6 space-y-4 text-white">
+        <p className="text-lg md:text-xl 2xl:text-2xl 4xl:text-3xl font-medium">
+          We are not accepting payment during our Beta!
         </p>
-        <p className="text-xs md:text-sm text-gray-600">
-          If you would like to support our mission as a non-profit organization, you can choose to make a tax-deductible donation anytime on our main site.
+        <p className="text-lg md:text-xl 2xl:text-2xl 4xl:text-3xl font-medium">
+          If you want to support us by donating view our{" "}
+          <Link
+            href="https://www.paypal.com/donate?hosted_button_id=3HAXBG4AGR83Y"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-semibold"
+          >
+            Donation Page.
+          </Link>
         </p>
       </div>
 
@@ -47,13 +47,6 @@ export default function SignupPayment() {
           onClick={handleNextStep}
         />
       </div>
-
-      <p className="mt-8 w-full rounded-2xl bg-primary-purple py-3 text-center text-sm md:text-base text-white font-montserrat">
-        Already have an account?{" "}
-        <Link href="/login" className="text-primary-yellow underline font-semibold">
-          Log in
-        </Link>
-      </p>
     </section>
   );
 }

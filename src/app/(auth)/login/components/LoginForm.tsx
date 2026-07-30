@@ -126,30 +126,32 @@ export default function LoginForm() {
         <div className="w-[24vw] 3xl:w-[26vw]">
             <Link
                 href="/"
-                className="text-primary-yellow text-xl font-bold flex relative w-[15%] mb-5"
+                className="text-primary-yellow text-xl font-bold flex relative w-[15%] mb-5 items-center gap-2"
             >
                 <Image src="/YellowBackIcon.svg" width={30} height={30} alt="Back to Home" />
-                <p className="mt-2">Home</p>
+                <span>Home</span>
             </Link>
 
-            <h1 className="text-7xl font-bold leading-tight tracking-tight text-white font-montserrat mb-5">
+            <h1 className="text-7xl font-bold leading-tight tracking-tight text-white font-montserrat mb-3">
                 Log In
             </h1>
 
-            <div className="mb-5 2xl:mt-5 2xl:mb-[20px]">
-                <p className="text-white text-xl">
+            {/* Increased Login Subtitle Message Font */}
+            <div className="mb-6 2xl:mt-3 2xl:mb-6">
+                <p className="text-white text-2xl 3xl:text-3xl font-medium leading-normal">
                     Log in with your The Donovan&apos;s piano room account.
                 </p>
             </div>
 
+            {/* Increased Error Banner Font & Icon Size */}
             {bannerError && (
-                <div className="mb-5 flex items-start gap-3.5 rounded-2xl bg-[#FDE8E8] border border-[#F8B4B4] p-4 text-[#1C1B1F]">
-                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#B3261E] text-white">
+                <div className="mb-6 flex items-start gap-4 rounded-2xl bg-[#FDE8E8] border border-[#F8B4B4] p-5 text-[#1C1B1F]">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#B3261E] text-white">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"
                             fill="currentColor"
-                            className="h-4 w-4"
+                            className="h-5 w-5"
                         >
                             <path
                                 fillRule="evenodd"
@@ -158,7 +160,7 @@ export default function LoginForm() {
                             />
                         </svg>
                     </div>
-                    <p className="text-base font-normal leading-snug text-[#1C1B1F] whitespace-pre-line">
+                    <p className="text-xl 3xl:text-2xl font-medium leading-relaxed text-[#1C1B1F] whitespace-pre-line">
                         {bannerError}
                     </p>
                 </div>
@@ -171,7 +173,7 @@ export default function LoginForm() {
                         name: "email",
                         label: "Email",
                     }}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                         setEmail(e.target.value);
                         setInputError(null);
                         if (!isLocked) setBannerError(null);
@@ -189,7 +191,7 @@ export default function LoginForm() {
                     error=""
                     inputValue={password}
                 />
-                <div className="flex justify-between items-center w-full">
+                <div className="flex justify-between items-center w-full mt-1">
                     <div className="flex items-center">
                         <label
                             className="relative flex items-center p-3 rounded-full cursor-pointer"
@@ -219,26 +221,27 @@ export default function LoginForm() {
                         </label>
                         <label
                             htmlFor="check"
-                            className="text-lg font-medium text-white 3xl:text-2xl 4xl:text-[16px] cursor-pointer"
+                            className="text-xl font-medium text-white 3xl:text-2xl cursor-pointer"
                         >
                             Remember me
                         </label>
                     </div>
                     <Link
                         href="/forgot-password"
-                        className="text-lg font-medium text-primary-yellow 3xl:text-2xl 4xl:text-[16px]"
+                        className="text-xl font-medium text-primary-yellow 3xl:text-2xl"
                     >
                         Forgot password?
                     </Link>
                 </div>
-                <div>
+                <div className="mt-2">
                     <Button1 text={isSubmitting ? "Logging in..." : "Log In"} type="submit" disabled={disabled} />
                 </div>
             </form>
 
-            <p className="w-full text-center text-lg text-white bg-primary-purple py-3 rounded-3xl text-[12px] mt-9 2xl:py-5 2xl:rounded-full 3xl:text-2xl 4xl:text-[16px] 3xl:py-8">
+            {/* Bottom Sign up Message Font */}
+            <p className="w-full text-center text-xl 3xl:text-2xl text-white bg-primary-purple py-4 rounded-3xl mt-8 2xl:py-5 2xl:rounded-full 3xl:py-6 font-medium">
                 Don&apos;t have an account?{" "}
-                <Link href="/signup" className="text-primary-yellow underline">
+                <Link href="/signup" className="text-primary-yellow underline font-semibold">
                     Sign up
                 </Link>
             </p>

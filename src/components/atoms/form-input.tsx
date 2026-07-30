@@ -1,10 +1,12 @@
-import { FormControl, Input, InputLabel } from '@mui/material'
+import { Box } from '@mui/material';
+import React, { ChangeEvent } from 'react';
 
 export interface InputData {
   name: string;
   type: string;
   label: string;
   required?: boolean;
+  autoComplete?: string;
 }
 
 export default function InputForm({
@@ -12,53 +14,62 @@ export default function InputForm({
   error,
   text,
   onChange,
-  numRows = 1,
   disabled = false,
 }: {
   field: InputData;
   error: string;
   text: string;
-  onChange: any;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   numRows?: number;
   disabled?: boolean;
 }) {
+  const cleanLabel = field.label.replace(/\s*\*/, '');
+  const isRequired = field.required || field.label.includes('*');
+
   return (
-    <div>
-      <FormControl 
-        variant="filled" 
-        sx={{ border: 1, borderColor: '#391f0f' }} 
-        className={`bg-[#fef8ee] block rounded-3xl w-full 2xl:py-2 3xl:py-3 ${
-          disabled 
-            ? 'opacity-60 cursor-not-allowed' 
-            : 'hover:bg-[#FCF0D8] focus:bg-[#FCF0D8]'
-        }`} 
-        error={!!error}
+    <div className="w-full text-left">
+      <Box
+        sx={{
+          backgroundColor: '#FFFDF5',
+          border: '1px solid #391f0f',
+          borderRadius: '16px',
+          padding: '6px 16px',
+          height: '52px', // Matches Figma 52px height
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          transition: 'background-color 0.2s',
+          '&:hover, &:focus-within': {
+            backgroundColor: '#FCF0D8',
+          },
+          '& input:-webkit-autofill': {
+            WebkitBoxShadow: '0 0 0 100px #FFFDF5 inset !important',
+            WebkitTextFillColor: '#391f0f !important',
+          },
+        }}
+        className={disabled ? 'opacity-60 cursor-not-allowed' : ''}
       >
-        <InputLabel
-          className="3xl:text-2xl 3xl:mt-2"
-          sx={[
-            { color: '#391f0f' },
-            () => ({ '&.Mui-focused': { color: '#391f0f' } }),
-          ]}
+        <label
           htmlFor={field.name}
+          className="text-[11px] font-semibold text-[#391f0f] leading-none mb-0.5 block select-none"
         >
-          {field.label}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
-        </InputLabel>
-        <Input
-          className='w-full pl-5 text-[16px]'
+          {cleanLabel}
+          {isRequired && <span className="text-[#FF4D4D] ml-0.5 font-bold">*</span>}
+        </label>
+
+        <input
+          id={field.name}
           type={field.type}
-          value={text}
           name={field.name}
+          value={text || ''}
           onChange={onChange}
-          error={!!error}
-          disableUnderline
-          multiline={field.type === 'textarea'}
-          rows={numRows}
           disabled={disabled}
+          autoComplete={field.autoComplete}
+          className="w-full bg-transparent text-[15px] font-medium text-[#391f0f] focus:outline-none p-0 m-0 border-none leading-normal"
         />
-      </FormControl>
-      {error && (<p className='mt-1 text-[#FFA480] text-base font-medium'>{error}</p>)}
+      </Box>
+
+      {error && <p className="mt-1 text-[#FFA480] text-xs font-medium">{error}</p>}
     </div>
   );
 }
