@@ -1,4 +1,5 @@
 "use client";
+
 import InputForm from "@/components/atoms/form-input";
 import Image from "next/image";
 import Link from "next/link";
@@ -41,106 +42,122 @@ export default function ContactUsForm() {
 
   const handleReset = () => {
     setSubmitted(false);
+    setError("");
     setFullName("");
     setEmail("");
     setMessage("");
   };
 
   return (
-    <div className="h-full w-full max-md2:mt-28 max-md2:mb-24">
-      {error && <p className="mb-4 text-center text-red-500">{error}</p>}
+    <div className="mx-auto w-full max-w-[950px] px-4 py-8">
+      {/* Header */}
+      <div className="mb-8 max-w-[520px] text-white">
+        <h2 className="mb-3 text-5xl font-extrabold tracking-tight md:text-6xl">
+          Get in touch
+        </h2>
+        <p className="text-base font-normal leading-relaxed text-white/90">
+          Have any questions, concerns, or need assistance? Fill out the form
+          below and one of our representatives will reach out to you in a timely
+          manner.
+        </p>
+      </div>
 
-      <div className="flex flex-col items-center justify-center md:flex-row">
-        {/* Left Column: Form OR Thank You Card */}
-        <div className="mb-10 w-full md:mb-0 md:mr-10 md:w-1/4">
-          <div className="mb-8 flex flex-col items-start text-white">
-            <h2 className="mb-8 text-6xl font-semibold">Get in touch</h2>
-            <p className="text-xl text-[#D9D9D9] md:w-full">
-              Have any questions, concerns, or need assistance? Fill out the
-              form below and one of our representatives will reach out to you in
-              a timely manner.
-            </p>
-          </div>
+      {error && <p className="mb-4 text-red-300">{error}</p>}
 
+      {/* Main Grid Row */}
+      <div className="flex flex-col items-stretch gap-8 md:flex-row">
+        {/* LEFT COLUMN */}
+        <div className="flex w-full flex-1 flex-col justify-between md:max-w-[480px]">
           {submitted ? (
-            /* Thank You Card Section */
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-full rounded-xl bg-[#FFFDF0] p-6 text-center text-black shadow-lg">
-                <h3 className="mb-2 text-xl font-bold">
+            /* SUBMITTED STATE WITH BUMPED FONT SIZES */
+            <div className="flex flex-1 flex-col justify-between space-y-4">
+              <div className="flex flex-1 flex-col items-center justify-center rounded-2xl bg-[#FFFDEE] px-8 py-12 text-center text-black shadow-sm min-h-[320px]">
+                <h3 className="mb-4 text-4xl font-black leading-tight text-gray-900 md:text-5xl">
                   Thank you for your submission!
                 </h3>
-                <p className="mb-2 text-xs text-gray-700">
+                <p className="mb-3 text-xl font-bold text-gray-800 md:text-2xl">
                   A member from our team will get back to you soon.
                 </p>
-                <p className="text-xs text-gray-700">
+                <p className="text-base font-medium text-gray-600 md:text-lg">
                   Expect a confirmation email with your submission details.
                 </p>
               </div>
 
               <button
+                type="button"
                 onClick={handleReset}
-                className="w-full rounded-3xl bg-[#521379] py-3 text-center text-[12px] font-semibold text-white shadow-md transition-colors hover:bg-purple-900 2xl:rounded-full 2xl:py-5"
+                className="w-full rounded-full bg-[#521C75] py-4 text-center text-xl font-bold text-white transition hover:bg-[#431562]"
               >
                 Add Another Submission
               </button>
             </div>
           ) : (
-            /* Contact Form Section */
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <InputForm
-                field={{
-                  type: "text",
-                  name: "fullName",
-                  label: "Name",
-                  required: true,
-                }}
-                onChange={(e: any) => setFullName(e.target.value)}
-                text={fullName}
-                error={""}
-              />
-              <InputForm
-                field={{
-                  type: "email",
-                  name: "email",
-                  label: "Email",
-                  required: true,
-                }}
-                onChange={(e: any) => setEmail(e.target.value)}
-                text={email}
-                error={""}
-              />
-              <InputForm
-                field={{
-                  type: "textarea",
-                  name: "Message",
-                  label: "Comment or message",
-                  required: true,
-                }}
-                onChange={(e: any) => setMessage(e.target.value)}
-                text={message}
-                error={""}
-                numRows={7}
-              />
-              <div>
-                <button
-                  className="w-full rounded-3xl bg-primary-purple py-3 text-center text-[12px] font-semibold text-white 2xl:rounded-full 2xl:py-5"
-                  type="submit"
-                >
-                  Submit
-                </button>
+            /* DEFAULT FORM STATE */
+            <form className="flex flex-1 flex-col justify-between space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <InputForm
+                  field={{
+                    type: "text",
+                    name: "fullName",
+                    label: "Name",
+                  }}
+                  onChange={(e: any) => setFullName(e.target.value)}
+                  text={fullName}
+                  error={""}
+                />
+                <InputForm
+                  field={{
+                    type: "email",
+                    name: "email",
+                    label: "Email",
+                  }}
+                  onChange={(e: any) => setEmail(e.target.value)}
+                  text={email}
+                  error={""}
+                />
+                <InputForm
+                  field={{
+                    type: "textarea",
+                    name: "Message",
+                    label: "Comment or message",
+                  }}
+                  onChange={(e: any) => setMessage(e.target.value)}
+                  text={message}
+                  error={""}
+                  numRows={4}
+                />
               </div>
+
+              <button
+                className="w-full rounded-full bg-[#521C75] py-3.5 text-center text-lg font-bold text-white transition hover:bg-[#431562]"
+                type="submit"
+              >
+                Submit
+              </button>
             </form>
           )}
         </div>
 
-        {/* Right Column: Contact Info Card */}
-        <div className="w-full rounded-2xl bg-[#6F219E] text-white md:w-1/5">
-          <div className="p-5 font-medium">
-            <div className="mb-5 flex">
-              <Image src="/Info.svg" width={25} height={100} alt="Info" />
-              <h3 className="ml-4 text-4xl font-semibold text-[#F0D454]">
-                Contact info
-              </h3>
+        {/* RIGHT COLUMN: Contact Info Card */}
+        <div className="flex w-full flex-col justify-between rounded-2xl bg-[#5B1A83] p-8 text-white shadow-xl md:w-[400px]">
+          <div>
+            {/* Header */}
+            <div className="flex items-center gap-3.5 border-b border-white/10 pb-4">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#5B1A83]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="h-6 w-6"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12 2a10 10 0 100 20 10 10 0 000-20zm.75 6a.75.75 0 00-1.5 0v.5a.75.75 0 001.5 0V8zm-1.5 3.75a.75.75 0 011.5 0v4.5a.75.75 0 01-1.5 0v-4.5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-3xl font-extrabold text-[#F0D454]">Contact info</h3>
             </div>
 
             {/* Contact Details */}
@@ -179,37 +196,40 @@ export default function ContactUsForm() {
               <Link
                 href="https://twitter.com/IamTheDonovan"
                 target="_blank"
-                className="flex h-13 w-12 items-center justify-between rounded-full text-white transition duration-300 hover:bg-purple-800"
+                className="flex h-10 w-10 items-center justify-center transition hover:opacity-80"
               >
                 <Image
                   src="/footer/Instagram.svg"
-                  width={40}
-                  height={40}
+                  width={32}
+                  height={32}
                   alt="Instagram"
+                  className="h-8 w-8 object-contain"
                 />
               </Link>
               <Link
                 href="https://www.facebook.com/TheDonovansVenomINC/"
                 target="_blank"
-                className="flex h-15 w-15 items-center justify-between rounded-full text-white transition duration-300 hover:bg-purple-800"
+                className="flex h-10 w-10 items-center justify-center transition hover:opacity-80"
               >
                 <Image
                   src="/footer/Facebook.svg"
                   width={40}
                   height={40}
                   alt="Facebook"
+                  className="h-10 w-10 object-contain"
                 />
               </Link>
               <Link
                 href="https://www.youtube.com/@TDV501C3"
                 target="_blank"
-                className="flex h-15 w-15 items-center justify-between rounded-full text-white transition duration-300 hover:bg-purple-800"
+                className="flex h-10 w-10 items-center justify-center transition hover:opacity-80"
               >
                 <Image
                   src="/footer/Youtube.svg"
                   width={40}
                   height={40}
                   alt="YouTube"
+                  className="h-10 w-10 object-contain"
                 />
               </Link>
             </div>

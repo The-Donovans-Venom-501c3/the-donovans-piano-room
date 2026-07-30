@@ -8,11 +8,11 @@ import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import SignupHeader from "./SignupHeader";
 import { useSetAtom } from "jotai";
 import { signupStepAtom, profileAtom } from "@/utils/stores";
-import Button1 from "@/components/atoms/Button1";
 import TermsandCondition from "./TermsandCondition";
 import Checkbox from "@/components/atoms/Checkbox";
 import { signup } from "@/lib/api/authService";
 import { profileInterface } from "@/interfaces/profileInterface";
+import Button1 from "@/components/atoms/Button1";
 
 export default function SignupForm() {
   const [fullName, setFullName] = useState("");
@@ -43,6 +43,7 @@ export default function SignupForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (disabled) return;
     setDisabled(true);
 
     if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === "true") {
@@ -59,12 +60,12 @@ export default function SignupForm() {
         ...obj,
         fullName: fullName,
         email: email,
-      }))
-      setSignupStep(prev => prev + 1);
-    } 
-    else{
-      console.log("Failed")
-      alert(`Error: ${data.message}`)
+      }));
+      setSignupStep((prev) => prev + 1);
+    } else {
+      console.log("Failed");
+      alert(`Error: ${data?.message || "Something went wrong"}`);
+      setDisabled(false);
     }
   };
 
@@ -91,7 +92,11 @@ export default function SignupForm() {
   ]);
 
   return (
-    <section className="w-full max-w-[420px] mx-auto py-6 flex flex-col justify-center">
+    /* 
+      Matching the Login form width (w-[24vw] / max-w-[440px]) centers 
+      the entire signup column directly over the dark organic doodle background.
+    */
+    <div className="w-[24vw] min-w-[340px] max-w-[440px] 3xl:w-[26vw] mx-auto flex flex-col justify-center text-left">
       <SignupHeader
         navName="Home"
         navLink="/"
@@ -99,19 +104,19 @@ export default function SignupForm() {
         totalSteps={5}
         stepName="Create your account"
       />
-      
-      <p className="text-[11px] md:text-xs text-white/80 mb-3 mt-1">
+
+      <p className="text-white text-base md:text-lg font-medium mb-4 mt-1">
         Fields marked * are required.
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full" autoComplete="off">
         <InputForm
           field={{
             type: "text",
             name: "fullName",
             label: "Full name *",
           }}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFullName(e.target.value)}
           text={fullName}
           error={""}
         />
@@ -122,7 +127,7 @@ export default function SignupForm() {
             name: "email",
             label: "Email *",
           }}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
             setEmail(e.target.value);
             setError(null);
           }}
@@ -134,6 +139,7 @@ export default function SignupForm() {
           onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
           name="password"
           label="Password *"
+          inputValue={password}
           error={
             allPasswordCasesCorrect &&
             confirmPassword.length > 0 &&
@@ -141,7 +147,6 @@ export default function SignupForm() {
               ? "The password you entered does not match"
               : ""
           }
-          inputValue={password}
         />
 
         <PasswordCases
@@ -155,6 +160,7 @@ export default function SignupForm() {
             onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
             name="confirm password"
             label="Confirm password *"
+            inputValue={confirmPassword}
             error={
               allPasswordCasesCorrect &&
               confirmPassword.length > 0 &&
@@ -162,25 +168,26 @@ export default function SignupForm() {
                 ? "The password you entered does not match"
                 : ""
             }
-            inputValue={confirmPassword}
           />
         )}
 
         {/* Checkbox Group */}
-        <div className="space-y-2.5 pt-2">
+        <div className="flex flex-col gap-3 py-2">
           <Checkbox checked={isAckChecked} onChange={setIsAckChecked}>
-            <span className="ms-2.5 text-[11px] leading-tight font-medium text-white block">
+            <span className="ms-3 text-base md:text-lg leading-snug text-white font-medium block">
+              <span className="text-red-500 font-bold me-1">*</span>
               I acknowledge that all information above is correct, as I will not be able to change my Full Name or Email after creating an account
             </span>
           </Checkbox>
 
           <Checkbox checked={isTermsChecked} onChange={setIsTermsChecked}>
-            <span className="ms-2.5 text-[11px] leading-tight font-medium text-white block">
+            <span className="ms-3 text-base md:text-lg leading-snug text-white font-medium block">
+              <span className="text-red-500 font-bold me-1">*</span>
               I agree to The Donovan&apos;s piano room{" "}
               <button
                 type="button"
                 onClick={() => handleOpenModal("terms")}
-                className="text-primary-yellow underline font-semibold focus:outline-none"
+                className="text-primary-yellow underline font-bold focus:outline-none"
               >
                 terms of use
               </button>{" "}
@@ -188,7 +195,7 @@ export default function SignupForm() {
               <button
                 type="button"
                 onClick={() => handleOpenModal("privacy")}
-                className="text-primary-yellow underline font-semibold focus:outline-none"
+                className="text-primary-yellow underline font-bold focus:outline-none"
               >
                 privacy policy
               </button>
@@ -197,16 +204,18 @@ export default function SignupForm() {
           </Checkbox>
         </div>
 
-        <div className="pt-3">
+        {/* Action Button */}
+        <div className="mt-2 w-full">
           <Button1
+            text="Continue to verify account"
             type="submit"
             disabled={disabled}
-            text="Continue to verify account"
           />
         </div>
       </form>
 
-      <p className="mt-5 text-center text-xs md:text-sm text-white">
+      {/* Increased font size slightly here */}
+      <p className="w-full text-center text-lg md:text-xl text-white py-4 mt-2 font-medium">
         Already have an account?{" "}
         <Link href="/login" className="text-primary-yellow underline font-semibold">
           Log in
@@ -218,6 +227,6 @@ export default function SignupForm() {
         onClose={handleCloseModal}
         content={modalContent}
       />
-    </section>
+    </div>
   );
 }

@@ -1,144 +1,289 @@
-import { membershipChoiceAtom, membershipTypes, signupStepAtom } from "@/utils/stores";
-import { useAtom, useSetAtom } from "jotai";
-import Link from "next/link";
-import SignupHeader from "../SignupHeader";
-import Button2 from "@/components/atoms/Button2";
+"use client";
+
 import { FormEvent } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { 
+  membershipChoiceAtom, 
+  membershipTypes, 
+  signupStepAtom, 
+  couponVerifiedAtom // Shared state to track coupon success
+} from "@/utils/stores";
+import SignupHeader from "../SignupHeader";
+import MembershipIncludes from "./MembershipIncludes";
 
 interface MembershipSelectionLayoutProps {
-  isBeta?: boolean; // Controls Beta Launch behavior
+  isBeta?: boolean;
 }
 
 export default function MembershipSelectionLayout({
-  isBeta = true, // Defaults to true for Beta Launch
+  isBeta = true,
 }: MembershipSelectionLayoutProps) {
   const [membershipChoice, setMembershipChoice] = useAtom(membershipChoiceAtom);
+  const isCouponVerified = useAtomValue(couponVerifiedAtom);
   const setSignupStep = useSetAtom(signupStepAtom);
 
-  // Checks if the user selected Scholarship
   const isScholarship = membershipChoice === membershipTypes["scholarship"];
 
-  // During Beta mode, the submission button is disabled for all plans EXCEPT Scholarship
-  const isButtonDisabled = !membershipChoice || (isBeta && !isScholarship);
+  // Logic to determine if the submit button should be disabled
+  const isButtonDisabled = isBeta 
+    ? (isScholarship ? !isCouponVerified : true)
+    : !membershipChoice;
 
   const goToPayment = (e: FormEvent) => {
     e.preventDefault();
-    if (membershipChoice && !isButtonDisabled) {
+    if (!isButtonDisabled) {
       setSignupStep((stepN) => stepN + 1);
     }
   };
 
-  // Dynamic button label based on Beta state and selection
-  const getButtonText = () => {
-    if (isBeta && !isScholarship) {
-      return "Available at a Later Date";
-    }
-    if (isScholarship) {
-      return "Apply or Redeem";
-    }
-    return "Continue to payment method";
-  };
-
   return (
-    <section className={membershipChoice ? "absolute left-[25vw] 3xl:left-[23vw]" : ""}>
-      <SignupHeader
-        stepName="Select your membership"
-        stepNum={3}
-        totalSteps={4}
-        navLink="#"
-        navName="Account"
-        onClickNav={(e) => {
-          e.preventDefault();
-          setSignupStep(1);
-        }}
-      />
+    <div className="w-full min-h-[calc(100vh-160px)] flex items-center justify-center py-12 px-4">
+      {/* Outer wrapper centered on screen */}
+      <div className="w-full max-w-[880px] mx-auto flex flex-col md:flex-row gap-8 items-start justify-center">
 
-      <form onSubmit={goToPayment}>
-        <fieldset className="flex w-[24vw] flex-col 3xl:w-[26vw]">
-          {/* Option 1: 24 Hour Membership */}
-          <label className="mb-6 flex w-full cursor-pointer gap-3 rounded-2xl bg-[#FEF8EE] px-5 py-5 2xl:py-7 3xl:py-8">
-            <input
-              type="radio"
-              className="h-6 w-6 accent-primary-purple cursor-pointer"
-              name="membership_option"
-              value="1"
-              checked={membershipChoice === membershipTypes["24-hours"]}
-              onChange={() => setMembershipChoice(membershipTypes["24-hours"])}
+        {/* LEFT COLUMN */}
+        <div className="w-full md:w-[420px] flex flex-col items-start shrink-0">
+          
+          <div className="w-full mb-6">
+            <SignupHeader
+              stepName="Select your membership"
+              stepNum={3}
+              totalSteps={5}
+              navLink="/"
+              navName="Account"
             />
-            <div className="flex w-full justify-between text-[12px] font-semibold 2xl:text-2xl 4xl:text-3xl">
-              <p className="text-primary-brown">24-Hour membership</p>
-              <p className="text-black">$1.99 now</p>
-            </div>
-          </label>
+          </div>
 
-          {/* Option 2: Monthly Membership */}
-          <label className="mb-6 flex w-full cursor-pointer gap-3 rounded-2xl bg-[#FEF8EE] px-5 py-5 2xl:py-7 3xl:py-8">
-            <input
-              type="radio"
-              className="h-6 w-6 accent-primary-purple cursor-pointer"
-              name="membership_option"
-              value="2"
-              checked={membershipChoice === membershipTypes["monthly-access"]}
-              onChange={() => setMembershipChoice(membershipTypes["monthly-access"])}
-            />
-            <div className="flex w-full justify-between text-[12px] font-semibold 2xl:text-2xl 4xl:text-3xl">
-              <p className="text-primary-brown">Monthly membership</p>
-              <p className="text-black">$29.99/month</p>
-            </div>
-          </label>
+          <form onSubmit={goToPayment} className="w-full flex flex-col gap-5">
+            <fieldset className="flex flex-col gap-4 w-full">
 
-          {/* Option 3: Yearly Membership */}
-          <label className="mb-6 flex w-full cursor-pointer gap-3 rounded-2xl bg-[#FEF8EE] px-5 py-5 2xl:py-7 3xl:py-8 relative">
-            <input
-              type="radio"
-              className="h-6 w-6 accent-primary-purple cursor-pointer"
-              name="membership_option"
-              value="3"
-              checked={membershipChoice === membershipTypes["yearly-access"]}
-              onChange={() => setMembershipChoice(membershipTypes["yearly-access"])}
-            />
-            <div className="flex w-full justify-between items-center text-[12px] font-semibold 2xl:text-2xl 4xl:text-3xl">
-              <p className="text-primary-brown">Yearly membership</p>
-              <div className="flex items-center gap-2">
-                <span className="bg-primary-yellow text-black text-[10px] 2xl:text-sm font-bold px-2 py-0.5 rounded-md">
+              {/* 24-Hour membership */}
+              <label
+                className={`flex items-center justify-between w-full cursor-pointer rounded-2xl px-5 py-4 border-2 transition-all ${
+                  membershipChoice === membershipTypes["24-hours"]
+                    ? "bg-[#FDF4FF] border-[#6B21A8] shadow-md"
+                    : "bg-[#FFFDF6] border-transparent hover:bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="membership_option"
+                    checked={membershipChoice === membershipTypes["24-hours"]}
+                    onChange={() => setMembershipChoice(membershipTypes["24-hours"])}
+                  />
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center border-2 shrink-0 transition-all ${
+                      membershipChoice === membershipTypes["24-hours"]
+                        ? "border-[#6B21A8] bg-[#6B21A8]"
+                        : "border-gray-400 bg-white"
+                    }`}
+                  >
+                    {membershipChoice === membershipTypes["24-hours"] && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-extrabold text-base sm:text-lg whitespace-nowrap">
+                      24-Hour membership
+                    </p>
+                    <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
+                      $1.99 now
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              {/* Monthly membership */}
+              <label
+                className={`flex items-center justify-between w-full cursor-pointer rounded-2xl px-5 py-4 border-2 transition-all ${
+                  membershipChoice === membershipTypes["monthly-access"]
+                    ? "bg-[#FDF4FF] border-[#6B21A8] shadow-md"
+                    : "bg-[#FFFDF6] border-transparent hover:bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="membership_option"
+                    checked={membershipChoice === membershipTypes["monthly-access"]}
+                    onChange={() => setMembershipChoice(membershipTypes["monthly-access"])}
+                  />
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center border-2 shrink-0 transition-all ${
+                      membershipChoice === membershipTypes["monthly-access"]
+                        ? "border-[#6B21A8] bg-[#6B21A8]"
+                        : "border-gray-400 bg-white"
+                    }`}
+                  >
+                    {membershipChoice === membershipTypes["monthly-access"] && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-extrabold text-base sm:text-lg whitespace-nowrap">
+                      Monthly membership
+                    </p>
+                    <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
+                      $29.99/month
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              {/* Yearly membership */}
+              <label
+                className={`relative flex items-center justify-between gap-2 w-full cursor-pointer rounded-2xl px-5 py-4 border-2 transition-all ${
+                  membershipChoice === membershipTypes["yearly-access"]
+                    ? "bg-[#FDF4FF] border-[#6B21A8] shadow-md"
+                    : "bg-[#FFFDF6] border-transparent hover:bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="membership_option"
+                    checked={membershipChoice === membershipTypes["yearly-access"]}
+                    onChange={() => setMembershipChoice(membershipTypes["yearly-access"])}
+                  />
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center border-2 shrink-0 transition-all ${
+                      membershipChoice === membershipTypes["yearly-access"]
+                        ? "border-[#6B21A8] bg-[#6B21A8]"
+                        : "border-gray-400 bg-white"
+                    }`}
+                  >
+                    {membershipChoice === membershipTypes["yearly-access"] && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-extrabold text-base sm:text-lg whitespace-nowrap">
+                      Yearly membership
+                    </p>
+                    <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
+                      $239.88/year
+                    </p>
+                  </div>
+                </div>
+                <span className="bg-[#FACC15] text-black font-extrabold text-[10px] sm:text-xs px-3 py-1 rounded-full uppercase tracking-wider shrink-0 whitespace-nowrap">
                   most popular
                 </span>
-                <p className="text-black">$239.88/year</p>
-              </div>
+              </label>
+
+              {/* Basic membership */}
+              <label
+                className={`flex items-center justify-between w-full cursor-pointer rounded-2xl px-5 py-4 border-2 transition-all ${
+                  membershipChoice === membershipTypes["basic-access"]
+                    ? "bg-[#FDF4FF] border-[#6B21A8] shadow-md"
+                    : "bg-[#FFFDF6] border-transparent hover:bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="membership_option"
+                    checked={membershipChoice === membershipTypes["basic-access"]}
+                    onChange={() => setMembershipChoice(membershipTypes["basic-access"])}
+                  />
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center border-2 shrink-0 transition-all ${
+                      membershipChoice === membershipTypes["basic-access"]
+                        ? "border-[#6B21A8] bg-[#6B21A8]"
+                        : "border-gray-400 bg-white"
+                    }`}
+                  >
+                    {membershipChoice === membershipTypes["basic-access"] && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-gray-900 font-extrabold text-base sm:text-lg whitespace-nowrap">
+                      Basic membership
+                    </p>
+                    <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
+                      Free(limited access)
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              {/* Scholarship */}
+              <label
+                className={`flex items-center justify-between gap-2 w-full cursor-pointer rounded-2xl px-5 py-4 border-2 transition-all ${
+                  membershipChoice === membershipTypes["scholarship"]
+                    ? "bg-[#FDF4FF] border-[#6B21A8] shadow-md"
+                    : "bg-[#FFFDF6] border-transparent hover:bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="membership_option"
+                    checked={membershipChoice === membershipTypes["scholarship"]}
+                    onChange={() => setMembershipChoice(membershipTypes["scholarship"])}
+                  />
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center border-2 shrink-0 transition-all ${
+                      membershipChoice === membershipTypes["scholarship"]
+                        ? "border-[#6B21A8] bg-[#6B21A8]"
+                        : "border-gray-400 bg-white"
+                    }`}
+                  >
+                    {membershipChoice === membershipTypes["scholarship"] && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                    )}
+                  </div>
+                  <span className="text-gray-900 font-extrabold text-base sm:text-lg whitespace-nowrap">
+                    Scholarship
+                  </span>
+                </div>
+                <span className="text-gray-700 font-bold text-xs sm:text-sm underline shrink-0 whitespace-nowrap">
+                  Apply or redeem
+                </span>
+              </label>
+            </fieldset>
+
+            {/* CTA Button Dynamic Rendering */}
+            <div className="w-full pt-2">
+              {isBeta && membershipChoice && !isScholarship ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full py-4 px-5 rounded-full bg-[#BBB5C6] text-gray-800 font-extrabold text-base cursor-not-allowed text-center transition-all shadow-md"
+                >
+                  Available at a Later Date
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isButtonDisabled}
+                  className={`w-full py-4 px-5 rounded-full font-extrabold text-base text-center transition-all shadow-md ${
+                    !isButtonDisabled
+                      ? "bg-[#FACC15] text-black hover:bg-[#eab308] cursor-pointer"
+                      : "bg-[#BBB5C6] text-gray-700 cursor-not-allowed"
+                  }`}
+                >
+                  {isScholarship && !isCouponVerified 
+                    ? "Enter Scholarship Code" 
+                    : "Continue to payment method"}
+                </button>
+              )}
             </div>
-          </label>
+          </form>
+        </div>
 
-          {/* Option 4: Scholarship Access */}
-          <label className="mb-6 flex w-full cursor-pointer gap-3 rounded-2xl bg-[#FEF8EE] px-5 py-5 2xl:py-7 3xl:py-8">
-            <input
-              type="radio"
-              className="h-6 w-6 accent-primary-purple cursor-pointer"
-              name="membership_option"
-              value="4"
-              checked={membershipChoice === membershipTypes["scholarship"]}
-              onChange={() => setMembershipChoice(membershipTypes["scholarship"])}
-            />
-            <div className="flex w-full justify-between text-[12px] font-semibold 2xl:text-2xl 4xl:text-3xl">
-              <p className="text-primary-brown">Scholarship</p>
-              <p className="text-black">Apply or redeem</p>
-            </div>
-          </label>
-        </fieldset>
+        {/* RIGHT COLUMN */}
+        <div className="w-full md:w-[420px] shrink-0 md:pt-[118px]">
+          <MembershipIncludes isBeta={isBeta} />
+        </div>
 
-        {/* CTA Button */}
-        <Button2
-          text={getButtonText()}
-          onClick={goToPayment}
-          disable={isButtonDisabled}
-        />
-      </form>
-
-      <p className="mt-9 w-full rounded-[15px] bg-primary-purple py-3 text-center text-[12px] text-lg text-white 2xl:rounded-full 2xl:py-5 3xl:text-2xl">
-        Already have an account?{" "}
-        <Link href="/login" className="text-primary-yellow underline">
-          Log in
-        </Link>
-      </p>
-    </section>
+      </div>
+    </div>
   );
 }

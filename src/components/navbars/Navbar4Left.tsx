@@ -41,7 +41,7 @@ export default function Navbar4Left({
     }, 800);
   };
 
-  // Clean up timeout on unmount
+  // Clean up timeouts on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -53,9 +53,28 @@ export default function Navbar4Left({
     };
   }, []);
 
+  // Hover Navigation Handler with 300ms delay to prevent accidental routing
+  const handleMouseEnterLink = (path: string, disabled?: boolean) => {
+    if (disabled || !path) return;
+    
+    if (hoverNavTimerRef.current) {
+      clearTimeout(hoverNavTimerRef.current);
+    }
+
+    hoverNavTimerRef.current = setTimeout(() => {
+      router.push(path);
+    }, 300);
+  };
+
+  const handleMouseLeaveLink = () => {
+    if (hoverNavTimerRef.current) {
+      clearTimeout(hoverNavTimerRef.current);
+    }
+  };
+
   const linkDynamicStyle = { justifyContent: isNavOpen ? "start" : "center" };
 
-  // Menu items config for DRY rendering
+  // Menu items configuration
   const navItems = [
     {
       href: "/dashboard",
@@ -107,23 +126,6 @@ export default function Navbar4Left({
     },
   ];
 
-  // Delayed Navigation Helper (Redirects on hover after 400ms)
-  const handleMouseEnterLink = (path: string) => {
-    if (hoverNavTimerRef.current) {
-      clearTimeout(hoverNavTimerRef.current);
-    }
-    // Set a 400ms delay before redirecting on hover
-    hoverNavTimerRef.current = setTimeout(() => {
-      router.push(path);
-    }, 400); 
-  };
-
-  const handleMouseLeaveLink = () => {
-    if (hoverNavTimerRef.current) {
-      clearTimeout(hoverNavTimerRef.current);
-    }
-  };
-
   return (
     <div
       className="relative z-50 h-[100vh] transition-all duration-300 ease-in-out"
@@ -171,7 +173,11 @@ export default function Navbar4Left({
         >
           {/* User Profile */}
           {profile.id ? (
-            <div className="flex flex-col items-center w-full">
+            <div 
+              className="flex flex-col items-center w-full cursor-pointer"
+              onMouseEnter={() => handleMouseEnterLink("/account/settings/profile")}
+              onMouseLeave={handleMouseLeaveLink}
+            >
               <div className="relative h-[8vh] w-[8vh] shrink-0">
                 <Image src={profile.picture} fill alt="Profile Picture" />
               </div>
@@ -190,7 +196,7 @@ export default function Navbar4Left({
                 })()}
               </p>
 
-              {/* Fixed Edit container line height & block layout */}
+              {/* Profile Edit line */}
               <div
                 className="mt-[0.5vh] flex items-center w-full h-[32px] text-xl font-bold text-white 3xl:text-2xl 4xl:text-3xl leading-none"
                 style={{ justifyContent: isNavOpen ? "flex-start" : "center" }}
@@ -230,8 +236,8 @@ export default function Navbar4Left({
               const isActive = openedLink === item.key;
               const linkContent = (
                 <div
-                  className={`flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white ${
-                    item.disabled ? "opacity-50 cursor-not-allowed" : ""
+                  className={`flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white transition-all ${
+                    item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                   }`}
                   style={{
                     ...(isActive
@@ -243,6 +249,8 @@ export default function Navbar4Left({
                       : linkDynamicStyle),
                     ...(item.disabled ? { filter: "grayscale(90%)" } : {}),
                   }}
+                  onMouseEnter={() => handleMouseEnterLink(item.href, item.disabled)}
+                  onMouseLeave={handleMouseLeaveLink}
                 >
                   <div
                     className="relative h-[4vh] w-[4vh]"
@@ -276,7 +284,7 @@ export default function Navbar4Left({
               return (
                 <Link
                   key={item.label}
-                  href={item.href}
+                  href={item.disabled ? "#" : item.href}
                   className={item.disabled ? "pointer-events-none" : ""}
                 >
                   {linkContent}
@@ -291,7 +299,7 @@ export default function Navbar4Left({
       <div className="flex h-[9vh] w-full items-center justify-center rounded-br-[20px] bg-[#601d86]">
         <div style={{ width: isNavOpen ? "80%" : "50%" }}>
           <button
-            className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl"
+            className="flex rounded-full border border-primary-yellow-accent px-8 py-1 text-[12px] font-semibold text-primary-yellow-accent 2xl:text-2xl 4xl:text-3xl hover:bg-purple-800 transition-colors"
             onClick={handleLogout}
           >
             {isNavOpen && (

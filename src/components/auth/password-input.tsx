@@ -1,46 +1,91 @@
-import { FormControl, IconButton, Input, InputAdornment, InputLabel } from '@mui/material'
+import { Box, IconButton } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import React, { useState } from 'react'
+import React, { useState, ChangeEvent } from 'react';
 import ErrorIcon from '@mui/icons-material/Error';
 
 interface passwordInputInterface {
-    name: string,
-    onChange: any,
-    label: string,
-    error: string,
-    inputValue: string
+  name: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  label: string;
+  error?: string;
+  inputValue: string;
+  autoComplete?: string;
 }
-export default function PasswordInput({ onChange, name, label, error, inputValue}: passwordInputInterface) {
-  const [showPassword, setShowPassword] = useState(false)
-  const toggleShowPassword = () => setShowPassword(prev => !prev)
+
+export default function PasswordInput({
+  onChange,
+  name,
+  label,
+  error,
+  inputValue,
+  autoComplete = 'new-password',
+}: passwordInputInterface) {
+  const [showPassword, setShowPassword] = useState(false);
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
+
+  const cleanLabel = label.replace(/\s*\*/, '');
+  const isRequired = label.includes('*');
+
   return (
-    <div>
+    <div className="w-full text-left">
+      <Box
+        sx={{
+          backgroundColor: '#FFFDF5',
+          border: '1px solid #391f0f',
+          borderRadius: '16px',
+          padding: '6px 16px',
+          height: '52px', // Matches Figma 52px height
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          transition: 'background-color 0.2s',
+          '&:hover, &:focus-within': {
+            backgroundColor: '#FCF0D8',
+          },
+          '& input:-webkit-autofill': {
+            WebkitBoxShadow: '0 0 0 100px #FFFDF5 inset !important',
+            WebkitTextFillColor: '#391f0f !important',
+          },
+        }}
+      >
+        <div className="flex flex-col flex-1 min-w-0 pr-2 justify-center">
+          <label
+            htmlFor={name}
+            className="text-[11px] font-semibold text-[#391f0f] leading-none mb-0.5 block select-none"
+          >
+            {cleanLabel}
+            {isRequired && <span className="text-[#FF4D4D] ml-0.5 font-bold">*</span>}
+          </label>
 
-      <FormControl variant="filled" sx={{ border: 1, borderColor: '#391f0f'}} error={!!error} className='bg-[#fef8ee] hover:bg-[#FCF0D8] focus:bg-[#FCF0D8] block rounded-3xl w-full 2xl:mb-[25px] 2xl:py-2 3xl:py-4'>
-          <InputLabel className='3xl:text-2xl 3xl:mt-3' sx={[{color: "#391f0f"},!error && {'&.Mui-focused': {color: "#391f0f"}}]} htmlFor="standard-adornment-password">{label}</InputLabel>
-          <Input
-              required
-              value={inputValue}
-              sx={{border: 0}}
-              className='w-full pl-6 text-[16px]'
-              type={showPassword ? 'text' : 'password'}
-              name={name}
-              onChange={onChange}
-              disableUnderline
-              endAdornment={
-                <InputAdornment position="end">
-              <IconButton
-                  aria-label="toggle password visibility"
-                  onClick={toggleShowPassword}>
-                  {error ? <ErrorIcon sx={{fontSize: "20px", color: "#b3261e"}} className='mb-[12px] mr-2'/> : showPassword ? <Visibility sx={{fontSize: "20px", color: "#6F219E"}} className='mb-[12px] mr-2'/> : <VisibilityOff sx={{fontSize: "20px", color: "#6F219E"}} className='mb-[12px] mr-2'/>}
-              </IconButton>
-              </InputAdornment>
-          }
+          <input
+            id={name}
+            name={name}
+            type={showPassword ? 'text' : 'password'}
+            value={inputValue || ''}
+            onChange={onChange}
+            autoComplete={autoComplete}
+            className="w-full bg-transparent text-[15px] font-medium text-[#391f0f] focus:outline-none p-0 m-0 border-none leading-normal"
           />
-      </FormControl>
-      {error && <p className='text-[#b3261e] mt-2 font-semibold'>{error}</p>}
-  </div>
+        </div>
 
-  )
+        <IconButton
+          aria-label="toggle password visibility"
+          onClick={toggleShowPassword}
+          edge="end"
+          sx={{ padding: '2px', color: '#6F219E' }}
+        >
+          {error ? (
+            <ErrorIcon sx={{ fontSize: '18px', color: '#b3261e' }} />
+          ) : showPassword ? (
+            <VisibilityOff sx={{ fontSize: '18px' }} />
+          ) : (
+            <Visibility sx={{ fontSize: '18px' }} />
+          )}
+        </IconButton>
+      </Box>
+
+      {error && <p className="mt-1 text-[#FFA480] text-xs font-medium">{error}</p>}
+    </div>
+  );
 }
