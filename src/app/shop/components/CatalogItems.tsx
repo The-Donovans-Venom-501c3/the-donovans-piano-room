@@ -20,7 +20,7 @@ export default function CatalogItems() {
             className="relative h-[50%] w-[40%] cursor-pointer select-none"
             onClick={pressLeft}
           >
-            <Image src="/bookstore/left-arrow.svg" fill alt="" />
+            <Image src="/shop/left-arrow.svg" fill alt="" />
           </div>
         </div>
       </div>
@@ -40,7 +40,7 @@ export default function CatalogItems() {
                 : { right: "5vw", top: "-19vh", height: "35vh" }
           }
         >
-          <Image src="/bookstore/books/book-2.svg" fill alt="" />
+          <Image src="/shop/books/book-2.svg" fill alt="" />
         </div>
         <div
           className="absolute h-[40vh] w-[43%] transition-all duration-300"
@@ -57,7 +57,7 @@ export default function CatalogItems() {
                 : { right: "5vw", top: "-19vh", height: "35vh" }
           }
         >
-          <Image src="/bookstore/books/book-3.svg" fill alt="" />
+          <Image src="/shop/books/book-3.svg" fill alt="" />
         </div>
         <div
           className="absolute h-[40vh] w-[43%] transition-all duration-300"
@@ -74,7 +74,7 @@ export default function CatalogItems() {
                 : { right: "5vw", top: "-19vh", height: "35vh" }
           }
         >
-          <Image src="/bookstore/books/book-1.svg" fill alt="" />
+          <Image src="/shop/books/book-1.svg" fill alt="" />
         </div>
         <div className="absolute right-[40%] top-[21vh] flex h-[2vh] w-[15%] items-center justify-between gap-x-[0.2vh]">
           <div
@@ -97,7 +97,7 @@ export default function CatalogItems() {
             className="relative h-[50%] w-[40%] cursor-pointer select-none"
             onClick={pressRight}
           >
-            <Image src="/bookstore/right-arrow.svg" fill alt="" />
+            <Image src="/shop/right-arrow.svg" fill alt="" />
           </div>
         </div>
       </div>

@@ -1,11 +1,18 @@
+"use client";
+
 import Button1 from "@/components/atoms/Button1";
 import Button2 from "@/components/atoms/Button2";
 import Footer2 from "@/components/footers/Footer2";
 import Navbar2 from "@/components/navbars/Navbar2";
 import Image from "next/image";
 import Link from "next/link";
+import { useAtomValue } from "jotai";
+import { profileAtom } from "@/utils/stores";
 
 export default function Home() {
+  const profile = useAtomValue(profileAtom);
+  const isLoggedIn = Boolean(profile.id);
+
   return (
     <>
       <Navbar2 />
@@ -16,15 +23,23 @@ export default function Home() {
               <h1 className="text-white text-2xl sm:text-4xl md:text-3xl lg:text-5xl xl:text-7xl 2xl:text-9xl 4xl:text-9xl font-semibold font-montserrat">Ready for your music lesson?</h1>
               <p className="text-white text-xs lg:text-base xl:text-xl sm:text-xs mt-[5%]">Embark on a fun-filled musical adventure with The Donovan&apos;s Piano Room. Unlock the joy of music with our tailored and enriching music lessons!</p>
               <div className="flex flex-col gap-[2vh] mt-[10%]">
-                <Link href="/login"><Button1 text="Login"></Button1></Link>
-                <Link href={"/signup"}><Button2 text="Sign Up"></Button2></Link>
+                {isLoggedIn ? (
+                  <Link href="/dashboard">
+                    <Button1 text="Enter The Piano Room Dashboard!"></Button1>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/login"><Button1 text="Login"></Button1></Link>
+                    <Link href={"/signup"}><Button2 text="Sign Up"></Button2></Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
           <div className="relative w-[60%] h-[100%]">
             <Image className="w-full h-full" src="/home/map.svg" fill alt="" />
-            <Link href={"/bookstore"}>
-              <button className="absolute font-mountains font-bold left-[11.5vw] top-[10.5vh] xl:left-[14vw] xl:top-[10.5vh] xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">Bookstore</button>
+            <Link href={"/shop"}>
+              <button className="absolute font-mountains font-bold left-[11.5vw] top-[10.5vh] xl:left-[14vw] xl:top-[10.5vh] xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">shop</button>
             </Link>
             <Link href={"/about/why-choose-us"}>
               <button className="absolute font-mountains font-bold left-[27vw] top-[16vh] xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200">About</button>

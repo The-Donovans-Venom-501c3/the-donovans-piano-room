@@ -1,69 +1,54 @@
-import { aboutNavigationPages } from "@/utils/general";
-import Link from "next/link";
 import React from "react";
+import Link from "next/link";
+import { aboutNavigationPages } from "@/utils/general";
 
 export default function ContentNav({ page }: { page: string }) {
+  const isWhyChooseUs = page.includes("why-choose-us") || page === aboutNavigationPages.whyChooseUs;
+  const isWhoWeServe = page.includes("who-we-serve") || page === aboutNavigationPages.whoWeServe;
+  const isMembership = page.includes("membership") || page === aboutNavigationPages.membership;
+  const isScholarship = page.includes("scholarship") || page === aboutNavigationPages.scholarship;
+  const isFAQs = page.includes("faqs") || page === aboutNavigationPages.FAQs;
+
   return (
-    <div className="flex h-fit w-full gap-px mt-36 sm:w-[80%] md:w-[70%]">
+    <div className="flex h-fit w-full gap-px">
       <Link
-        className="flex flex-1 items-center justify-center px-3 py-3 text-[12px] sm:rounded-tl-xl laptop:text-[16px] desktop:text-[18px]"
-        style={{
-          backgroundColor:
-            page !== aboutNavigationPages.whyChooseUs ? "#FFEBD5" : "#D8BCFD",
-        }}
+        className="flex flex-1 items-center justify-center px-3 py-3 text-[12px] rounded-tl-xl laptop:text-[16px] desktop:text-[18px]"
+        style={{ backgroundColor: isWhyChooseUs ? "#D8BCFD" : "#FFEBD5" }}
         href="/about/why-choose-us"
       >
-        <p className="font-bold text-primary-brown" style={{}}>
-          Why Choose Us
-        </p>
+        <p className="font-bold text-primary-brown">Why Choose Us</p>
       </Link>
+
       <Link
-        className="flex flex-1 items-center justify-center px-3 py-3 font-montserrat text-[12px] laptop:text-[16px] desktop:text-[18px]"
-        style={{
-          backgroundColor:
-            page !== aboutNavigationPages.whoWeServe ? "#FFEBD5" : "#D8BCFD",
-        }}
+        className="flex flex-1 items-center justify-center px-3 py-3 text-[12px] laptop:text-[16px] desktop:text-[18px]"
+        style={{ backgroundColor: isWhoWeServe ? "#D8BCFD" : "#FFEBD5" }}
         href="/about/who-we-serve"
       >
-        <p style={{}} className="font-bold text-primary-brown">
-          Who We Serve
-        </p>
+        <p className="font-bold text-primary-brown">Who We Serve</p>
       </Link>
+
       <Link
-        className="flex flex-1 items-center justify-center px-3 py-3 font-montserrat text-[12px] laptop:text-[16px] desktop:text-[18px]"
-        style={{
-          backgroundColor:
-            page !== aboutNavigationPages.membership ? "#FFEBD5" : "#D8BCFD",
-        }}
+        className="flex flex-1 items-center justify-center px-3 py-3 text-[12px] laptop:text-[16px] desktop:text-[18px]"
+        style={{ backgroundColor: isMembership ? "#D8BCFD" : "#FFEBD5" }}
         href="/about/membership"
       >
-        <p style={{}} className="font-bold text-primary-brown">
-          Membership
-        </p>
+        <p className="font-bold text-primary-brown">Membership</p>
       </Link>
+
       <Link
-        className="flex flex-1 items-center justify-center px-3 py-3 font-montserrat text-[12px] laptop:text-[16px] desktop:text-[18px]"
-        style={{
-          backgroundColor:
-            page !== aboutNavigationPages.scholarship ? "#FFEBD5" : "#D8BCFD",
-        }}
+        className="flex flex-1 items-center justify-center px-3 py-3 text-[12px] laptop:text-[16px] desktop:text-[18px]"
+        style={{ backgroundColor: isScholarship ? "#D8BCFD" : "#FFEBD5" }}
         href="/about/scholarship/what-is-included"
       >
-        <p style={{}} className="font-bold text-primary-brown">
-          Scholarship
-        </p>
+        <p className="font-bold text-primary-brown">Scholarship</p>
       </Link>
+
       <Link
-        className="flex flex-1 items-center justify-center px-3 py-3 font-montserrat text-[12px] sm:rounded-tr-xl laptop:text-[16px] desktop:text-[18px]"
-        style={{
-          backgroundColor:
-            page !== aboutNavigationPages.FAQs ? "#FFEBD5" : "#D8BCFD",
-        }}
+        className="flex flex-1 items-center justify-center px-3 py-3 text-[12px] rounded-tr-xl laptop:text-[16px] desktop:text-[18px]"
+        style={{ backgroundColor: isFAQs ? "#D8BCFD" : "#FFEBD5" }}
         href="/about/faqs"
       >
-        <p style={{}} className="font-bold text-primary-brown">
-          FAQs
-        </p>
+        <p className="font-bold text-primary-brown">FAQs</p>
       </Link>
     </div>
   );

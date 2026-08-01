@@ -95,6 +95,7 @@ export default function LoginForm() {
                 if (await fetchUserData()) {
                     setFailedAttempts(0);
                     setLockoutUntil(null);
+                    // ✅ FIXED: Redirect directly to dashboard upon successful login!
                     router.push("/dashboard");
                 } else {
                     setBannerError("Cannot get Profile information");
@@ -136,14 +137,14 @@ export default function LoginForm() {
                 Log In
             </h1>
 
-            {/* Increased Login Subtitle Message Font */}
+            {/* Subtitle */}
             <div className="mb-6 2xl:mt-3 2xl:mb-6">
                 <p className="text-white text-2xl 3xl:text-3xl font-medium leading-normal">
                     Log in with your The Donovan&apos;s piano room account.
                 </p>
             </div>
 
-            {/* Increased Error Banner Font & Icon Size */}
+            {/* Error Banner */}
             {bannerError && (
                 <div className="mb-6 flex items-start gap-4 rounded-2xl bg-[#FDE8E8] border border-[#F8B4B4] p-5 text-[#1C1B1F]">
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#B3261E] text-white">
@@ -155,7 +156,7 @@ export default function LoginForm() {
                         >
                             <path
                                 fillRule="evenodd"
-                                d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                                d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
                                 clipRule="evenodd"
                             />
                         </svg>
@@ -238,7 +239,6 @@ export default function LoginForm() {
                 </div>
             </form>
 
-            {/* Bottom Sign up Message Font */}
             <p className="w-full text-center text-xl 3xl:text-2xl text-white bg-primary-purple py-4 rounded-3xl mt-8 2xl:py-5 2xl:rounded-full 3xl:py-6 font-medium">
                 Don&apos;t have an account?{" "}
                 <Link href="/signup" className="text-primary-yellow underline font-semibold">

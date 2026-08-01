@@ -23,7 +23,21 @@ const nextConfig = {
         destination: `${destinationUrl}/api/:path*`
       }
     ];
-  }
+  },
+  async redirects() {
+    return [
+      {
+        source: '/bookstore', // ✅ FIX: Change '/shop' back to '/bookstore'
+        destination: '/shop',
+        permanent: true,
+      },
+      {
+        source: '/bookstore/:path*', // ✅ FIX: Change '/shop/:path*' back to '/bookstore/:path*'
+        destination: '/shop/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

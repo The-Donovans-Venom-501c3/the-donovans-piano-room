@@ -13,9 +13,9 @@ export const navigationPages = {
     home: "home",
     about: "about",
     games: "games",
-    bookstore: "bookstore",
+    shop: "shop", // ✅ UPDATED: Changed from shop: "shop"
     contact: "contact",
-    cart:"cart"
+    cart: "cart"
 }
 
 export const aboutScholarshipNavigation = {
@@ -134,4 +134,3 @@ export const mapBackendToFrontend = (backendBook: backendBookInterface): bookInt
         description: backendBook.intro,
     }
 }
-

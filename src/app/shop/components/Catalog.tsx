@@ -1,39 +1,43 @@
-'use client'
+'use client';
 import Button3 from "@/components/atoms/Button3";
 import Button4 from "@/components/atoms/Button4";
 import CatalogItems from "./CatalogItems";
 import { highlightBookAtom } from "@/utils/stores";
 import { useAtom } from "jotai";
-import { addedCartItemsAtom, useCartOperations } from "@/store/cartStore";
+import { addedCartItemAtom, useCartOperations } from "@/store/cartStore";
+import { bookInterface } from "@/interfaces/bookInterface";
 
 export default function Catalog() {
   const [highlightBook] = useAtom(highlightBookAtom);
-  const [addedCartItems, setAddedCartItems] = useAtom(addedCartItemsAtom);
+  const [, setAddedCartItem] = useAtom(addedCartItemAtom);
   const { addToCart } = useCartOperations();
-  // console.log(highlightBook);
 
   const handleAddToCart = () => {
-    // const selected_book = books.find(book => {
-    //   return book.id == highlightBook - 1
-    // });
-    // if (selected_book) {
-    // setAddedCartItems((prevItems) => {
-    //   // Check if the book is already in the cart
-    //   const existingItemIndex = prevItems.findIndex(item => item.id === selected_book.id);
+    const selectedBookNumber = highlightBook || 1;
 
-    //   if (existingItemIndex !== -1) {
-    //     // Book already in cart, update the quantity
-    //     const updatedItems = [...prevItems];
-    //     updatedItems[existingItemIndex].quantity += 1;
-    //     return updatedItems;
-    //   } else {
-    //     // Book not in cart, add it with quantity 1
-    //     return [...prevItems, { ...selected_book, quantity: 1 }];
-    //   }
-    // });
-    // addToCart()
-    // }
-  }
+    // Catalog item mapping aligned strictly with bookInterface
+    const catalogItem: bookInterface = {
+      id: `catalog-book-${selectedBookNumber}`,
+      title: `Book ${selectedBookNumber}`,
+      price: 20,
+      type: "Soft cover",
+      color: "#FFFFFF",
+      imageSrc: `/shop/books/book-${selectedBookNumber}.svg`,
+      coverImageSrc: `/shop/books/book-${selectedBookNumber}.svg`,
+      titleColor: "#000000",
+      description: "For a limited time, purchase the book and audio book together for $20!",
+    };
+
+    addToCart(catalogItem, 1);
+    setAddedCartItem(catalogItem);
+  };
+
+  const scrollToBooks = () => {
+    window.scrollTo({
+      top: window.innerHeight * 0.75,
+      behavior: 'smooth',
+    });
+  };
 
   return (
     <div className="mt-[8.8vh] flex w-full h-full justify-center bg-white">
@@ -47,13 +51,13 @@ export default function Catalog() {
               The Donovan&apos;s piano room
             </h2>
             <p
-              className=" max-sm:text-center text-xl 3xl:text-2xl 4xl:text-3xl "
+              className="max-sm:text-center text-xl 3xl:text-2xl 4xl:text-3xl"
               style={{ lineHeight: "2.4vh" }}
             >
               For a limited time, 20 people can purchase the book (plus free
               shipping) and the audio book together for only $20!
             </p>
-            <div className="">
+            <div>
               <Button3
                 text="Add to cart"
                 style={{ marginTop: "12px", marginBottom: "12px" }}
@@ -62,6 +66,7 @@ export default function Catalog() {
               <Button4
                 text="Browse all soft cover books"
                 style={{ paddingTop: "6px", paddingBottom: "6px" }}
+                onClick={scrollToBooks}
               />
             </div>
           </div>
