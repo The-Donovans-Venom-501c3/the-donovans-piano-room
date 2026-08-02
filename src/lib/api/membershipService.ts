@@ -1,10 +1,8 @@
 export async function getMembershipById({ memberId }: { memberId: string }) {
     try {
-        // Validate input
         if (!memberId) {
             throw new Error("Member ID is required.");
         }
-        // Send GET request to the backend
         const response = await fetch(`/api/membership/${memberId}`, {
             method: 'GET',
             headers: {
@@ -12,20 +10,18 @@ export async function getMembershipById({ memberId }: { memberId: string }) {
             },
             credentials: 'include',
         });
-        // Parse response
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || 'Failed to retrieve membership details');
         }
-        return data; // Return the membership details
+        return data;
     } catch (error: any) {
         throw new Error(error.message || 'An error occurred while retrieving membership details');
     }
 }
- 
+
 export async function getUserMembership() {
     try {
-        // Send GET request to the backend
         const response = await fetch('/api/membership/user', {
             method: 'GET',
             headers: {
@@ -34,7 +30,6 @@ export async function getUserMembership() {
             credentials: 'include',
         });
 
-        // parse response (json or text)
         const contentType = response.headers.get('content-type') || '';
         let data: any = null;
         if (contentType.includes('application/json')) {
@@ -43,24 +38,16 @@ export async function getUserMembership() {
             try { const text = await response.text(); data = text || null; } catch { data = null; }
         }
 
-        // successful response
         if (response.ok) {
             return data;
         }
-        // These correspond to the backend membership error codes
-        // non-active membership states
-        if (response.status === 404) {
-            return null;
-        }
-        // expired membership
-        if (response.status === 410) {
+        if (response.status === 404 || response.status === 410) {
             return null;
         }
         if (response.status === 401) {
             throw new Error('Unauthorized');
         }
 
-        // other errors
         const message = typeof data === 'object' && data?.message
             ? data.message
             : 'Failed to retrieve user membership details';
@@ -70,23 +57,21 @@ export async function getUserMembership() {
     }
 }
 
-export async function validateCouponCode(memberId: number, couponCode: string) {
+export async function validateCouponCode(memberId: number, email: string, couponCode: string) {
     try {
-        // Send GET request to the backend
-        const response = await fetch(`http://localhost:3333/api/membership/${memberId}/apply-coupon`, {
+        const response = await fetch(`/api/membership/${memberId}/apply-coupon`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json', 
             },
             credentials: 'include',
-            body: JSON.stringify({ couponCode }),
+            body: JSON.stringify({ email, couponCode }),
         });
-        // Parse response
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || 'Invalid discount code, please try again');
         }
-        return data; // Return the membership details for the authenticated user
+        return data;
     } catch (error: any) {
       throw new Error(error.message || 'An error occurred while applying coupon code');
     }
@@ -109,7 +94,6 @@ export async function getPlanInfo(levelId: string) {
             throw new Error(data.message || 'Failed to retrieve level details');
         }
         
-        // Map API response to Plan interface
         return {
             levelId: data.levelId,
             planName: data.levelId === 'lvl_free' ? "Scholarship" : data.levelId === 'lvl_month'? "Monthly" : data.levelId === 'lvl_year'? "Yearly" : "Day Pass",
@@ -171,7 +155,6 @@ export async function toggleAutoRenew() {
     }
 }
 
-// Payment Methods API functions
 export async function getPaymentMethods() {
     try {
         const response = await fetch('/api/payment-methods', {
