@@ -1,22 +1,46 @@
-import React from 'react'
-import LessonCard from './LessonCard';
-import { Lesson, lessons } from './Lesson';
+'use client';
 
-interface Props {
-  onSelectVideo: (video: Lesson) => void;
+import LessonCard from './LessonCard';
+import { Lesson } from './Lesson';
+
+interface VideosComponentProps {
+  lessons: Lesson[];
+  searchQuery: string;
+  onSelectLesson: (lesson: Lesson) => void;
 }
-export default function VideosComponent({ onSelectVideo }: Props) {
+
+export default function VideosComponent({
+  lessons,
+  searchQuery,
+  onSelectLesson,
+}: VideosComponentProps) {
+  const q = (searchQuery || '').toLowerCase().trim();
+
+  // Safe optional-chaining search filter
+  const filtered = lessons.filter((lesson) => {
+    if (!q) return true;
+    const titleMatch = lesson.title?.toLowerCase().includes(q) ?? false;
+    const descMatch = lesson.description?.toLowerCase().includes(q) ?? false;
+    return titleMatch || descMatch;
+  });
 
   return (
-    <><h2 className="text-4xl font-medium text-primary-brown mb-4">
-      Videos({lessons.length})
-    </h2>
-      <hr className="border-[1px] border-purple-200" />
-      <div className="grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-4 overflow-y-auto overflow-x-hidden w-full">
-        {lessons.map((lesson) => (
-          <LessonCard key={lesson.id} lesson={lesson} onClick={onSelectVideo} />
-        ))}
-      </div>
-    </>
-  )
+    <div className="w-full max-w-[1200px] mx-auto px-6 py-4">
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-500 font-medium text-lg">
+          No videos found matching &quot;{searchQuery}&quot;
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((lesson) => (
+            <LessonCard
+              key={lesson.id}
+              lesson={lesson}
+              onClick={() => onSelectLesson(lesson)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

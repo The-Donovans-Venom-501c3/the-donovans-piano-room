@@ -1,7 +1,13 @@
 "use client";
 
 import { validateCouponCode } from "@/lib/api/membershipService";
-import { membershipTypes, membershipChoiceAtom, couponVerifiedAtom } from "@/utils/stores";
+import { 
+  membershipTypes, 
+  membershipChoiceAtom, 
+  couponVerifiedAtom,
+  profileAtom,
+  signupFormDataAtom
+} from "@/utils/stores";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
 
@@ -71,6 +77,11 @@ function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSe
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Retrieve user email dynamically from Jotai stores
+  const formData = useAtomValue(signupFormDataAtom);
+  const profile = useAtomValue(profileAtom);
+  const userEmail = formData.email || profile.email || "";
+
   const setIsCouponVerified = useSetAtom(couponVerifiedAtom);
   const isScholarship = currentKey === membershipTypes["scholarship"];
 
@@ -89,10 +100,10 @@ function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSe
 
     try {
       setIsLoading(true);
-      const isValid = await validateCouponCode(membershipId, discountCode);
+      const isValid = await validateCouponCode(membershipId, userEmail, discountCode);
       if (isValid) {
         setStatus("success");
-        setIsCouponVerified(true); // <--- UNLOCKS THE BUTTON IN STEP 3
+        setIsCouponVerified(true);
       } else {
         setStatus("error");
         setIsCouponVerified(false);

@@ -78,7 +78,8 @@ export const hasUnreadAtom = atom<boolean>(false);
 export const showNotificationAtom = atom<boolean>(false);
 
 //*************//
-//**BOOKSTORE**//
+//**** SHOP ****//
 //*************//
 
 export const highlightBookAtom = atom<number>(2);
+export const highlightShopItemAtom = highlightBookAtom; // Alias for shop compatibility

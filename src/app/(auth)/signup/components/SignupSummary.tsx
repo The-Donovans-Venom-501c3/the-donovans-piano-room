@@ -33,9 +33,9 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
 
   const selected = membershipChoice ? membershipDetails[membershipChoice] : null;
 
-  // Fallback chain for email and name (formData -> profile -> default)
-  const userEmail = formData.email || profile.email || "vishnu.chimmri@thedonavan.org";
-  const userName = formData.fullName || profile.fullName || "Vishnu Chimmri";
+  // Fallback chain for email and name (formData -> profile -> dynamic default)
+  const userEmail = formData.email || profile.email || "";
+  const userName = formData.fullName || profile.fullName || "";
   const membershipId = selected ? selected.id : 3;
 
   // Fixed static end date regardless of sign-up timestamp

@@ -80,7 +80,7 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
             {selectingAvatar && <AvatarSelectPopup avatar={avatar} setAvatar={setAvatar} closeSelectingAvatar={closeSelectingAvatar} />}
             <div className='flex justify-center'>
                 <div className="relative flex justify-center mb-4 h-[8vh] w-[8vh]">
-                    <Image src={profile.picture} fill alt="Default Profile Picture" />
+                    <Image src={profile.picture || "/profile/Settings/Avatar default.svg"} fill alt="Default Profile Picture" />
                     <div className="absolute bottom-0 right-0 h-[3vh] w-[3vh]">
                         <Image className="cursor-pointer" src="/profile/Pencil.svg" fill alt="Edit Profile" onClick={() => setSelectingAvatar(true)} />
                     </div>

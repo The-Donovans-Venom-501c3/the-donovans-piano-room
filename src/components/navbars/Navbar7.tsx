@@ -49,11 +49,11 @@ export default function Navbar7({ page }: { page: string }) {
           </Link>
           <Link
             className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
-            style={navigationPages.bookstore === page ? highlightLink : {}}
-            href="/bookstore"
+            style={navigationPages.shop === page ? highlightLink : {}}
+            href="/shop"
           >
-            <p>BOOKSTORE</p>
-            {navigationPages.bookstore === page && displayBorder()}
+            <p>SHOP</p>
+            {navigationPages.shop === page && displayBorder()}
           </Link>
           <Link
             className="relative flex items-center text-xl font-bold text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
@@ -65,7 +65,7 @@ export default function Navbar7({ page }: { page: string }) {
           </Link>
           <Link
             className="flex items-center text-primary-purple hover:text-[#E98427]"
-            href="#"
+            href="/cart"
           >
             <ShoppingCartIconWithBadge />
           </Link>

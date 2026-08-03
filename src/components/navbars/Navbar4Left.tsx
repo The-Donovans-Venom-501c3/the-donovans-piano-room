@@ -5,10 +5,25 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Skeleton } from "@mui/material";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
 import { logout } from "@/lib/api/authService";
 import { isNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
+import { profileInterface } from "@/interfaces/profileInterface";
+
+const defaultProfile: profileInterface = {
+  id: "",
+  fullName: "",
+  displayName: "",
+  email: "",
+  phoneNumber: "",
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  picture: "",
+  DOB: "",
+  pronouns: "",
+};
 
 export default function Navbar4Left({
   openedLink = "",
@@ -17,6 +32,7 @@ export default function Navbar4Left({
 }) {
   const [isNavOpen, setIsNavOpen] = useAtom(isNavOpenAtom);
   const profile = useAtomValue(profileAtom);
+  const setProfile = useSetAtom(profileAtom);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hoverNavTimerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
@@ -24,14 +40,19 @@ export default function Navbar4Left({
   const toggleOpenNav = () => setIsNavOpen((state: boolean) => !state);
 
   const handleLogout = async () => {
-    await logout();
-    window.location.replace("/");
+    try {
+      await logout();
+    } catch (e) {
+      console.error("Failed to logout:", e);
+    } finally {
+      setProfile(defaultProfile);
+      // Directly redirect to Login page on logout
+      window.location.replace("/login");
+    }
   };
 
   const handleMouseEnter = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
+    if (timerRef.current) clearTimeout(timerRef.current);
     setIsNavOpen(true);
   };
 
@@ -41,25 +62,16 @@ export default function Navbar4Left({
     }, 800);
   };
 
-  // Clean up timeouts on unmount
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      if (hoverNavTimerRef.current) {
-        clearTimeout(hoverNavTimerRef.current);
-      }
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (hoverNavTimerRef.current) clearTimeout(hoverNavTimerRef.current);
     };
   }, []);
 
-  // Hover Navigation Handler with 300ms delay to prevent accidental routing
   const handleMouseEnterLink = (path: string, disabled?: boolean) => {
     if (disabled || !path) return;
-    
-    if (hoverNavTimerRef.current) {
-      clearTimeout(hoverNavTimerRef.current);
-    }
+    if (hoverNavTimerRef.current) clearTimeout(hoverNavTimerRef.current);
 
     hoverNavTimerRef.current = setTimeout(() => {
       router.push(path);
@@ -67,14 +79,11 @@ export default function Navbar4Left({
   };
 
   const handleMouseLeaveLink = () => {
-    if (hoverNavTimerRef.current) {
-      clearTimeout(hoverNavTimerRef.current);
-    }
+    if (hoverNavTimerRef.current) clearTimeout(hoverNavTimerRef.current);
   };
 
   const linkDynamicStyle = { justifyContent: isNavOpen ? "start" : "center" };
 
-  // Menu items configuration
   const navItems = [
     {
       href: "/dashboard",
@@ -133,20 +142,26 @@ export default function Navbar4Left({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Top Header Section */}
-      <div className="flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
-        {isNavOpen ? (
-          <div className="relative h-[60%] w-[80%]">
-            <Image src="/navbar/Logo2.svg" fill alt="Logo" />
-          </div>
-        ) : (
-          <div className="relative h-[60%] w-[60%]">
-            <Image src="/navbar/MiniLogo.svg" fill alt="Mini Logo" />
-          </div>
-        )}
+      {/* Top Header Section with Logo Click Navigation */}
+      <div className="relative flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
+        <Link 
+          href="/" 
+          className="flex h-full w-full items-center justify-center cursor-pointer transition-opacity hover:opacity-90"
+        >
+          {isNavOpen ? (
+            <div className="relative h-[60%] w-[80%]">
+              <Image src="/navbar/Logo2.svg" fill alt="Logo" />
+            </div>
+          ) : (
+            <div className="relative h-[60%] w-[60%]">
+              <Image src="/navbar/MiniLogo.svg" fill alt="Mini Logo" />
+            </div>
+          )}
+        </Link>
 
+        {/* Toggle Nav Expand/Collapse Button */}
         <div
-          className={`absolute top-[6vh] cursor-pointer transition-all duration-300 ease-in-out ${
+          className={`absolute top-[6vh] z-10 cursor-pointer transition-all duration-300 ease-in-out ${
             isNavOpen ? "left-[15.5vw]" : "left-[6vw]"
           }`}
           onClick={toggleOpenNav}
@@ -179,7 +194,11 @@ export default function Navbar4Left({
               onMouseLeave={handleMouseLeaveLink}
             >
               <div className="relative h-[8vh] w-[8vh] shrink-0">
-                <Image src={profile.picture} fill alt="Profile Picture" />
+                <Image 
+                  src={profile.picture || "/profile/Settings/Avatar%20default.svg"} 
+                  fill 
+                  alt="Profile Picture" 
+                />
               </div>
               <p
                 className="mt-[1vh] w-full font-montserrat text-4xl font-bold text-white 3xl:text-5xl 4xl:text-6xl truncate leading-normal"
@@ -196,7 +215,6 @@ export default function Navbar4Left({
                 })()}
               </p>
 
-              {/* Profile Edit line */}
               <div
                 className="mt-[0.5vh] flex items-center w-full h-[32px] text-xl font-bold text-white 3xl:text-2xl 4xl:text-3xl leading-none"
                 style={{ justifyContent: isNavOpen ? "flex-start" : "center" }}
@@ -215,18 +233,8 @@ export default function Navbar4Left({
           ) : (
             <div className="flex flex-col items-center w-full">
               <Skeleton variant="rectangular" width={52} height={52} />
-              <Skeleton
-                variant="rectangular"
-                width={40}
-                height={10}
-                className="mt-[1vh]"
-              />
-              <Skeleton
-                variant="rectangular"
-                width={40}
-                height={10}
-                className="mt-[0.5vh]"
-              />
+              <Skeleton variant="rectangular" width={40} height={10} className="mt-[1vh]" />
+              <Skeleton variant="rectangular" width={40} height={10} className="mt-[0.5vh]" />
             </div>
           )}
 
@@ -236,8 +244,8 @@ export default function Navbar4Left({
               const isActive = openedLink === item.key;
               const linkContent = (
                 <div
-                  className={`flex h-[8vh] w-full items-center rounded-2xl border border-[#F5E8FF] bg-white transition-all ${
-                    item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                  className={`flex h-[8vh] w-full items-center rounded-2xl border transition-all ${
+                    item.disabled ? "opacity-50 cursor-not-allowed bg-white" : "cursor-pointer bg-white"
                   }`}
                   style={{
                     ...(isActive
@@ -246,7 +254,10 @@ export default function Navbar4Left({
                           backgroundColor: "#F6E892",
                           ...linkDynamicStyle,
                         }
-                      : linkDynamicStyle),
+                      : {
+                          borderColor: "#F5E8FF",
+                          ...linkDynamicStyle,
+                        }),
                     ...(item.disabled ? { filter: "grayscale(90%)" } : {}),
                   }}
                   onMouseEnter={() => handleMouseEnterLink(item.href, item.disabled)}

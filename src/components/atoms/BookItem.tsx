@@ -31,7 +31,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
       <div className="flex w-full justify-between pt-1">
         <div className="flex items-center gap-[2%]">
           <div className="relative h-[2.5vh] w-[2.5vh]">
-            <Image src="/bookstore/dollar-icon.svg" fill alt="" />
+            <Image src="/shop/dollar-icon.svg" fill alt="" />
           </div>
           <p className="text-lg font-semibold text-primary-brown 3xl:text-[14px] 4xl:text-[16px]">
             {book.price}
@@ -59,7 +59,7 @@ export default function BookItem({ book }: { book: bookInterface }) {
       </p>
       <p className="text-xl 2xl:text-2xl 3xl:text-3xl">{book.description}</p>
       <Link
-        href={"/bookstore/" + book.id}
+        href={"/shop/" + book.id}
         className="mb-[10%] flex items-center gap-[1%]"
       >
         <p className="text-xl font-bold text-primary-purple underline 2xl:text-2xl 3xl:text-3xl">

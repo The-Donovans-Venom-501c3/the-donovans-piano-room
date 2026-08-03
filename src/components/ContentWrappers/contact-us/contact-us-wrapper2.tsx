@@ -1,11 +1,11 @@
-import React from 'react'
-import BackgroundContactUs from './background-contact-us'
+"use client";
+
+import React from 'react';
+import BackgroundContactUs from './background-contact-us';
 import { nav4leftLinks } from "@/utils/stores";
 import Navbar4Left from "../../navbars/Navbar4Left";
-import { useAtomValue } from "jotai";
-import { profileAtom } from "@/utils/stores";
-import Image from "next/image";
 import Footer5 from "@/components/footers/Footer5";
+import Profile from "@/components/atoms/Profile"; // Import your working Profile atom
 
 export default function ContactUsContentWrapper({
   children,
@@ -14,8 +14,6 @@ export default function ContactUsContentWrapper({
   children: React.ReactNode,
   openedLink?: string
 }) {
-  const profile = useAtomValue(profileAtom)
-
   return (
     <div className="flex w-screen h-screen bg-[#8B24CC] relative overflow-hidden">
       {/* Sidebar */}
@@ -29,20 +27,9 @@ export default function ContactUsContentWrapper({
             <h1 className="text-white text-5xl 3xl:text-6xl 4xl:text-7xl font-montserrat font-medium">
               Contact
             </h1>
-            {profile && (
-              <div className="bg-[#FED2AA] p-3 rounded-full flex items-center gap-[.5vw]">
-                <div className="relative h-[3vh] w-[3vh]">
-                  <Image
-                    src={profile.picture || "/default-avatar.png"}
-                    fill
-                    alt="Profile"
-                  />
-                </div>
-                <p className="text-2xl 3xl:text-3xl 4xl:text-4xl font-medium">
-                  {profile.fullName}
-                </p>
-              </div>
-            )}
+            
+            {/* ✅ FIXED: Replaced custom broken image div with shared Profile component */}
+            <Profile />
           </div>
         </div>
 

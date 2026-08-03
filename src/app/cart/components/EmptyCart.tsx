@@ -10,7 +10,7 @@ export default function EmptyCart() {
         Your shopping cart is currently empty
       </h3>
       <p className=" text-xl 3xl:text-2xl 4xl:text-3xl">
-        Go back to the bookstore and start shopping
+        Go back to the shop and start shopping
       </p>
       <button className=" rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white">
         Start shopping

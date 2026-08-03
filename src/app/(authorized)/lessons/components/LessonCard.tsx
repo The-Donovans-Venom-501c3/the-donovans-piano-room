@@ -1,65 +1,70 @@
+'use client';
+
 import Image from 'next/image';
 import { Lesson } from './Lesson';
-import Card from '@/components/atoms/Card';
 
 interface Props {
   lesson: Lesson;
-  onClick?: (lesson: Lesson) => void;
+  isSelected?: boolean;
+  onClick: (lesson: Lesson) => void;
 }
 
-export default function LessonCard({ lesson, onClick }: Props) {
+export default function LessonCard({ lesson, isSelected = false, onClick }: Props) {
   return (
-    <Card width={350} height={380}>
-      <div className="relative">
+    <div
+      onClick={() => onClick(lesson)}
+      className={`group relative w-full rounded-[24px] p-5 cursor-pointer transition-all duration-200 border ${
+        isSelected
+          ? 'bg-[#EBDDFB] border-[#8C30E8]'
+          : 'bg-white border-[#EADBF8] hover:border-[#D1A0FF] hover:bg-[#FAF3FF]'
+      }`}
+    >
+      {/* Thumbnail Container */}
+      <div className="relative w-full aspect-[16/9] rounded-[18px] overflow-hidden bg-purple-100">
         <Image
-          className='justify-self-center rounded-xl mt-4'
           src={lesson.thumbnailUrl}
           alt={lesson.title}
-          height='180' width='318'
-
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
       </div>
 
-      {/* Content */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      {/* Content with Increased Font Sizes */}
+      <div className="mt-5 flex flex-col justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-secondary-brown">{lesson.title}</h2>
+          <h3 className="text-lg md:text-xl font-bold text-[#3B1559] line-clamp-1">
+            {lesson.title}
+          </h3>
+          <p className="mt-2 text-sm md:text-base text-[#5A4F60] line-clamp-2 leading-relaxed">
+            {lesson.description}
+          </p>
         </div>
-        <div className='flex flex-row justify-between'>
-          <div>
-            <h4 className="mt-2 text-gray-900 text-lg text-wrap" title={lesson.description}>{lesson.description}</h4>
+
+        {/* Footer Meta */}
+        <div className="mt-5 pt-4 border-t border-[#E8DAF7] flex items-center justify-between">
+          <div className="flex items-center gap-4 text-sm font-semibold text-[#7A6E82]">
+            <span>{lesson.duration}</span>
+            <span>•</span>
+            <span>{lesson.meta}</span>
           </div>
-          {/* Arrow button & divider */}
-          <div className="mt-4">
-            <div>
-              {/* Arrow button with layered SVGs */}
-              <div className="mt-4">
-                <div className="relative w-10 h-10 ">
-                  <button onClick={() => onClick?.(lesson)}>
-                    {/* Purple circle background */}
-                    <Image width={30} height={30}
-                      src="/lessons/Videos/Purple Circle Button.svg"
-                      alt="circle"
-                    />
-                    {/* White chevron centered */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Image alt="learn more" width={16} height={16}
-                        src="/lessons/Videos/fluent_chevron-up-16-filled.svg"
-                      />
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
+
+          <div className="w-9 h-9 rounded-full bg-[#6F219E] group-hover:bg-[#591880] flex items-center justify-center transition-colors shadow-xs">
+            <svg
+              className="w-4 h-4 text-white translate-x-[0.5px]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
           </div>
-        </div>
-        <hr className="mt-4 border-purple-300 group-hover:border-primary-purple cursor-pointer" />
-        {/* Footer */}
-        <div className="mt-4 flex justify-between text-m text-gray-600">
-          <span>{lesson.duration}</span>
-          <span>{lesson.meta}</span>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
