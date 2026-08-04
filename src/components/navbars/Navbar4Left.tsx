@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Skeleton } from "@mui/material";
@@ -19,9 +18,6 @@ export default function Navbar4Left({
   const [isNavOpen, setIsNavOpen] = useAtom(isNavOpenAtom);
   const profile = useAtomValue(profileAtom) as profileInterface | null;
   const setProfile = useSetAtom(profileAtom);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const hoverNavTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
 
   const toggleOpenNav = () => setIsNavOpen((state: boolean) => !state);
 
@@ -40,37 +36,6 @@ export default function Navbar4Left({
         window.location.replace("/login");
       }
     }
-  };
-
-  const handleMouseEnter = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setIsNavOpen(true);
-  };
-
-  const handleMouseLeave = () => {
-    timerRef.current = setTimeout(() => {
-      setIsNavOpen(false);
-    }, 800);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (hoverNavTimerRef.current) clearTimeout(hoverNavTimerRef.current);
-    };
-  }, []);
-
-  const handleMouseEnterLink = (path: string, disabled?: boolean) => {
-    if (disabled || !path) return;
-    if (hoverNavTimerRef.current) clearTimeout(hoverNavTimerRef.current);
-
-    hoverNavTimerRef.current = setTimeout(() => {
-      router.push(path);
-    }, 300);
-  };
-
-  const handleMouseLeaveLink = () => {
-    if (hoverNavTimerRef.current) clearTimeout(hoverNavTimerRef.current);
   };
 
   const linkDynamicStyle = { justifyContent: isNavOpen ? "start" : "center" };
@@ -130,8 +95,6 @@ export default function Navbar4Left({
     <div
       className="relative z-50 h-[100vh] transition-all duration-300 ease-in-out"
       style={{ width: isNavOpen ? "20vw" : "8vw" }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       {/* Top Header Section */}
       <div className="relative flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
@@ -178,11 +141,7 @@ export default function Navbar4Left({
         >
           {/* User Profile Info */}
           {profile?.id ? (
-            <div 
-              className="flex flex-col items-center w-full cursor-pointer"
-              onMouseEnter={() => handleMouseEnterLink("/account/settings/profile")}
-              onMouseLeave={handleMouseLeaveLink}
-            >
+            <div className="flex flex-col items-center w-full cursor-pointer">
               <div className="relative h-[8vh] w-[8vh] shrink-0">
                 <Image 
                   src={profile.picture || "/profile/Settings/Avatar%20default.svg"} 
@@ -253,8 +212,6 @@ export default function Navbar4Left({
                         }),
                     ...(item.disabled ? { filter: "grayscale(90%)" } : {}),
                   }}
-                  onMouseEnter={() => handleMouseEnterLink(item.href, item.disabled)}
-                  onMouseLeave={handleMouseLeaveLink}
                 >
                   <div
                     className="relative h-[4vh] w-[4vh]"
