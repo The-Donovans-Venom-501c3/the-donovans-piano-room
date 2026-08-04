@@ -15,7 +15,10 @@ import VerificationCodeInput from './VerificationCodeInput';
 
 export default function EmailVerificationForm({ setToIsVerified }: { setToIsVerified: () => void }) {
     const [verificationCode, setVerificationCode] = useState<string[]>(Array(6).fill(''));
-    const { email } = useAtomValue(profileAtom);
+    
+    // SAFE ACCESS: Fixes the TypeScript build error
+    const profile = useAtomValue(profileAtom);
+    const email = profile?.email || '';
     
     const [resendBtnTimer, setResendBtnTimeLeft] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -35,6 +38,11 @@ export default function EmailVerificationForm({ setToIsVerified }: { setToIsVeri
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
         setApiError(null);
+
+        if (!email) {
+            setApiError('User email not found. Please log in or register again.');
+            return;
+        }
 
         const otp = verificationCode.join('');
 
@@ -106,6 +114,11 @@ export default function EmailVerificationForm({ setToIsVerified }: { setToIsVeri
     };
 
     const sendNewCode = async () => {
+        if (!email) {
+            setApiError('User email not found. Please register again.');
+            return;
+        }
+
         setLoading(true);
         setApiError(null);
         resetVerificationInputs(); // Reset OTP fields when asking for a new code
@@ -130,7 +143,7 @@ export default function EmailVerificationForm({ setToIsVerified }: { setToIsVeri
             {/* Header Email Subtext */}
             <p className="mt-2 text-white text-lg font-medium mb-6">
                 Enter the verification 6 digit-code we sent to{' '}
-                <span className="font-bold underline">{email}</span>
+                <span className="font-bold underline">{email || 'your email'}</span>
             </p>
 
             {/* Timer / Error Banner */}

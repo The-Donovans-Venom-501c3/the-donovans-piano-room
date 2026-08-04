@@ -69,8 +69,9 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
     const monthIndex = months.indexOf(selectedMonth);
 
     const profile = useAtomValue(profileAtom)
-    const [avatar, setAvatar] = useState(profile.picture)
+    const [avatar, setAvatar] = useState(profile?.picture || "")
     const [selectingAvatar, setSelectingAvatar] = useState(false)
+    
     const closeSelectingAvatar = () => {
         setSelectingAvatar(false)
     }
@@ -80,14 +81,14 @@ export default function Calender({ highlightedDays }: { highlightedDays: string[
             {selectingAvatar && <AvatarSelectPopup avatar={avatar} setAvatar={setAvatar} closeSelectingAvatar={closeSelectingAvatar} />}
             <div className='flex justify-center'>
                 <div className="relative flex justify-center mb-4 h-[8vh] w-[8vh]">
-                    <Image src={profile.picture || "/profile/Settings/Avatar default.svg"} fill alt="Default Profile Picture" />
+                    <Image src={profile?.picture || "/profile/Settings/Avatar default.svg"} fill alt="Default Profile Picture" />
                     <div className="absolute bottom-0 right-0 h-[3vh] w-[3vh]">
                         <Image className="cursor-pointer" src="/profile/Pencil.svg" fill alt="Edit Profile" onClick={() => setSelectingAvatar(true)} />
                     </div>
                 </div>
             </div>
             <div className="text-center">
-                <h2 className="text-4xl 3xl:text-5xl 4xl:text-6xl text-primary-brown">{profile.fullName}</h2>
+                <h2 className="text-4xl 3xl:text-5xl 4xl:text-6xl text-primary-brown">{profile?.fullName || ''}</h2>
                 <a href="#" className="underline text-lg 3xl:text-xl 4xl:text-2xl text-primary-purple">Monthly Membership</a>
                 <div className="mt-4 px-14 text-xl 3xl:text-2xl 4xl:text-3xl">
                     <div className="flex items-center justify-between">

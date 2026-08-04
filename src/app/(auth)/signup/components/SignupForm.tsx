@@ -56,11 +56,13 @@ export default function SignupForm() {
 
     const { data, ok } = await signup(fullName, email, password);
     if (ok) {
-      setProfileAtom((obj: profileInterface) => ({
-        ...obj,
+      // ✅ Handle null state when initializing profileAtom during signup
+      setProfileAtom((obj: profileInterface | null) => ({
+        ...(obj || {}),
         fullName: fullName,
         email: email,
-      }));
+      } as profileInterface));
+      
       setSignupStep((prev) => prev + 1);
     } else {
       console.log("Failed");
@@ -92,10 +94,6 @@ export default function SignupForm() {
   ]);
 
   return (
-    /* 
-      Matching the Login form width (w-[24vw] / max-w-[440px]) centers 
-      the entire signup column directly over the dark organic doodle background.
-    */
     <div className="w-[24vw] min-w-[340px] max-w-[440px] 3xl:w-[26vw] mx-auto flex flex-col justify-center text-left">
       <SignupHeader
         navName="Home"
@@ -214,7 +212,6 @@ export default function SignupForm() {
         </div>
       </form>
 
-      {/* Increased font size slightly here */}
       <p className="w-full text-center text-lg md:text-xl text-white py-4 mt-2 font-medium">
         Already have an account?{" "}
         <Link href="/login" className="text-primary-yellow underline font-semibold">

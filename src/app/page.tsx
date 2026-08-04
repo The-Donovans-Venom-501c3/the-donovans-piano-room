@@ -11,7 +11,9 @@ import { profileAtom } from "@/utils/stores";
 
 export default function Home() {
   const profile = useAtomValue(profileAtom);
-  const isLoggedIn = Boolean(profile.id);
+  
+  // ✅ Optional chaining prevents reading properties of null
+  const isLoggedIn = Boolean(profile?.id);
 
   return (
     <>

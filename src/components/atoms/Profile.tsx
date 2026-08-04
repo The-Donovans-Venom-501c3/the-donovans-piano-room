@@ -13,7 +13,7 @@ interface ProfileProps {
 }
 
 export default function Profile({ showGreeting = false }: ProfileProps) {
-  const profile: profileInterface = useAtomValue(profileAtom);
+  const profile: profileInterface | null = useAtomValue(profileAtom);
   const setProfile = useSetAtom(profileAtom);
   const [isOpen, setIsOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -39,9 +39,17 @@ export default function Profile({ showGreeting = false }: ProfileProps) {
     } catch (e) {
       console.error("Failed to logout:", e);
     } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.replace("/login");
+      // 1. Reset Jotai state memory immediately
+      setProfile(null);
+
+      // 2. Clear local & session storage
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // 3. Force page reload to clear cached route states and redirect
+        window.location.href = "/login";
+      }
     }
   };
 

@@ -11,27 +11,13 @@ import { logout } from "@/lib/api/authService";
 import { isNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
 import { profileInterface } from "@/interfaces/profileInterface";
 
-const defaultProfile: profileInterface = {
-  id: "",
-  fullName: "",
-  displayName: "",
-  email: "",
-  phoneNumber: "",
-  firstName: "",
-  middleName: "",
-  lastName: "",
-  picture: "",
-  DOB: "",
-  pronouns: "",
-};
-
 export default function Navbar4Left({
   openedLink = "",
 }: {
   openedLink: string;
 }) {
   const [isNavOpen, setIsNavOpen] = useAtom(isNavOpenAtom);
-  const profile = useAtomValue(profileAtom);
+  const profile = useAtomValue(profileAtom) as profileInterface | null;
   const setProfile = useSetAtom(profileAtom);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hoverNavTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -45,9 +31,14 @@ export default function Navbar4Left({
     } catch (e) {
       console.error("Failed to logout:", e);
     } finally {
-      setProfile(defaultProfile);
-      // Directly redirect to Login page on logout
-      window.location.replace("/login");
+      // 💡 Clear Jotai state
+      setProfile(null);
+      // 💡 Flush storages & force a history replace
+      if (typeof window !== "undefined") {
+        window.sessionStorage.clear();
+        window.localStorage.clear();
+        window.location.replace("/login");
+      }
     }
   };
 
@@ -142,7 +133,7 @@ export default function Navbar4Left({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Top Header Section with Logo Click Navigation */}
+      {/* Top Header Section */}
       <div className="relative flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
         <Link 
           href="/" 
@@ -159,7 +150,6 @@ export default function Navbar4Left({
           )}
         </Link>
 
-        {/* Toggle Nav Expand/Collapse Button */}
         <div
           className={`absolute top-[6vh] z-10 cursor-pointer transition-all duration-300 ease-in-out ${
             isNavOpen ? "left-[15.5vw]" : "left-[6vw]"
@@ -180,14 +170,14 @@ export default function Navbar4Left({
         </div>
       </div>
 
-      {/* Main Content & Navigation Section */}
+      {/* Main Sidebar Section */}
       <div className="flex h-[79vh] w-full justify-center bg-primary-purple">
         <div
           className="mt-[5vh] h-[80%]"
           style={{ width: isNavOpen ? "80%" : "50%" }}
         >
-          {/* User Profile */}
-          {profile.id ? (
+          {/* User Profile Info */}
+          {profile?.id ? (
             <div 
               className="flex flex-col items-center w-full cursor-pointer"
               onMouseEnter={() => handleMouseEnterLink("/account/settings/profile")}
@@ -205,13 +195,16 @@ export default function Navbar4Left({
                 style={{ textAlign: isNavOpen ? "start" : "center" }}
               >
                 {(() => {
-                  const hasSpace = profile.fullName.indexOf(" ") !== -1;
+                  const currentProfile = profile;
+                  if (!currentProfile?.fullName) return "";
+                  const fullName = currentProfile.fullName;
+                  const hasSpace = fullName.indexOf(" ") !== -1;
                   const str =
-                    profile.fullName[0] +
+                    fullName[0] +
                     (hasSpace
-                      ? " " + profile.fullName[profile.fullName.indexOf(" ") + 1]
+                      ? " " + fullName[fullName.indexOf(" ") + 1]
                       : "");
-                  return isNavOpen ? profile.fullName : str;
+                  return isNavOpen ? fullName : str;
                 })()}
               </p>
 
@@ -238,7 +231,7 @@ export default function Navbar4Left({
             </div>
           )}
 
-          {/* Navigation Links */}
+          {/* Navigation Items */}
           <div className="mt-[1vh] flex flex-col gap-[1vh]">
             {navItems.map((item) => {
               const isActive = openedLink === item.key;
@@ -306,7 +299,7 @@ export default function Navbar4Left({
         </div>
       </div>
 
-      {/* Footer Section / Logout Button */}
+      {/* Footer Section / Logout Action */}
       <div className="flex h-[9vh] w-full items-center justify-center rounded-br-[20px] bg-[#601d86]">
         <div style={{ width: isNavOpen ? "80%" : "50%" }}>
           <button

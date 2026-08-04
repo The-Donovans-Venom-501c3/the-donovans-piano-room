@@ -77,10 +77,10 @@ function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSe
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Retrieve user email dynamically from Jotai stores
+  // Safely retrieve user email dynamically using optional chaining
   const formData = useAtomValue(signupFormDataAtom);
   const profile = useAtomValue(profileAtom);
-  const userEmail = formData.email || profile.email || "";
+  const userEmail = formData?.email || profile?.email || "";
 
   const setIsCouponVerified = useSetAtom(couponVerifiedAtom);
   const isScholarship = currentKey === membershipTypes["scholarship"];
