@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 
 interface LiveSessionsComponentProps {
@@ -13,6 +13,7 @@ interface LiveSessionsComponentProps {
   youtubeVideoId?: string;
   youtubeChannelId?: string;
   apiKey?: string;
+  searchQuery?: string; // <-- Added searchQuery to interface
 }
 
 type SidePanelTab = "people" | "chat" | "react" | "poll" | null;
@@ -50,6 +51,7 @@ export default function LiveSessionsComponent({
   youtubeVideoId,
   youtubeChannelId = "UCHaJE4kPmB9jqlUbbi-sHXA",
   apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY,
+  searchQuery, // <-- Destructured searchQuery prop
 }: LiveSessionsComponentProps) {
   const YOUTUBE_CHANNEL_URL = "https://www.youtube.com/@TDV501C3";
 
@@ -89,42 +91,42 @@ export default function LiveSessionsComponent({
   }, [isJoined, currentUser]);
 
   // CHECK YOUTUBE LIVE STATUS
-  useEffect(() => {
-    async function checkYouTubeLiveStatus() {
-      if (!apiKey) {
-        setIsLiveOnYouTube(false);
-        return;
-      }
-
-      try {
-        const res = await fetch(
-          `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${youtubeChannelId}&type=video&eventType=live&key=${apiKey}`
-        );
-        const data = await res.json();
-
-        if (data.items && data.items.length > 0) {
-          setActiveVideoId(data.items[0].id.videoId);
-          setIsLiveOnYouTube(true);
-        } else {
-          setIsLiveOnYouTube(false);
-        }
-      } catch (err) {
-        console.error("Error checking YouTube stream:", err);
-        setIsLiveOnYouTube(false);
-      }
+  const checkYouTubeLiveStatus = useCallback(async () => {
+    if (!apiKey) {
+      setIsLiveOnYouTube(false);
+      return;
     }
 
+    try {
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${youtubeChannelId}&type=video&eventType=live&key=${apiKey}`
+      );
+      const data = await res.json();
+
+      if (data.items && data.items.length > 0) {
+        setActiveVideoId(data.items[0].id.videoId);
+        setIsLiveOnYouTube(true);
+      } else {
+        setIsLiveOnYouTube(false);
+      }
+    } catch (err) {
+      console.error("Error checking YouTube stream:", err);
+      setIsLiveOnYouTube(false);
+    }
+  }, [apiKey, youtubeChannelId]);
+
+  useEffect(() => {
     checkYouTubeLiveStatus();
     const interval = setInterval(checkYouTubeLiveStatus, 20000);
     return () => clearInterval(interval);
-  }, [youtubeChannelId, apiKey]);
+  }, [checkYouTubeLiveStatus]);
 
-  const getEmbedUrl = () => {
+  const embedUrl = useMemo(() => {
     if (activeVideoId) {
       return `https://www.youtube.com/embed/${activeVideoId}?autoplay=1&enablejsapi=1`;
     }
     return `https://www.youtube.com/embed/live_stream?channel=${youtubeChannelId}&autoplay=1`;
-  };
+  }, [activeVideoId, youtubeChannelId]);
 
   const triggerReaction = (emoji: string) => {
     const newId = Date.now() + Math.random();
@@ -210,7 +212,7 @@ export default function LiveSessionsComponent({
             {/* VIDEO PLAYER CONTAINER */}
             <div className="relative flex-1 w-full bg-black rounded-3xl overflow-hidden shadow-xl h-full">
               <iframe
-                src={getEmbedUrl()}
+                src={embedUrl}
                 title="Live Stream"
                 className="absolute top-0 left-0 w-full h-full object-cover"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
