@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { profileInterface } from "@/interfaces/profileInterface";
 
 ///////////////
@@ -8,7 +8,6 @@ import { profileInterface } from "@/interfaces/profileInterface";
 
 export const signupStepAtom = atom<number>(1);
 
-// Form Data Store (Full Name, Email, Scholarship Code, etc.)
 export const signupFormDataAtom = atom({
     fullName: "",
     email: "",
@@ -18,23 +17,19 @@ export const signupFormDataAtom = atom({
     endDate: "September 25, 2026",
 });
 
-// Coupon verification status for step 3
 export const couponVerifiedAtom = atom<boolean>(false);
-
-// Membership
 export const membershipChoiceAtom = atom<string>("");
 
 export const membershipTypes = {
     "24-hours": "24-hours",
     "yearly-access": "yearly-access",
     "monthly-access": "monthly-access",
-    "basic-access": "basic-access", // <-- Added key to resolve TS7053
+    "basic-access": "basic-access",
     scholarship: "scholarship",
 } as const;
 
 export type MembershipType = typeof membershipTypes[keyof typeof membershipTypes];
 
-// Forgot Password / Reset Password
 export const forgotPasswordStepAtom = atom<number>(1);
 export const resetPasswordStepAtom = atom<number>(1);
 
@@ -42,22 +37,23 @@ export const resetPasswordStepAtom = atom<number>(1);
 //***** AUTH *****//
 //****************//
 
-export const profileAtom = atomWithStorage<profileInterface>("profile", {
-    id: "",
-    fullName: "",
-    displayName: "",
-    email: "",
-    phoneNumber: "",
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    picture: "",
-    DOB: "",
-    pronouns: "",
-});
+export const profileAtom = atomWithStorage<profileInterface | null>(
+    "profile",
+    null,
+    createJSONStorage(() => sessionStorage)
+);
 
-export const lockoutUntilAtom = atomWithStorage<number | null>("lockout_until", null);
-export const failedAttemptsAtom = atomWithStorage<number>("failed_attempts", 0);
+export const lockoutUntilAtom = atomWithStorage<number | null>(
+    "lockout_until",
+    null,
+    createJSONStorage(() => sessionStorage)
+);
+
+export const failedAttemptsAtom = atomWithStorage<number>(
+    "failed_attempts",
+    0,
+    createJSONStorage(() => sessionStorage)
+);
 
 //////////////
 ///// NAV ////
@@ -82,4 +78,4 @@ export const showNotificationAtom = atom<boolean>(false);
 //*************//
 
 export const highlightBookAtom = atom<number>(2);
-export const highlightShopItemAtom = highlightBookAtom; // Alias for shop compatibility
+export const highlightShopItemAtom = highlightBookAtom;

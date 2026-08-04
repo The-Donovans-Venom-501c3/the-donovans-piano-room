@@ -7,10 +7,17 @@ import ShoppingCartIconWithBadge from "@/app/cart/components/ShoppingCartIconWit
 import { useAtomValue } from "jotai";
 import { profileAtom } from "@/utils/stores";
 import Profile from "@/components/atoms/Profile";
+import { useEffect, useState } from "react";
 
 export default function Navbar1({ page }: { page: string }) {
   const profile = useAtomValue(profileAtom);
-  const isLoggedIn = Boolean(profile?.id);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const isLoggedIn = Boolean(isMounted && profile?.id);
 
   const highlightLink = { color: "#DA6A1C" };
   const displayBorder = () => (
@@ -92,7 +99,7 @@ export default function Navbar1({ page }: { page: string }) {
           ) : (
             <Link
               className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
-              href="/signup"
+              href="/login"
             >
               Log in or register
             </Link>

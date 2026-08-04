@@ -60,6 +60,7 @@ export const login = async (email: string, password: string): Promise<ApiRespons
         const response = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include", // 👈 Crucial: ensures cookies from backend response are saved
             body: JSON.stringify({ email, password })
         });
         const data = await response.json().catch(() => null);

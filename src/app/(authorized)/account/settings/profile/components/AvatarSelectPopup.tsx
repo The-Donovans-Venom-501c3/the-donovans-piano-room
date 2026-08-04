@@ -31,9 +31,9 @@ export default function AvatarSelectPopup({ avatar, setAvatar, closeSelectingAva
     }
   };
 
-
   const submitNewAvatar = async () => {
     try {
+      if (!profile?.email) return;
       const { data, ok } = await updateUser({ picture: selectedAvatar, email: profile.email });
       if (ok) {
         setProfile((prev: any) => ({
@@ -54,7 +54,7 @@ export default function AvatarSelectPopup({ avatar, setAvatar, closeSelectingAva
       <div ref={popupRef} className="absolute w-[30vw] h-[60vh] bg-primary-skin rounded-2xl bottom-[15vh] right-[5vw] px-[2vw] py-[3vh] overflow-y-auto " style={avatar !== selectedAvatar ? { height: "60vh" } : {}}>
         <div className="flex justify-between">
           <p className='text-3xl 3xl:text-4xl 4xl:text-5xl'>Select your avatar</p>
-          <CloseIcon className='text-4xl 3xl:text-5xl 4xl:text-6xl' onClick={closeSelectingAvatar} />
+          <CloseIcon className='text-4xl 3xl:text-5xl 4xl:text-6xl cursor-pointer' onClick={closeSelectingAvatar} />
         </div>
         <div className='grid grid-cols-3 grid-rows-2 mt-[3vh] gap-4'>
           {avatarList.map((avatarItem: AvatarItem) => (
@@ -105,11 +105,11 @@ const avatarList: AvatarItem[] = [
   { id: 6, path: "/profile/Settings/Avatar 6.svg", name: "Avatar 6" },
   { id: 7, path: "/profile/Settings/Avatar 7.svg", name: "Avatar 7" },
   { id: 8, path: "/profile/Settings/Avatar 8.svg", name: "Avatar 8" },
-  { id: 8, path: "/profile/Settings/Avatar 9.svg", name: "Avatar 9" },
+  { id: 9, path: "/profile/Settings/Avatar 9.svg", name: "Avatar 9" },
   { id: 10, path: "/profile/Settings/Avatar 10.svg", name: "Avatar 10" },
-    { id: 11, path: "/profile/Settings/Avatar 11.svg", name: "Avatar 11" },
-    { id: 12, path: "/profile/Settings/Avatar 12.svg", name: "Avatar 12" },
-    { id: 13, path: "/profile/Settings/Avatar 13.svg", name: "Avatar 13" },
-    { id: 14, path: "/profile/Settings/Avatar 14.svg", name: "Avatar 14" },
-    { id: 15, path: "/profile/Settings/Avatar 15.svg", name: "Avatar 15" }
+  { id: 11, path: "/profile/Settings/Avatar 11.svg", name: "Avatar 11" },
+  { id: 12, path: "/profile/Settings/Avatar 12.svg", name: "Avatar 12" },
+  { id: 13, path: "/profile/Settings/Avatar 13.svg", name: "Avatar 13" },
+  { id: 14, path: "/profile/Settings/Avatar 14.svg", name: "Avatar 14" },
+  { id: 15, path: "/profile/Settings/Avatar 15.svg", name: "Avatar 15" }
 ];

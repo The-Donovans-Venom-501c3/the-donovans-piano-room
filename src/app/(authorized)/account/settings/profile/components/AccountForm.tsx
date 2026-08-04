@@ -26,6 +26,15 @@ export default function AccountForm() {
             setError('')
         }
 
+        // Restrict Phone Number input to digits only
+        if (name === 'phoneNumber') {
+            const numericValue = value.replace(/\D/g, ''); // Strips all non-digit characters
+            if (profile) {
+                setProfile({ ...profile, phoneNumber: numericValue });
+            }
+            return;
+        }
+
         // Validate future date selection
         if (name === 'DOB' && value) {
             if (dayjs(value).isAfter(dayjs(), 'day')) {
@@ -34,13 +43,23 @@ export default function AccountForm() {
             }
         }
 
-        setProfile({ ...profile, [name]: value })
+        if (profile) {
+            setProfile({ ...profile, [name]: value })
+        }
     }
 
     const submitChanges = async (e: any) => {
         e.preventDefault()
+        if (!profile) return
+
         setPreviousProfile(profile)
         const { fullName, displayName, email, phoneNumber, pronouns, DOB } = profile
+
+        // Extra check: Ensure phone number contains only digits
+        if (phoneNumber && /\D/.test(phoneNumber)) {
+            setError('Phone number must contain only numbers!')
+            return
+        }
 
         // Prevent submit if DOB is in the future
         if (DOB && dayjs(DOB).isAfter(dayjs(), 'day')) {
@@ -49,7 +68,7 @@ export default function AccountForm() {
         }
 
         if (process.env.NEXT_PUBLIC_RESTRICT_TO_ORG_DOMAIN === 'true') {
-            if (!email.trim().toLowerCase().endsWith('@thedonovan.org')) {
+            if (!email?.trim().toLowerCase().endsWith('@thedonovan.org')) {
                 setError('Please use your thedonovan.org email!')
                 return
             }
@@ -59,7 +78,7 @@ export default function AccountForm() {
         if (ok) {
             setIsDataSaved(true)
         } else {
-            alert(`Error: ${data.message}`)
+            alert(`Error: ${data?.message || 'Update failed'}`)
             window.location.href = "/login"
         }
     }
@@ -70,6 +89,8 @@ export default function AccountForm() {
             setIsDataSaved(false)
         }
     }
+
+    if (!profile) return null
 
     return (
         <div className='w-[60%] flex flex-col justify-between min-h-[75vh]'>
@@ -88,7 +109,7 @@ export default function AccountForm() {
                         <div className='w-[49%] flex flex-col gap-[1vw]'>
                             <InputForm 
                                 error='' 
-                                text={profile.fullName} 
+                                text={profile?.fullName || ''} 
                                 onChange={onChange} 
                                 disabled={true}
                                 field={{ label: "Full name", type: "text", name: "fullName" }}
@@ -98,11 +119,11 @@ export default function AccountForm() {
                                 name='pronouns' 
                                 onChange={onChange} 
                                 options={allPronouns} 
-                                value={profile.pronouns}
+                                value={profile?.pronouns || ''}
                             />
                             <InputForm 
                                 error={error || ''} 
-                                text={profile.email} 
+                                text={profile?.email || ''} 
                                 onChange={onChange} 
                                 disabled={true}
                                 field={{ label: "Email address", type: "email", name: "email" }}
@@ -113,22 +134,22 @@ export default function AccountForm() {
                         <div className='w-[49%] flex flex-col gap-[1vw]'>
                             <InputForm 
                                 error='' 
-                                text={profile.displayName} 
+                                text={profile?.displayName || ''} 
                                 onChange={onChange} 
                                 field={{ label: "Display name", type: "text", name: "displayName" }}
                             />
                             <DateInput 
                                 label='Date of birth' 
                                 onChange={onChange} 
-                                value={profile.DOB} 
+                                value={profile?.DOB || ''} 
                                 name="DOB"
                                 max={todayStr}
                             />
                             <InputForm 
                                 error='' 
-                                text={profile.phoneNumber} 
+                                text={profile?.phoneNumber || ''} 
                                 onChange={onChange} 
-                                field={{ label: "Phone number", type: "text", name: "phoneNumber" }}
+                                field={{ label: "Phone number", type: "tel", name: "phoneNumber" }}
                             />
                         </div>
                     </div>

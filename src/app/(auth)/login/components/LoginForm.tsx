@@ -8,11 +8,12 @@ import { useState, useEffect } from "react";
 import Button1 from "@/components/atoms/Button1";
 import { login } from "@/lib/api/authService";
 import { getUser } from "@/lib/api/userService";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { profileAtom, lockoutUntilAtom, failedAttemptsAtom } from "@/utils/stores";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
+    const profile = useAtomValue(profileAtom);
     const setProfile = useSetAtom(profileAtom);
     const [lockoutUntil, setLockoutUntil] = useAtom(lockoutUntilAtom);
     const [failedAttempts, setFailedAttempts] = useAtom(failedAttemptsAtom);
@@ -32,6 +33,30 @@ export default function LoginForm() {
         setIsMounted(true);
         setNow(Date.now());
     }, []);
+
+    // 💡 Verify session when arriving at /login: if already logged in, send to /dashboard
+    useEffect(() => {
+        if (!isMounted) return;
+
+        const checkExistingSession = async () => {
+            if (profile?.id) {
+                router.replace("/dashboard");
+                return;
+            }
+
+            try {
+                const { data, ok } = await getUser();
+                if (ok && data?.id) {
+                    setProfile(data);
+                    router.replace("/dashboard");
+                }
+            } catch (e) {
+                // Not logged in, render form normally
+            }
+        };
+
+        checkExistingSession();
+    }, [isMounted, profile, setProfile, router]);
 
     useEffect(() => {
         if (!lockoutUntil) return;
@@ -62,7 +87,7 @@ export default function LoginForm() {
     const fetchUserData = async () => {
         try {
             const { data, ok } = await getUser();
-            if (ok) {
+            if (ok && data?.id) {
                 setProfile(data);
                 return true;
             }
@@ -92,11 +117,12 @@ export default function LoginForm() {
             const { data, ok, status } = await login(email, password);
 
             if (ok) {
-                if (await fetchUserData()) {
+                const userFetched = await fetchUserData();
+                if (userFetched) {
                     setFailedAttempts(0);
                     setLockoutUntil(null);
-                    // ✅ FIXED: Redirect directly to dashboard upon successful login!
-                    router.push("/dashboard");
+                    // 💡 Replace /login in history stack so hitting Back doesn't return to login
+                    router.replace("/dashboard");
                 } else {
                     setBannerError("Cannot get Profile information");
                 }
@@ -137,14 +163,12 @@ export default function LoginForm() {
                 Log In
             </h1>
 
-            {/* Subtitle */}
             <div className="mb-6 2xl:mt-3 2xl:mb-6">
                 <p className="text-white text-2xl 3xl:text-3xl font-medium leading-normal">
                     Log in with your The Donovan&apos;s piano room account.
                 </p>
             </div>
 
-            {/* Error Banner */}
             {bannerError && (
                 <div className="mb-6 flex items-start gap-4 rounded-2xl bg-[#FDE8E8] border border-[#F8B4B4] p-5 text-[#1C1B1F]">
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#B3261E] text-white">
