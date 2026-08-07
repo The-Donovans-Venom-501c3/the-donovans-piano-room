@@ -266,7 +266,7 @@ export default function LoginForm() {
             <p className="w-full text-center text-xl 3xl:text-2xl text-white bg-primary-purple py-4 rounded-3xl mt-8 2xl:py-5 2xl:rounded-full 3xl:py-6 font-medium">
                 Don&apos;t have an account?{" "}
                 <Link href="/signup" className="text-primary-yellow underline font-semibold">
-                    Sign up
+                    Sign Up
                 </Link>
             </p>
         </div>

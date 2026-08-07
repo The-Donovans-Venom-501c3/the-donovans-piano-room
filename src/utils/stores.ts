@@ -1,6 +1,8 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { profileInterface } from "@/interfaces/profileInterface";
+import { notification } from "@/interfaces/notificationInterface";
+import { dummyNoticationsData } from "@/utils/general";
 
 ///////////////
 ////SIGN UP////
@@ -79,3 +81,24 @@ export const showNotificationAtom = atom<boolean>(false);
 
 export const highlightBookAtom = atom<number>(2);
 export const highlightShopItemAtom = highlightBookAtom;
+
+//*******************//
+//** NOTIFICATIONS **//
+//*******************//
+
+// Custom reviver parses ISO string representations back into Date instances upon loading from localStorage
+const notificationStorage = createJSONStorage<notification[]>(() => localStorage, {
+    reviver: (_key, value) => {
+        if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            return new Date(value);
+        }
+        return value;
+    },
+});
+
+export const notificationsAtom = atomWithStorage<notification[]>(
+    "user_notifications_list",
+    dummyNoticationsData,
+    notificationStorage,
+    { getOnInit: true }
+);

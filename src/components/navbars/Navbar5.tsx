@@ -86,7 +86,7 @@ export default function Navbar5({ page }: { page: string }) {
               className="text-white bg-primary-purple rounded-l-full rounded-r-full px-20 h-16 hover:bg-[#E98427] flex items-center text-xl 2xl:text-3xl font-bold self-center" 
               href="/signup"
             >
-              Log in or register
+              Log In or Sign Up
             </Link>
         </div>
       </nav>

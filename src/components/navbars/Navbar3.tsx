@@ -110,7 +110,7 @@ export default function Navbar3({ page }: { page: string }) {
             className="mt-4 flex h-12 items-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427]"
             href="/signup"
           >
-            Log in or register
+            Log In or Sign Up
           </Link>
         )}
       </div>
