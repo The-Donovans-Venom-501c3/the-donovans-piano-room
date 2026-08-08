@@ -1,125 +1,131 @@
-import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav"
-import { backendBookInterface, bookInterface } from "@/interfaces/bookInterface"
+import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
+import { backendBookInterface, bookInterface } from "@/interfaces/bookInterface";
+import { notification } from "@/interfaces/notificationInterface";
 
 export const aboutNavigationPages = {
     whyChooseUs: "why-choose-us",
     whoWeServe: "who-we-serve",
     membership: "membership",
     scholarship: "scholarship",
-    FAQs: "faqs" 
-}
+    FAQs: "faqs",
+};
 
 export const navigationPages = {
     home: "home",
     about: "about",
     games: "games",
-    shop: "shop", // ✅ UPDATED: Changed from shop: "shop"
+    shop: "shop",
     contact: "contact",
-    cart: "cart"
-}
+    cart: "cart",
+};
 
 export const aboutScholarshipNavigation = {
     whatsIncluded: "what's included",
-    whosEligible: "who's eligible"
-}
+    whosEligible: "who's eligible",
+};
 
 export const settingsNavigation = {
     profile: "Profile",
     membership: "Membership",
     paymentMethods: "PaymentMethods",
     notification: "Notification",
-    timeSpent: "TimeSpent"
-}
+    timeSpent: "TimeSpent",
+};
 
-
-export const testPassword = (password: string) =>{
-    const lowerCase = /[a-z]/.test(password)
-    const upperCase = /[A-Z]/.test(password)
-    const numberCase = /[0-9]/.test(password)
-    const symbolCase = /[!@#$%^&*()\[_\]+={}.'"~²`%¨)°:,?§/-]/.test(password)
-    return {correctLength: password.length >= 12, lowerCase, upperCase, numberCase, symbolCase}
-}
+export const testPassword = (password: string) => {
+    const lowerCase = /[a-z]/.test(password);
+    const upperCase = /[A-Z]/.test(password);
+    const numberCase = /[0-9]/.test(password);
+    const symbolCase = /[!@#$%^&*()\[_\]+={}.'"~²`%¨)°:,?§/-]/.test(password);
+    return { correctLength: password.length >= 12, lowerCase, upperCase, numberCase, symbolCase };
+};
 
 /*************/
 /***Profile***/
 /*************/
 
-export const profile = { // to be removed after BE Integration
+export const profile = {
     fullName: "Jack Stuart",
     imageSrc: "/ToBeRemoved/avatar/1.svg",
     pronouns: "He/Him/His",
     email: "jacks@email.com",
     birthDate: "2000-12-24",
-    phoneNumber: "1-234-567-8910"
-}
+    phoneNumber: "1-234-567-8910",
+};
 
 export const pronouns = [
     "She/Her/Hers",
     "He/Him/His",
-    "They/Them/Theirs"
-]
+    "They/Them/Theirs",
+];
 
 export const authorizedWrapperTitles = {
     AccountAndSettings: "Account & Settings",
     Lessons: "Lessons",
-    Dashboard: "Dashboard"
-}
-
+    Dashboard: "Dashboard",
+};
 
 /*******************/
 /***Notifications***/
 /*******************/
 
-export function beenTimeAgo(date: Date): {timeAgo: string, underADay: boolean} {
-    const then = date.getTime();
+export function beenTimeAgo(date: Date | string): { timeAgo: string; underADay: boolean } {
+    const validDate = typeof date === "string" ? new Date(date) : date;
+    const then = validDate.getTime();
     const now = new Date().getTime();
     const seconds = Math.floor((now - then) / 1000);
-  
-    const units: [string, number][] = [
-      ['year', 31536000],
-      ['month', 2592000],
-      ['day', 86400],
-      ['hour', 3600],
-      ['minute', 60],
-      ['second', 1],
-    ];
-  
-    for (const [unit, value] of units) {
-      if (seconds >= value) {
-        const interval = Math.floor(seconds / value);
-        const suffix = interval === 1 ? '' : 's';
-        return {timeAgo: `${interval} ${unit}${suffix} ago`, underADay: value <= 3600 ? true : false};
-      }
-    }
-    return {timeAgo: 'just now', underADay: true};
-  }
 
-export const dummyNoticationsData = [
+    const units: [string, number][] = [
+        ['year', 31536000],
+        ['month', 2592000],
+        ['day', 86400],
+        ['hour', 3600],
+        ['minute', 60],
+        ['second', 1],
+    ];
+
+    for (const [unit, value] of units) {
+        if (seconds >= value) {
+            const interval = Math.floor(seconds / value);
+            const suffix = interval === 1 ? '' : 's';
+            return {
+                timeAgo: `${interval} ${unit}${suffix} ago`,
+                underADay: seconds < 86400,
+            };
+        }
+    }
+    return { timeAgo: 'just now', underADay: true };
+}
+
+export const dummyNoticationsData: notification[] = [
     {
+        id: "notif-1",
         title: "9.0.1 new version launched",
         description: "Version 9.0.1 has launched, featuring enhanced stability, improved features, and critical bug fixes. Upgrade now for a smoother, more efficient user experience.",
         actionTitle: "Update",
-        date: new Date('07-05-2024-12:10'),
+        date: new Date("2026-08-07T12:00:00.000Z"),
         unread: true,
-        imageSrc: "/ToBeRemoved/notification-icons/upgrade.svg"
+        imageSrc: "/ToBeRemoved/notification-icons/upgrade.svg",
     },
     {
+        id: "notif-2",
         title: "Renew your annual program",
         description: "Renew your annual program today to continue enjoying all the benefits and features. Don't miss out on the latest updates and exclusive member services for another year!",
         actionTitle: "Renew",
-        date: new Date('07-05-2024-10:00'),
+        date: new Date("2026-08-07T09:00:00.000Z"),
         unread: false,
-        imageSrc: "/ToBeRemoved/notification-icons/program.svg"
+        imageSrc: "/ToBeRemoved/notification-icons/program.svg",
     },
     {
+        id: "notif-3",
         title: "Upload your profile photo",
         description: "Upload your profile photo to personalize your account and enhance your visibility. A current photo helps others recognize and connect with you more effectively!",
         actionTitle: "Go to account",
-        date: new Date('07-03-2024-10:00'),
+        date: new Date("2026-08-05T12:00:00.000Z"),
         unread: true,
-        imageSrc: "/ToBeRemoved/notification-icons/profile.svg"
-    }
-]
+        imageSrc: "/ToBeRemoved/notification-icons/profile.svg",
+    },
+];
 
 export const mapBackendToFrontend = (backendBook: backendBookInterface): bookInterface => {
     return {
@@ -132,5 +138,5 @@ export const mapBackendToFrontend = (backendBook: backendBookInterface): bookInt
         type: backendBook.comments,
         price: backendBook.price,
         description: backendBook.intro,
-    }
-}
+    };
+};

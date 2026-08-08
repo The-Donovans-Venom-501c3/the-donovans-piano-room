@@ -16,23 +16,33 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const destinationUrl = process.env.NODE_ENV == "production" ? process.env.BE_PROD_BASE_URL : process.env.BE_BASE_URL;
+    // 1. Resolve environment variable with safe fallbacks
+    const targetBaseUrl =
+      process.env.NODE_ENV === "production"
+        ? process.env.BE_PROD_BASE_URL || process.env.BE_BASE_URL || "http://localhost:5000"
+        : process.env.BE_BASE_URL || "http://localhost:5000";
+
+    // 2. Ensure protocol prefix (http:// or https://) is present
+    const destinationUrl = targetBaseUrl.startsWith("http")
+      ? targetBaseUrl
+      : `https://${targetBaseUrl}`;
+
     return [
       {
         source: '/api/:path*',
-        destination: `${destinationUrl}/api/:path*`
-      }
+        destination: `${destinationUrl}/api/:path*`,
+      },
     ];
   },
   async redirects() {
     return [
       {
-        source: '/bookstore', // ✅ FIX: Change '/shop' back to '/bookstore'
+        source: '/bookstore',
         destination: '/shop',
         permanent: true,
       },
       {
-        source: '/bookstore/:path*', // ✅ FIX: Change '/shop/:path*' back to '/bookstore/:path*'
+        source: '/bookstore/:path*',
         destination: '/shop/:path*',
         permanent: true,
       },

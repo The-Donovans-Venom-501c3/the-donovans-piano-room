@@ -73,7 +73,7 @@ export default function Navbar7({ page }: { page: string }) {
             className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl"
             href="/signup"
           >
-            Log in or register
+            Log In or Sign Up
           </Link>
         </div>
       </nav>

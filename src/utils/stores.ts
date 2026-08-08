@@ -1,6 +1,8 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { profileInterface } from "@/interfaces/profileInterface";
+import { notification } from "@/interfaces/notificationInterface";
+import { dummyNoticationsData } from "@/utils/general";
 
 ///////////////
 ////SIGN UP////
@@ -34,25 +36,41 @@ export const forgotPasswordStepAtom = atom<number>(1);
 export const resetPasswordStepAtom = atom<number>(1);
 
 //****************//
+//***** SSR SAFE STORAGES *****//
+//****************//
+
+const dummyStorage: Storage = {
+    length: 0,
+    clear: () => {},
+    getItem: () => null,
+    key: () => null,
+    removeItem: () => {},
+    setItem: () => {},
+};
+
+const getSessionStorage = () => (typeof window !== "undefined" ? sessionStorage : dummyStorage);
+const getLocalStorage = () => (typeof window !== "undefined" ? localStorage : dummyStorage);
+
+//****************//
 //***** AUTH *****//
 //****************//
 
 export const profileAtom = atomWithStorage<profileInterface | null>(
     "profile",
     null,
-    createJSONStorage(() => sessionStorage)
+    createJSONStorage<profileInterface | null>(getSessionStorage)
 );
 
 export const lockoutUntilAtom = atomWithStorage<number | null>(
     "lockout_until",
     null,
-    createJSONStorage(() => sessionStorage)
+    createJSONStorage<number | null>(getSessionStorage)
 );
 
 export const failedAttemptsAtom = atomWithStorage<number>(
     "failed_attempts",
     0,
-    createJSONStorage(() => sessionStorage)
+    createJSONStorage<number>(getSessionStorage)
 );
 
 //////////////
@@ -79,3 +97,26 @@ export const showNotificationAtom = atom<boolean>(false);
 
 export const highlightBookAtom = atom<number>(2);
 export const highlightShopItemAtom = highlightBookAtom;
+
+//*******************//
+//** NOTIFICATIONS **//
+//*******************//
+
+const safeLocalStorage = createJSONStorage<notification[]>(
+    getLocalStorage,
+    {
+        reviver: (_key, value) => {
+            if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+                return new Date(value);
+            }
+            return value;
+        },
+    }
+);
+
+export const notificationsAtom = atomWithStorage<notification[]>(
+    "user_notifications_list",
+    dummyNoticationsData,
+    safeLocalStorage,
+    { getOnInit: true }
+);

@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import { Mountains_of_Christmas } from "next/font/google";
 // @ts-ignore: CSS module declaration not found in current TypeScript setup
 import "./globals.css";
 import { Providers } from "./providers";
 import MobileWarningPopup from "@/components/atoms/MobileWarningPopup";
+
+const mountainsOfChristmas = Mountains_of_Christmas({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-mountains-of-christmas",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "The Donovan's Piano Room",
@@ -15,15 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <head>
-        {/* Import Google Fonts */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={mountainsOfChristmas.variable}>
       <body>
         <Providers>
           {children}

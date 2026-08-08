@@ -40,7 +40,7 @@ export default function EmailVerificationForm({ setToIsVerified }: { setToIsVeri
         setApiError(null);
 
         if (!email) {
-            setApiError('User email not found. Please log in or register again.');
+            setApiError('User email not found. Please Log In or Sign Up again.');
             return;
         }
 
