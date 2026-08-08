@@ -36,25 +36,41 @@ export const forgotPasswordStepAtom = atom<number>(1);
 export const resetPasswordStepAtom = atom<number>(1);
 
 //****************//
+//***** SSR SAFE STORAGES *****//
+//****************//
+
+const dummyStorage: Storage = {
+    length: 0,
+    clear: () => {},
+    getItem: () => null,
+    key: () => null,
+    removeItem: () => {},
+    setItem: () => {},
+};
+
+const getSessionStorage = () => (typeof window !== "undefined" ? sessionStorage : dummyStorage);
+const getLocalStorage = () => (typeof window !== "undefined" ? localStorage : dummyStorage);
+
+//****************//
 //***** AUTH *****//
 //****************//
 
 export const profileAtom = atomWithStorage<profileInterface | null>(
     "profile",
     null,
-    createJSONStorage(() => sessionStorage)
+    createJSONStorage<profileInterface | null>(getSessionStorage)
 );
 
 export const lockoutUntilAtom = atomWithStorage<number | null>(
     "lockout_until",
     null,
-    createJSONStorage(() => sessionStorage)
+    createJSONStorage<number | null>(getSessionStorage)
 );
 
 export const failedAttemptsAtom = atomWithStorage<number>(
     "failed_attempts",
     0,
-    createJSONStorage(() => sessionStorage)
+    createJSONStorage<number>(getSessionStorage)
 );
 
 //////////////
@@ -86,19 +102,21 @@ export const highlightShopItemAtom = highlightBookAtom;
 //** NOTIFICATIONS **//
 //*******************//
 
-// Custom reviver parses ISO string representations back into Date instances upon loading from localStorage
-const notificationStorage = createJSONStorage<notification[]>(() => localStorage, {
-    reviver: (_key, value) => {
-        if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            return new Date(value);
-        }
-        return value;
-    },
-});
+const safeLocalStorage = createJSONStorage<notification[]>(
+    getLocalStorage,
+    {
+        reviver: (_key, value) => {
+            if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+                return new Date(value);
+            }
+            return value;
+        },
+    }
+);
 
 export const notificationsAtom = atomWithStorage<notification[]>(
     "user_notifications_list",
     dummyNoticationsData,
-    notificationStorage,
+    safeLocalStorage,
     { getOnInit: true }
 );

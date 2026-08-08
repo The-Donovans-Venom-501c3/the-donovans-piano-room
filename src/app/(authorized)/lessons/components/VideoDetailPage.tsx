@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { type Lesson } from "./Lesson";
 
 // Helper to convert "MM:SS" or "H:MM:SS" string into total seconds
@@ -11,6 +11,15 @@ const timeToSeconds = (timeStr: string): number => {
   if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
   return 0;
 };
+
+// Fallback transcript extracted outside component body to maintain static reference
+const DEFAULT_TRANSCRIPT = [
+  { timestamp: "0:03", text: "Welcome to The Donovan's Piano Room!" },
+  { timestamp: "0:15", text: "In this video, we are going to dive into understanding the keyboard." },
+  { timestamp: "0:45", text: "Notice how the black keys are arranged in groups of two and three." },
+  { timestamp: "1:15", text: "Let's practice placing our fingers on the starting position." },
+  { timestamp: "2:00", text: "Take your time with this exercise before moving to the next section." },
+];
 
 interface VideoDetailProps {
   lesson: Lesson;
@@ -38,17 +47,12 @@ export default function VideoDetail({
 
   const cleanYoutubeId = lesson.youtubeId ? lesson.youtubeId.split("?")[0] : "";
 
-  // Transcript dataset (Fallback mock data if lesson.transcript is missing)
-  const transcriptData =
-    lesson.transcript && lesson.transcript.length > 0
+  // ✅ Wrap transcriptData in useMemo to stabilize reference for useEffect
+  const transcriptData = useMemo(() => {
+    return lesson.transcript && lesson.transcript.length > 0
       ? lesson.transcript
-      : [
-          { timestamp: "0:03", text: "Welcome to The Donovan's Piano Room!" },
-          { timestamp: "0:15", text: "In this video, we are going to dive into understanding the keyboard." },
-          { timestamp: "0:45", text: "Notice how the black keys are arranged in groups of two and three." },
-          { timestamp: "1:15", text: "Let's practice placing our fingers on the starting position." },
-          { timestamp: "2:00", text: "Take your time with this exercise before moving to the next section." },
-        ];
+      : DEFAULT_TRANSCRIPT;
+  }, [lesson.transcript]);
 
   // Initialize YouTube IFrame API and track playback time
   useEffect(() => {

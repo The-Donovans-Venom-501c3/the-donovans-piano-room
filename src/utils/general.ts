@@ -1,14 +1,14 @@
-import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav"
-import { backendBookInterface, bookInterface } from "@/interfaces/bookInterface"
-import { notification } from "@/interfaces/notificationInterface"
+import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
+import { backendBookInterface, bookInterface } from "@/interfaces/bookInterface";
+import { notification } from "@/interfaces/notificationInterface";
 
 export const aboutNavigationPages = {
     whyChooseUs: "why-choose-us",
     whoWeServe: "who-we-serve",
     membership: "membership",
     scholarship: "scholarship",
-    FAQs: "faqs" 
-}
+    FAQs: "faqs",
+};
 
 export const navigationPages = {
     home: "home",
@@ -16,54 +16,54 @@ export const navigationPages = {
     games: "games",
     shop: "shop",
     contact: "contact",
-    cart: "cart"
-}
+    cart: "cart",
+};
 
 export const aboutScholarshipNavigation = {
     whatsIncluded: "what's included",
-    whosEligible: "who's eligible"
-}
+    whosEligible: "who's eligible",
+};
 
 export const settingsNavigation = {
     profile: "Profile",
     membership: "Membership",
     paymentMethods: "PaymentMethods",
     notification: "Notification",
-    timeSpent: "TimeSpent"
-}
+    timeSpent: "TimeSpent",
+};
 
-export const testPassword = (password: string) =>{
-    const lowerCase = /[a-z]/.test(password)
-    const upperCase = /[A-Z]/.test(password)
-    const numberCase = /[0-9]/.test(password)
-    const symbolCase = /[!@#$%^&*()\[_\]+={}.'"~²`%¨)°:,?§/-]/.test(password)
-    return {correctLength: password.length >= 12, lowerCase, upperCase, numberCase, symbolCase}
-}
+export const testPassword = (password: string) => {
+    const lowerCase = /[a-z]/.test(password);
+    const upperCase = /[A-Z]/.test(password);
+    const numberCase = /[0-9]/.test(password);
+    const symbolCase = /[!@#$%^&*()\[_\]+={}.'"~²`%¨)°:,?§/-]/.test(password);
+    return { correctLength: password.length >= 12, lowerCase, upperCase, numberCase, symbolCase };
+};
 
 /*************/
 /***Profile***/
 /*************/
 
-export const profile = { // to be removed after BE Integration
+export const profile = {
     fullName: "Jack Stuart",
     imageSrc: "/ToBeRemoved/avatar/1.svg",
     pronouns: "He/Him/His",
     email: "jacks@email.com",
     birthDate: "2000-12-24",
-    phoneNumber: "1-234-567-8910"
-}
+    phoneNumber: "1-234-567-8910",
+};
 
 export const pronouns = [
     "She/Her/Hers",
     "He/Him/His",
-    "They/Them/Theirs"
-]
+    "They/Them/Theirs",
+];
 
 export const authorizedWrapperTitles = {
     AccountAndSettings: "Account & Settings",
     Lessons: "Lessons",
-    Dashboard: "Dashboard"
-}
+    Dashboard: "Dashboard",
+};
 
 /*******************/
 /***Notifications***/
@@ -90,14 +90,13 @@ export function beenTimeAgo(date: Date | string): { timeAgo: string; underADay: 
             const suffix = interval === 1 ? '' : 's';
             return {
                 timeAgo: `${interval} ${unit}${suffix} ago`,
-                underADay: seconds < 86400
+                underADay: seconds < 86400,
             };
         }
     }
     return { timeAgo: 'just now', underADay: true };
 }
 
-// Restored JS Date objects
 export const dummyNoticationsData: notification[] = [
     {
         id: "notif-1",
@@ -106,7 +105,7 @@ export const dummyNoticationsData: notification[] = [
         actionTitle: "Update",
         date: new Date("2026-08-07T12:00:00.000Z"),
         unread: true,
-        imageSrc: "/ToBeRemoved/notification-icons/upgrade.svg"
+        imageSrc: "/ToBeRemoved/notification-icons/upgrade.svg",
     },
     {
         id: "notif-2",
@@ -115,7 +114,7 @@ export const dummyNoticationsData: notification[] = [
         actionTitle: "Renew",
         date: new Date("2026-08-07T09:00:00.000Z"),
         unread: false,
-        imageSrc: "/ToBeRemoved/notification-icons/program.svg"
+        imageSrc: "/ToBeRemoved/notification-icons/program.svg",
     },
     {
         id: "notif-3",
@@ -124,8 +123,8 @@ export const dummyNoticationsData: notification[] = [
         actionTitle: "Go to account",
         date: new Date("2026-08-05T12:00:00.000Z"),
         unread: true,
-        imageSrc: "/ToBeRemoved/notification-icons/profile.svg"
-    }
+        imageSrc: "/ToBeRemoved/notification-icons/profile.svg",
+    },
 ];
 
 export const mapBackendToFrontend = (backendBook: backendBookInterface): bookInterface => {
@@ -139,5 +138,5 @@ export const mapBackendToFrontend = (backendBook: backendBookInterface): bookInt
         type: backendBook.comments,
         price: backendBook.price,
         description: backendBook.intro,
-    }
-}
+    };
+};
