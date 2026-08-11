@@ -1,134 +1,169 @@
 "use client";
+
 import Image from "next/image";
-import { useState } from "react";
-import { PlanCardUIConfig, Plan } from "@/interfaces/membershipInterface";
-import { ButtonConfig } from "../config";
+import { Plan } from "@/interfaces/membershipInterface";
 
-interface PlanCardProps {
-  // Plan Data - centralized plan information
+export interface PlanCardProps {
   plan: Plan;
-  
-  // UI Configuration - centralized styling
-  uiConfig: PlanCardUIConfig;
-  
-  // Display Controls
-  showCurrentInHeader?: boolean; // controls where "Current plan" badge appears
-  showChooseButton?: boolean; // shows "Choose plan" button in price block for non-current plans
-  chooseButton?: ButtonConfig; // button configuration for "Choose plan" button
-  showExpirationMessage?: boolean; // whether to show expiration message (only for upgrade page)
-
-  // Benefit access card behavior
-  useBenefitAccessCard?: boolean; // if true, shows BenefitAccessCard instead of expanding inline
-  onBenefitAccessCardToggle?: () => void; // callback to parent when benefit access card should be toggled
-
-  // Beta launch configuration
-  isBeta?: boolean; // Controls Beta UI state
+  isScholarship?: boolean;
+  showCurrentInHeader?: boolean;
+  showExpirationMessage?: boolean;
+  showChooseButton?: boolean;
+  chooseButton?: {
+    text?: string;
+    onClick?: () => void;
+    disabled?: boolean;
+    style?: string;
+  };
+  onToggleBenefits?: () => void;
 }
 
 export default function PlanCard({
   plan,
-  uiConfig,
-  showCurrentInHeader = true,
-  showChooseButton = false,
+  isScholarship: isScholarshipProp = false,
+  showExpirationMessage = true,
   chooseButton,
-  showExpirationMessage = false,
-  useBenefitAccessCard = false,
-  onBenefitAccessCardToggle,
-  isBeta = true, // Defaults to true for Beta Launch
+  onToggleBenefits,
 }: PlanCardProps) {
-  const [showMoreBenefits, setShowMoreBenefits] = useState(false);
+  const isScholarship = isScholarshipProp || plan?.planName === "Scholarship";
+  const isCurrentPlan = isScholarship;
 
-  const toggleBenefits = () => {
-    if (useBenefitAccessCard && onBenefitAccessCardToggle) {
-      // For upgrade page: simply notify parent to toggle the card
-      onBenefitAccessCardToggle();
-    } else {
-      // For current membership: expand inline
-      setShowMoreBenefits(!showMoreBenefits);
+  const cleanPrice = String(plan?.price || plan?.formattedPrice || "")
+    .replace(/\$/g, "")
+    .trim();
+  const cleanYearlyPrice = String(plan?.yearlyPrice || "")
+    .replace(/\$/g, "")
+    .trim();
+
+  const getTheme = () => {
+    if (isScholarship) {
+      return {
+        cardBorder: "border-2 border-[#FDE2C6] shadow-lg",
+        topAreaStyle: { backgroundColor: "#FFEBD5" },
+        buttonBg: "bg-[#E07A2A] text-white hover:bg-[#c8671b]",
+        currentBtnBg: "bg-[#FDE2C6] text-[#C05600]",
+        checkBg: "bg-[#EA580C] text-white",
+        musicColor: "#E07A2A",
+      };
+    }
+
+    switch (plan?.planName) {
+      case "Yearly":
+        return {
+          cardBorder: "border-2 border-gray-200 shadow-md",
+          topAreaStyle: { backgroundColor: "#FFF9E3" },
+          buttonBg: "bg-[#D9A01D] text-white hover:bg-[#C28E18]",
+          currentBtnBg: "bg-[#D4EAD6] text-[#1E6038]",
+          checkBg: "bg-[#D9A01D] text-white",
+          musicColor: "#D9A01D",
+        };
+      case "Monthly":
+        return {
+          cardBorder: "border-2 border-gray-200 shadow-md",
+          topAreaStyle: { backgroundColor: "#EBF5EC" },
+          buttonBg: "bg-[#337A43] text-white hover:bg-[#286135]",
+          currentBtnBg: "bg-[#D4EAD6] text-[#1E6038]",
+          checkBg: "bg-[#337A43] text-white",
+          musicColor: "#337A43",
+        };
+      case "Day Pass":
+      default:
+        return {
+          cardBorder: "border-2 border-gray-200 shadow-md",
+          topAreaStyle: { backgroundColor: "#F7F0FC" },
+          buttonBg: "bg-[#6B21A8] text-white hover:bg-[#581C87]",
+          currentBtnBg: "bg-[#D4EAD6] text-[#1E6038]",
+          checkBg: "bg-[#6B21A8] text-white",
+          musicColor: "#6B21A8",
+        };
     }
   };
 
+  const theme = getTheme();
+
   return (
-    <div>
-      {/* Card */}
-      <div className="w-full rounded-2xl border border-[#FCF0D8] bg-white shadow-custom">
-        {/* Header ribbon */}
-        <div className={`relative rounded-t-xl px-5 py-3 ${uiConfig.headerColor} ${uiConfig.headerTextColor}`}>
-          <div className="text-2xl font-semibold">
-            {isBeta ? "Free Beta Access" : plan.planName}
-          </div>
-          {plan.isCurrent && showCurrentInHeader && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <span className="inline-flex items-center gap-2 rounded-md border border-[#D9D9D9] bg-[#ffffffcc] px-3 py-1 text-xl font-medium text-primary-brown">
-                <Image
-                  className="cursor-pointer h-5 w-5 shrink-0"
-                  src="/memberships/upgrade/request_quote_FILL0_wght400_GRAD0_opsz24 1.svg"
-                  alt="Current plan"
-                  width={20}
-                  height={20}
-                />
-                Current plan
-              </span>
-            </div>
-          )}
-          {!isBeta && !plan.isCurrent && plan.isPopular && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <span className="rounded-md bg-[#F8D867] px-3 py-1 text-xl font-medium text-black">
+    <div
+      className={`relative flex flex-col w-full h-full rounded-3xl overflow-hidden bg-white transition-all duration-200 ${theme.cardBorder}`}
+    >
+      {/* HEADER AREA */}
+      <div
+        style={theme.topAreaStyle}
+        className="flex flex-col relative p-5 sm:p-6 pb-6 overflow-hidden"
+      >
+        {/* Background Graphic */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-15">
+          <svg
+            className="absolute -top-3 -left-3 w-20 h-20"
+            viewBox="0 0 24 24"
+            fill={theme.musicColor}
+          >
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+          </svg>
+          <svg
+            className="absolute top-4 -right-3 w-24 h-24"
+            viewBox="0 0 24 24"
+            fill={theme.musicColor}
+          >
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+          </svg>
+        </div>
+
+        <div className="flex items-center justify-between z-10 mb-2">
+          <h3 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+            {isScholarship ? "Scholarship" : plan?.planName}
+          </h3>
+
+          <div className="flex items-center shrink-0">
+            {plan?.planName === "Yearly" && (
+              <span className="rounded-lg bg-[#FDE047] px-2.5 py-1 text-xs font-extrabold text-gray-900">
                 Popular
               </span>
-            </div>
-          )}
-          {!isBeta && !plan.isCurrent && plan.isRecommended && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <span className="inline-flex items-center gap-2 rounded-md bg-[#CDE6CC] px-3 py-1 text-xl font-medium text-yellow-950">
-                <Image
-                  className="shrink-0"
-                  src="/memberships/upgrade/1-Month/Vector.svg"
-                  alt="Recommended"
-                  width={15}
-                  height={15}
-                />
-                Recommended
+            )}
+            {plan?.planName === "Monthly" && (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#A7F3D0] px-2.5 py-1 text-xs font-extrabold text-[#065F46]">
+                ★ Recommended
               </span>
-            </div>
+            )}
+          </div>
+        </div>
+
+        {/* PRICE DISPLAY */}
+        <div className="flex flex-col items-center justify-center text-center my-3 z-10 min-h-[90px]">
+          {isScholarship ? (
+            <>
+              <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                FREE
+              </div>
+              <p className="mt-2 text-xs sm:text-sm leading-snug text-gray-900 font-extrabold px-1">
+                Eligibility for the scholarships is based on family income being below the Federal Poverty Level (FPL).
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                ${cleanPrice}
+              </div>
+              <div className="text-sm sm:text-base font-extrabold text-gray-900 mt-1">
+                {plan?.planName === "Day Pass" ? "one day" : "per month"}
+              </div>
+              {cleanYearlyPrice && (
+                <div className="text-xs sm:text-sm font-bold text-gray-700 mt-0.5">
+                  ${cleanYearlyPrice}/year, Billed {plan?.planName === "Day Pass" ? "daily" : plan?.planName?.toLowerCase()}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Price block with background assets */}
-        <div className={`relative flex flex-col items-center justify-center overflow-hidden ${uiConfig.priceBlockSize || "py-10"} ${uiConfig.priceBackgroundColor} space-y-2`}>
-          {/* Background assets */}
-          {uiConfig.backgroundAssets.map((asset, index) => (
-            <Image
-              key={index}
-              src={asset.src}
-              alt="background pattern"
-              fill
-              className={`pointer-events-none opacity-60 ${asset.className || ""}`} // Fallback added to prevent undefined string
-              priority
-            />
-          ))}
-          
-          <div className="relative z-10 font-montserrat text-4xl font-semibold text-primary-brown 3xl:text-6xl 4xl:text-7xl flex flex-col items-center gap-1">
-            {isBeta ? "$0.00" : plan.formattedPrice}
-          </div>
-
-          <div className="relative z-10 mt-1 text-2xl text-primary-gray min-h-[1.5rem]">
-            {isBeta ? "Beta Access" : (plan.planName === "Monthly" || plan.planName === "Yearly" ? "per month" : "one day")}
-          </div>
-
-          {/* Yearly price and billing message */}
-          <div className="relative z-10 text-center text-lg text-primary-gray font-medium px-4">
-            {isBeta
-              ? "Enjoy full complimentary access to all Piano Room features during our Beta testing phase!"
-              : (plan.planName !== "Scholarship" ? `${plan.yearlyPrice} annually, billed ${plan.period}` : "Eligibility for the scholarships is based on family income being below the Federal Poverty Level (FPL).")
-            }
-          </div>
-
-          {plan.isCurrent && !showCurrentInHeader && (
-            <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded-2xl bg-gray-200 px-4 py-6 text-2xl font-medium text-black">
+        {/* BUTTON AREA */}
+        <div className="mt-3 flex flex-col items-center w-full z-10">
+          {isCurrentPlan ? (
+            <div className="w-full flex flex-col items-center">
+              <div
+                className={`w-full py-3 px-4 rounded-full text-sm sm:text-base font-extrabold flex items-center justify-center gap-2 ${theme.currentBtnBg}`}
+              >
                 <Image
-                  className="h-8 w-8 shrink-0"
+                  className="h-4 w-4 shrink-0"
                   src="/memberships/upgrade/request_quote_FILL0_wght400_GRAD0_opsz24 1.svg"
                   alt="Current plan"
                   width={16}
@@ -136,90 +171,49 @@ export default function PlanCard({
                 />
                 Current plan
               </div>
-              {!isBeta && showExpirationMessage && plan.expirationDays !== undefined && (
-                <p className="text-lg text-[#817676]">
-                  * Membership expires after {plan.expirationDays} Day{plan.expirationDays !== 1 ? 's' : ''}
+              {showExpirationMessage && (
+                <p className="text-xs font-bold text-gray-700 text-center mt-2">
+                  * Membership expires after 1 Day
                 </p>
               )}
             </div>
-          )}
-
-          {/* Hide choose/upgrade button during Beta mode */}
-          {!isBeta && showChooseButton && chooseButton && (
+          ) : (
             <button
-              type="button"
-              disabled={chooseButton.disabled || chooseButton.loading}
-              className={chooseButton.style || "relative z-10 mt-3 rounded-full border border-primary-purple px-6 py-3 text-center font-medium bg-primary-purple text-white"}
-              onClick={chooseButton.onClick}
-            > 
-              {chooseButton.loading 
-                ? (chooseButton.loadingText || 'Loading...')
-                : chooseButton.text || (plan.planName === "Scholarship" ? "Apply for Scholarship" : "Choose plan")
-              }
+              onClick={chooseButton?.onClick}
+              className={`w-full py-3 px-4 rounded-full text-sm sm:text-base font-black transition-all active:scale-95 cursor-pointer shadow-md ${theme.buttonBg}`}
+            >
+              {chooseButton?.text || "Choose plan"}
             </button>
           )}
         </div>
+      </div>
 
-        {/* Divider */}
-        <div className="h-px w-full bg-[#F4E6CF]"></div>
-
-        {/* Benefits */}
-        <div className="py-6 p-4">
-          {plan.benefits && plan.benefits.length > 0 && 
-            <div className={`grid grid-cols-1 gap-y-3 gap-x-6 ${uiConfig.useSingleColumn ? '' : 'md:grid-cols-2'}`}>
-              {plan.benefits.map((label) => (
-                <div key={label} className="flex items-center gap-3 text-primary-brown">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full">
-                    <Image
-                      className="shrink-0"
-                      src={uiConfig.successIcon}
-                      alt="Success"
-                      width={16}
-                      height={16}
-                    />
-                  </span>
-                  <span className="text-2xl">{label}</span>
-                </div>
-              ))}
-            </div>
-          }
-
-          {/* More benefits button */}
-          {plan.moreBenefits && plan.moreBenefits.length > 0 && (
-            <div className="pb-2 pt-4">
-              <button
-                type="button"
-                onClick={toggleBenefits}
-                className="inline-flex select-none items-center gap-2 rounded-lg bg-[#fbf5ff] px-4 py-2 text-xl font-bold text-primary-purple hover:bg-[#E6DAFA] underline"
+      {/* LOWER BENEFITS AREA */}
+      <div className="flex-1 flex flex-col justify-between p-5 sm:p-6 bg-white">
+        <ul className="space-y-3">
+          {plan?.benefits?.map((benefit, index) => (
+            <li
+              key={index}
+              className="flex items-start gap-3 text-sm sm:text-base font-bold text-gray-900 leading-snug"
+            >
+              <span
+                className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-black shrink-0 mt-0.5 ${theme.checkBg}`}
               >
-                See more benefits
-                <Image
-                  className={`cursor-pointer h-4 w-4 shrink-0 transition-transform duration-200 ${
-                    showMoreBenefits ? "rotate-180" : ""
-                  }`}
-                  src="/memberships/Vector (4).svg"
-                  alt="Arrow"
-                  width={16}
-                  height={16}
-                />
-              </button>
-            </div>
-          )}
+                ✓
+              </span>
+              <span>{benefit}</span>
+            </li>
+          ))}
+        </ul>
 
-          {/* Expanded benefits */}
-          {showMoreBenefits && plan.moreBenefits && plan.moreBenefits.length > 0 && (
-            <div className="px-4 pb-6">
-              <div className="p-1">
-                <ul className="list-disc list-inside text-2xl">
-                  {plan.moreBenefits.map((benefit) => (
-                    <li key={benefit}>
-                      {benefit}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
+        <div className="mt-6">
+          <button
+            onClick={onToggleBenefits}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#F5EBFB] text-[#6B21A8] text-xs sm:text-sm font-black hover:bg-[#EBD5F8] transition-colors cursor-pointer"
+          >
+            <span>See more benefits</span>
+            <span className="text-[10px]">▼</span>
+          </button>
         </div>
       </div>
     </div>
