@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 
 interface LiveSessionsComponentProps {
@@ -10,10 +10,8 @@ interface LiveSessionsComponentProps {
     role: "Presenter" | "Participant";
     pronouns?: string;
   };
-  youtubeVideoId?: string;
   youtubeChannelId?: string;
-  apiKey?: string;
-  searchQuery?: string; // <-- Added searchQuery to interface
+  searchQuery?: string;
 }
 
 type SidePanelTab = "people" | "chat" | "react" | "poll" | null;
@@ -44,33 +42,44 @@ interface Poll {
   options: string[];
 }
 
-const STORAGE_KEY = "tdv_live_chat_messages";
+/**
+ * Helper function to extract Channel ID or Handle from inputs or environment defaults.
+ */
+function extractYouTubeChannelId(input?: string): { id: string; type: "channel" | "handle" | "none" } {
+  const channelInput = input?.trim() || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_NAME?.trim() || "";
+
+  if (!channelInput) return { id: "", type: "none" };
+
+  // Handle @username
+  if (channelInput.includes("@")) {
+    const handle = channelInput.substring(channelInput.indexOf("@")).split("/")[0].split("?")[0];
+    return { id: handle, type: "handle" };
+  }
+
+  // Channel URL
+  if (channelInput.includes("youtube.com/channel/")) {
+    const channelId = channelInput.split("youtube.com/channel/")[1]?.split("/")[0]?.split("?")[0];
+    return { id: channelId || "", type: "channel" };
+  }
+
+  // Canonical Channel ID (starts with UC) or default fallback
+  return { id: channelInput, type: "channel" };
+}
 
 export default function LiveSessionsComponent({
   currentUser = { id: "user-1", name: "You", role: "Participant", pronouns: "She / Her / Hers" },
-  youtubeVideoId,
   youtubeChannelId = "UCHaJE4kPmB9jqlUbbi-sHXA",
-  apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY,
-  searchQuery, // <-- Destructured searchQuery prop
-}: LiveSessionsComponentProps) {
-  const YOUTUBE_CHANNEL_URL = "https://www.youtube.com/@TDV501C3";
-
-  const [isLiveOnYouTube, setIsLiveOnYouTube] = useState<boolean>(false);
-  const [activeVideoId, setActiveVideoId] = useState<string | null>(youtubeVideoId || null);
-
+  searchQuery,
+}: LiveSessionsComponentProps): React.JSX.Element {
   const [isJoined, setIsJoined] = useState(false);
   const [activePanel, setActivePanel] = useState<SidePanelTab>(null);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
 
-  // DYNAMIC PARTICIPANTS LIST (Starts with current user only)
   const [participants, setParticipants] = useState<Participant[]>([]);
-
-  // REAL CHAT MESSAGES (Starts completely empty)
   const [messages, setMessages] = useState<Message[]>([]);
 
-  // POLL STATE
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
   const [newQuestion, setNewQuestion] = useState("");
   const [newOptions, setNewOptions] = useState(["", ""]);
@@ -78,55 +87,56 @@ export default function LiveSessionsComponent({
   const [pollSubmitted, setPollSubmitted] = useState(false);
 
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // UPDATE PARTICIPANTS WHEN USER JOINS SESSION
+  // --- Embed Fallback State ---
+  const [hasEmbedError, setHasEmbedError] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     if (isJoined) {
       setParticipants([
         { id: currentUser.id, name: currentUser.name, role: currentUser.role }
       ]);
+      setHasEmbedError(false);
     } else {
       setParticipants([]);
     }
-  }, [isJoined, currentUser]);
+  }, [isJoined, currentUser.id, currentUser.name, currentUser.role]);
 
-  // CHECK YOUTUBE LIVE STATUS
-  const checkYouTubeLiveStatus = useCallback(async () => {
-    if (!apiKey) {
-      setIsLiveOnYouTube(false);
-      return;
-    }
+  const parsedChannel = useMemo(() => extractYouTubeChannelId(youtubeChannelId), [youtubeChannelId]);
 
-    try {
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${youtubeChannelId}&type=video&eventType=live&key=${apiKey}`
-      );
-      const data = await res.json();
-
-      if (data.items && data.items.length > 0) {
-        setActiveVideoId(data.items[0].id.videoId);
-        setIsLiveOnYouTube(true);
-      } else {
-        setIsLiveOnYouTube(false);
-      }
-    } catch (err) {
-      console.error("Error checking YouTube stream:", err);
-      setIsLiveOnYouTube(false);
-    }
-  }, [apiKey, youtubeChannelId]);
-
-  useEffect(() => {
-    checkYouTubeLiveStatus();
-    const interval = setInterval(checkYouTubeLiveStatus, 20000);
-    return () => clearInterval(interval);
-  }, [checkYouTubeLiveStatus]);
-
+  // Direct Live Stream Embed URL (Channel Based)
   const embedUrl = useMemo(() => {
-    if (activeVideoId) {
-      return `https://www.youtube.com/embed/${activeVideoId}?autoplay=1&enablejsapi=1`;
+    if (!isMounted || !parsedChannel.id) return "";
+
+    // 1. Standard Channel Live Embed
+    if (parsedChannel.type === "channel") {
+      return `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(parsedChannel.id)}&autoplay=1&mute=1&enablejsapi=1`;
     }
-    return `https://www.youtube.com/embed/live_stream?channel=${youtubeChannelId}&autoplay=1`;
-  }, [activeVideoId, youtubeChannelId]);
+
+    // 2. Handle (@username) live fallback
+    if (parsedChannel.type === "handle") {
+      return `https://www.youtube.com/embed/live?channel=${encodeURIComponent(parsedChannel.id)}&autoplay=1&mute=1`;
+    }
+
+    return "";
+  }, [parsedChannel, isMounted]);
+
+  // Direct Watch URL for External Link Button
+  const directWatchUrl = useMemo(() => {
+    if (parsedChannel.type === "channel" && parsedChannel.id) {
+      return `https://www.youtube.com/channel/${parsedChannel.id}/live`;
+    }
+    if (parsedChannel.type === "handle") {
+      return `https://www.youtube.com/${parsedChannel.id}/live`;
+    }
+    return "https://www.youtube.com";
+  }, [parsedChannel]);
 
   const triggerReaction = (emoji: string) => {
     const newId = Date.now() + Math.random();
@@ -168,7 +178,6 @@ export default function LiveSessionsComponent({
     setChatMessage("");
   };
 
-  // PRESENTER CREATES POLL
   const handleCreatePoll = (e: React.FormEvent) => {
     e.preventDefault();
     const validOptions = newOptions.filter((opt) => opt.trim() !== "");
@@ -186,7 +195,7 @@ export default function LiveSessionsComponent({
     <div className="w-full flex flex-col justify-start items-start">
       {isJoined ? (
         <div className="w-full flex flex-col">
-          {/* HEADER WITH PROMINENT BACK BUTTON */}
+          {/* HEADER */}
           <div className="w-full flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <button
@@ -200,47 +209,78 @@ export default function LiveSessionsComponent({
               </h2>
             </div>
 
-            {isLiveOnYouTube && (
+            <div className="flex items-center gap-4">
+              <a
+                href={directWatchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold px-3 py-1.5 rounded-lg transition"
+              >
+                Watch on YouTube ↗
+              </a>
               <div className="flex items-center space-x-2 text-rose-500 font-extrabold text-sm">
                 <span className="w-3 h-3 bg-rose-500 rounded-full animate-pulse" />
                 <span>Session in progress</span>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="w-full flex flex-col lg:flex-row gap-4 items-end lg:items-stretch h-[calc(100vh-290px)] max-h-[520px] min-h-[420px] relative">
             {/* VIDEO PLAYER CONTAINER */}
-            <div className="relative flex-1 w-full bg-black rounded-3xl overflow-hidden shadow-xl h-full">
-              <iframe
-                src={embedUrl}
-                title="Live Stream"
-                className="absolute top-0 left-0 w-full h-full object-cover"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-
-              {/* OFFLINE BANNER AT BOTTOM LEFT */}
-              {!isLiveOnYouTube && (
-                <a
-                  href={YOUTUBE_CHANNEL_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute bottom-6 left-6 z-30 bg-[#14181B]/90 hover:bg-[#14181B] text-white px-4 py-2.5 rounded-2xl flex items-center gap-3 backdrop-blur-md transition border border-white/10 shadow-xl group"
-                >
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-500"></span>
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-200">
-                      Live stream offline
-                    </span>
-                    <svg className="w-4 h-4 fill-red-500 group-hover:scale-110 transition" viewBox="0 0 24 24">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
+            <div className="relative flex-1 w-full bg-black rounded-3xl overflow-hidden shadow-xl h-full flex items-center justify-center">
+              {isMounted && embedUrl && !hasEmbedError ? (
+                <>
+                  <iframe
+                    ref={iframeRef}
+                    src={embedUrl}
+                    title="Embedded YouTube livestream"
+                    className="absolute top-0 left-0 w-full h-full object-cover"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                  
+                  {/* Manual Switcher overlay button */}
+                  <div className="absolute top-3 right-3 z-30 opacity-80 hover:opacity-100 transition">
+                    <button
+                      onClick={() => setHasEmbedError(true)}
+                      className="bg-black/60 hover:bg-black/80 text-white text-[10px] px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/20 cursor-pointer"
+                    >
+                      Stream not loading?
+                    </button>
                   </div>
-                </a>
+                </>
+              ) : (
+                /* FALLBACK CARD IF EMBED IS BLOCKED OR OFFLINE */
+                <div className="text-center p-6 text-white space-y-4 z-10 max-w-md bg-neutral-900/90 rounded-2xl border border-white/10 backdrop-blur-md">
+                  <div className="w-12 h-12 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl">
+                    📺
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-base font-bold text-white">Playback Restricted or Channel Offline</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      This channel may be offline, or YouTube is blocking embed playback. You can view the channel stream directly on YouTube.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <a
+                      href={directWatchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition shadow-lg active:scale-95"
+                    >
+                      Watch Live on YouTube ↗
+                    </a>
+                    {hasEmbedError && (
+                      <button
+                        onClick={() => setHasEmbedError(false)}
+                        className="text-xs text-gray-300 hover:text-white underline font-medium px-2 py-1 cursor-pointer"
+                      >
+                        Retry Player
+                      </button>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* REACTION OVERLAY */}
@@ -261,7 +301,7 @@ export default function LiveSessionsComponent({
                 <div className="bg-black/85 backdrop-blur-md p-2 rounded-2xl flex items-center gap-2 border border-white/20 shadow-2xl pointer-events-auto">
                   <button
                     onClick={() => handlePanelOpen("people")}
-                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition ${
+                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition cursor-pointer ${
                       activePanel === "people" ? "bg-purple-600 text-white" : "bg-[#41285E]/90 text-white hover:bg-purple-800"
                     }`}
                   >
@@ -269,7 +309,7 @@ export default function LiveSessionsComponent({
                   </button>
                   <button
                     onClick={() => handlePanelOpen("chat")}
-                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition ${
+                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition cursor-pointer ${
                       activePanel === "chat" ? "bg-purple-600 text-white" : "bg-[#41285E]/90 text-white hover:bg-purple-800"
                     }`}
                   >
@@ -277,7 +317,7 @@ export default function LiveSessionsComponent({
                   </button>
                   <button
                     onClick={() => handlePanelOpen("react")}
-                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition ${
+                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition cursor-pointer ${
                       activePanel === "react" ? "bg-purple-600 text-white" : "bg-[#41285E]/90 text-white hover:bg-purple-800"
                     }`}
                   >
@@ -285,7 +325,7 @@ export default function LiveSessionsComponent({
                   </button>
                   <button
                     onClick={() => handlePanelOpen("poll")}
-                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition ${
+                    className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition cursor-pointer ${
                       activePanel === "poll" ? "bg-purple-600 text-white" : "bg-[#41285E]/90 text-white hover:bg-purple-800"
                     }`}
                   >
@@ -293,7 +333,7 @@ export default function LiveSessionsComponent({
                   </button>
                   <button
                     onClick={() => setShowExitModal(true)}
-                    className="bg-[#E65100] hover:bg-orange-600 text-white p-2 rounded-xl transition text-sm font-bold flex items-center justify-center"
+                    className="bg-[#E65100] hover:bg-orange-600 text-white p-2 rounded-xl transition text-sm font-bold flex items-center justify-center cursor-pointer"
                     title="Exit Session"
                   >
                     🚪
@@ -333,7 +373,7 @@ export default function LiveSessionsComponent({
                       </div>
                     </div>
 
-                    {/* DYNAMIC CHAT */}
+                    {/* CHAT */}
                     {activePanel === "chat" && (
                       <div className="flex-1 flex flex-col justify-between my-1 overflow-hidden">
                         <div className="overflow-y-auto space-y-3 flex-1 pr-1 py-1">
@@ -371,7 +411,7 @@ export default function LiveSessionsComponent({
                       </div>
                     )}
 
-                    {/* DYNAMIC PARTICIPANTS */}
+                    {/* PARTICIPANTS */}
                     {activePanel === "people" && (
                       <div className="flex-1 overflow-y-auto my-2 space-y-2 pr-1">
                         {participants.map((user) => (
@@ -401,11 +441,10 @@ export default function LiveSessionsComponent({
                       </div>
                     )}
 
-                    {/* POLL (PRESENTER CREATES / PARTICIPANT ANSWERS) */}
+                    {/* POLL */}
                     {activePanel === "poll" && (
                       <div className="flex-1 my-2 flex flex-col justify-between overflow-y-auto">
                         {currentUser.role === "Presenter" ? (
-                          /* PRESENTER FORM TO CREATE POLL */
                           <form onSubmit={handleCreatePoll} className="space-y-3">
                             <h4 className="font-bold text-xs text-purple-950">Create a Poll</h4>
                             <input
@@ -432,7 +471,7 @@ export default function LiveSessionsComponent({
                             <button
                               type="button"
                               onClick={() => setNewOptions([...newOptions, ""])}
-                              className="text-[11px] text-purple-700 font-bold hover:underline"
+                              className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer"
                             >
                               + Add Option
                             </button>
@@ -444,7 +483,6 @@ export default function LiveSessionsComponent({
                             </button>
                           </form>
                         ) : activePoll ? (
-                          /* PARTICIPANT POLL ANSWER VIEW */
                           !pollSubmitted ? (
                             <div className="space-y-2 flex-1 flex flex-col justify-between">
                               <div className="space-y-2">
@@ -453,7 +491,7 @@ export default function LiveSessionsComponent({
                                   <button
                                     key={i}
                                     onClick={() => setPollSelected(opt)}
-                                    className={`w-full text-left p-2.5 rounded-2xl border text-xs font-semibold transition ${
+                                    className={`w-full text-left p-2.5 rounded-2xl border text-xs font-semibold transition cursor-pointer ${
                                       pollSelected === opt ? "border-purple-600 bg-purple-100 text-purple-900" : "border-gray-200 bg-white text-gray-800"
                                     }`}
                                   >
@@ -494,10 +532,10 @@ export default function LiveSessionsComponent({
               <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl space-y-4">
                 <h3 className="text-base font-extrabold text-gray-900">Are you sure you want to leave?</h3>
                 <div className="flex items-center justify-center gap-3 pt-2">
-                  <button onClick={() => { setShowExitModal(false); setIsJoined(false); }} className="px-4 py-2 border-2 border-purple-700 text-purple-700 text-xs font-bold rounded-2xl">
+                  <button onClick={() => { setShowExitModal(false); setIsJoined(false); }} className="px-4 py-2 border-2 border-purple-700 text-purple-700 text-xs font-bold rounded-2xl cursor-pointer">
                     Yes, leave
                   </button>
-                  <button onClick={() => setShowExitModal(false)} className="px-4 py-2 bg-purple-700 text-white text-xs font-bold rounded-2xl">
+                  <button onClick={() => setShowExitModal(false)} className="px-4 py-2 bg-purple-700 text-white text-xs font-bold rounded-2xl cursor-pointer">
                     Continue watching
                   </button>
                 </div>
@@ -512,7 +550,7 @@ export default function LiveSessionsComponent({
             Live session
           </h2>
 
-          <div className="w-full max-w-4xl bg-white rounded-3xl p-8 flex flex-col justify-between shadow-md border border-gray-100">
+          <div className="w-full max-w-4xl bg-[#F8F5FB] rounded-3xl p-8 flex flex-col justify-between shadow-md border border-purple-100">
             <div>
               <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
                 <div className="flex items-center space-x-2.5">

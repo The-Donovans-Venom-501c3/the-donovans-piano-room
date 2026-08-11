@@ -1,252 +1,217 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import {
   authorizedWrapperTitles,
   settingsNavigation,
 } from "@/utils/general";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { getUserMembership } from "@/lib/api/membershipService";
+import { UserMembership, MembershipLevelId, Plan } from "@/interfaces/membershipInterface";
 import PlanCard from "../components/PlanCard";
-import BenefitAccessCard from "../components/BenefitAccessCard";
-import Popup from "../components/Popup";
-import { getPlanInfo, getUserMembership } from "@/lib/api/membershipService";
-import { UserMembership, MembershipLevelId, MembershipStatus, Plan } from "@/interfaces/membershipInterface";
-import { MEMBERSHIP_UI_CONFIG, ButtonConfig, PopupType, getYearlyPriceMultiplier } from "@/app/(authorized)/account/membership/config";
+import "@/styles/primary-purple-scrollbar.css";
 
-export default function UpgradePage() {
-  const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState<MembershipLevelId | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
+export default function Page() {
   const [membership, setMembership] = useState<UserMembership | null>(null);
-  const [plans, setPlans] = useState<Record<MembershipLevelId, Plan | undefined>>({} as Record<MembershipLevelId, Plan | undefined>);
-  const [showScholarshipPopup, setShowScholarshipPopup] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showPlanSelection, setShowPlanSelection] = useState<boolean>(true);
 
-  const handleBenefitCardToggle = (levelId: MembershipLevelId) => {
-    // If this plan is already open, close it. Otherwise, open it.
-    setSelectedPlan(selectedPlan === levelId ? null : levelId);
-  };
+  const availablePlans = [
+    {
+      levelId: MembershipLevelId.YEAR,
+      name: "Yearly",
+      planName: "Yearly",
+      price: 19.99,
+      formattedPrice: "19.99",
+      period: "annually",
+      yearlyPrice: "239.88",
+      isPopular: true,
+      isCurrent: false,
+      benefits: [
+        "Best value, biggest savings",
+        "Save $120 every year",
+        "No monthly billing hassle",
+        "Commit once, enjoy worry-free",
+      ],
+      moreBenefits: [],
+    },
+    {
+      levelId: MembershipLevelId.MONTH,
+      name: "Monthly",
+      planName: "Monthly",
+      price: 29.99,
+      formattedPrice: "29.99",
+      period: "monthly",
+      yearlyPrice: "359.88",
+      isRecommended: true,
+      isCurrent: false,
+      benefits: [
+        "No long-term commitment",
+        "Save $40 vs daily pass",
+        "Pay monthly, less upfront",
+        "Full access, zero lock-in",
+      ],
+      moreBenefits: [],
+    },
+    {
+      levelId: MembershipLevelId.DAY,
+      name: "Day Pass",
+      planName: "Day Pass",
+      price: 1.99,
+      formattedPrice: "1.99",
+      period: "one day",
+      yearlyPrice: "726.35",
+      isCurrent: false,
+      benefits: [
+        "Try before you commit",
+        "24 hours, full access",
+        "One day, no strings",
+        "Perfect for testing first",
+      ],
+      moreBenefits: [],
+    },
+    {
+      levelId: MembershipLevelId.FREE,
+      name: "Scholarship",
+      planName: "Scholarship",
+      price: 0,
+      formattedPrice: "FREE",
+      period: "Scholarship",
+      isCurrent: true,
+      benefits: [
+        "100% cost covered",
+        "For eligible low-income families",
+        "Renewed annually if qualified",
+        "Apply once, enjoy all year",
+      ],
+      moreBenefits: [],
+    },
+  ];
 
-  const handleScholarshipApply = () => {
-    // Redirect to The Donovan organization website
-    const scholarshipFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSczYBC5tnRZcjjTBN4J4BXEDxO-8NuM1ZuNlfR4z9heXk3T6w/viewform";
-    window.open(scholarshipFormUrl, '_blank', 'noopener,noreferrer');
-    setShowScholarshipPopup(false);
-  };
-
-  // Button configuration for back button
-  const backButton: ButtonConfig = {
-    onClick: () => router.push('/account/membership'),
-    text: 'Your membership',
-    disabled: false,
-    loading: false,
-    style: 'mb-6 flex items-center gap-2 text-primary-purple'
-  };
+  const scholarshipPlan = availablePlans.find(
+    (p) => p.levelId === MembershipLevelId.FREE
+  )!;
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
         setLoading(true);
-        const [m, free, day, month, year] = await Promise.all([
-          getUserMembership(),
-          getPlanInfo(MembershipLevelId.FREE),
-          getPlanInfo(MembershipLevelId.DAY),
-          getPlanInfo(MembershipLevelId.MONTH),
-          getPlanInfo(MembershipLevelId.YEAR),
-        ]);
+        const userMembership = await getUserMembership().catch(() => null);
         if (!isMounted) return;
-        setMembership(m);
-        setPlans({
-          [MembershipLevelId.FREE]: free,
-          [MembershipLevelId.DAY]: day,
-          [MembershipLevelId.MONTH]: month,
-          [MembershipLevelId.YEAR]: year,
-        });
-      } catch (e: any) {
-        if (!isMounted) return;
-        setError(e?.message || "Failed to load plans");
+        setMembership(userMembership);
       } finally {
-        if (!isMounted) return;
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     })();
+
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const expirationDays = useMemo(() => {
-    if (!membership?.nextRenewalAt) return undefined;
-    const now = new Date();
-    const end = new Date(membership.nextRenewalAt);
-    const ms = end.getTime() - now.getTime();
-    if (Number.isNaN(ms)) return undefined;
-    return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
-  }, [membership?.nextRenewalAt]);
-
-  // Helper function to render a single plan
-  const renderPlan = (levelId: MembershipLevelId) => {
-    const planInfo = plans[levelId];
-    if (!planInfo) return null;
-
-    // Create the plan data with current status and yearly price
-    const plan: Plan = {
-      ...planInfo,
-      isPopular: planInfo.levelId === MembershipLevelId.YEAR,
-      isRecommended: planInfo.levelId === MembershipLevelId.MONTH,
-      isCurrent: planInfo.levelId === membership?.levelId,
-      expirationDays: planInfo.levelId === membership?.levelId ? expirationDays : undefined,
-      yearlyPrice: (planInfo.price * getYearlyPriceMultiplier(levelId)).toFixed(2)
-    };
-
-    const chooseButton: ButtonConfig = {
-      onClick: () => {
-        if (plan.planName === "Scholarship") {
-          setShowScholarshipPopup(true);
-        } else {
-          // Navigate to confirmation page based on plan type
-          const planIdMap: Record<string, string> = {
-            'Yearly': 'yearly',
-            'Monthly': 'monthly', 
-            'Day Pass': 'daily',
-            // Note: Scholarship plan handled separately via popup, not through planIdMap
-          };
-          const planId = planIdMap[plan.planName];
-          if (planId) {
-            router.push(`/account/membership/upgrade/${planId}`);
-          }
-        }
-      },
-      text: plan.planName === "Scholarship" ? "Apply for Scholarship" : "Choose plan",
-      disabled: false,
-      loading: false,
-      style: "relative z-10 mt-3 rounded-full border border-primary-purple px-6 py-3 text-center font-medium bg-primary-purple text-white"
-    };
-    
-    return (
-      <>
-        {/* Plan Card */}
-        <div className="flex-shrink-0 w-80 md:w-96">
-          <PlanCard
-            plan={plan}
-            uiConfig={{
-              ...MEMBERSHIP_UI_CONFIG[levelId],
-              useSingleColumn: true,
-              priceBlockSize: "py-14"
-            }}
-            showCurrentInHeader={false}
-            showExpirationMessage={plan.isCurrent}
-            showChooseButton={!plan.isCurrent}
-            chooseButton={chooseButton}
-            useBenefitAccessCard={true}
-            onBenefitAccessCardToggle={() => handleBenefitCardToggle(levelId)}
-          />
-        </div>
-
-        {/* Benefit Access Card */}
-        {selectedPlan === levelId && (
-          <div className="flex-shrink-0 w-80 md:w-96">
-            <BenefitAccessCard 
-              planName={plan.planName}
-              headerColor={MEMBERSHIP_UI_CONFIG[levelId].benefitCardColors?.headerColor || 'bg-gray-500'}
-              textColor={MEMBERSHIP_UI_CONFIG[levelId].benefitCardColors?.textColor || 'text-white'}
-              benefits={plan.moreBenefits}
-              closeButton={{
-                onClick: () => setSelectedPlan(null),
-                text: "×"
-              }}
-            />
-          </div>
-        )}
-      </>
-    );
-  };
-
   return (
-    <AuthorizedWrapper1 
+    <AuthorizedWrapper1
       pageTitle={authorizedWrapperTitles.AccountAndSettings}
       openedLink=""
     >
-      <div className="h-full overflow-y-auto primary-purple-scrollbar">
-      <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
+      <div className="h-full overflow-y-auto primary-purple-scrollbar pb-12 bg-[#FFF8F3]">
+        <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
 
-      <div className="mt-4 w-full">
-        {/* Back button */}
-        <button 
-          className={backButton.style}
-          disabled={backButton.disabled || backButton.loading}
-          onClick={backButton.onClick}
-        >
-          <Image
-            className="h-5 w-5 shrink-0"
-            src="/memberships/upgrade/arrow_back_FILL0_wght400_GRAD0_opsz24 1.svg"
-            alt="Back arrow"
-            width={20}
-            height={20}
-          />
-          {backButton.loading 
-            ? (backButton.loadingText || 'Loading...')
-            : backButton.text
-          }
-        </button>
+        <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 mt-8">
+          {showPlanSelection ? (
+            /* VIEW 1: SELECT YOUR PLAN GRID */
+            <div className="w-full">
+              {/* BUMPED TOP BACK BUTTON */}
+              <button
+                onClick={() => setShowPlanSelection(false)}
+                className="flex items-center gap-2 text-[#6B21A8] font-black mb-4 hover:underline text-lg sm:text-xl cursor-pointer"
+              >
+                ← Back to Your Membership
+              </button>
 
-        <h1 className="font-montserrat text-5xl font-medium text-primary-brown 3xl:text-6xl 4xl:text-7xl">
-          Select your plan
-        </h1>
-        
-        {loading && (
-          <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">Loading plans...</p>
-        )}
-        {!loading && error && (
-          <p className="text-red-600 text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">{error}</p>
-        )}
-        {!loading && !error && (
-          <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">
-            There are multiple membership you can choose from, select the one that best suits your interests.
-          </p>
-        )}
-        <div className='mt-[5vh] mb-[5vh] bg-[#FED2AA] h-1'></div>
-        
-        <div className="mt-8 overflow-x-auto">
-          <div className="flex gap-6 min-w-fit">
-            {Object.values(MembershipLevelId).map((levelId) => renderPlan(levelId))}
-          </div>
+              {/* BUMPED TOP TITLE & SUBTITLE */}
+              <h1 className="font-montserrat text-4xl sm:text-5xl font-black text-[#292524] tracking-tight">
+                Select your plan
+              </h1>
+              <p className="mt-3 text-[#3B3531] font-bold text-lg sm:text-2xl leading-snug">
+                You may choose from one of our multiple membership plans: select the one that best suits your interests.
+              </p>
+
+              <div className="mt-6 border-b-2 border-[#F5E1C8] w-full mb-8" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full items-stretch min-h-[680px]">
+                {availablePlans.map((planItem) => {
+                  const isScholarshipPlan = planItem.levelId === MembershipLevelId.FREE;
+
+                  return (
+                    <div
+                      key={planItem.name}
+                      className={`h-full flex flex-col justify-between ${
+                        isScholarshipPlan ? "transform scale-[1.02] z-10" : ""
+                      }`}
+                    >
+                      <PlanCard
+                        plan={planItem as unknown as Plan}
+                        isScholarship={isScholarshipPlan}
+                        showCurrentInHeader={isScholarshipPlan}
+                        showChooseButton={!isScholarshipPlan}
+                        chooseButton={{
+                          text: isScholarshipPlan ? "Apply for Scholarship" : "Choose plan",
+                          onClick: () => console.log(`Selected ${planItem.name}`),
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* VIEW 2: CURRENT PLAN DASHBOARD */
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8 items-stretch min-h-[580px]">
+              {/* Left Column: Scholarship Card Display */}
+              <div className="lg:col-span-5 bg-[#FFF3E8] p-8 rounded-3xl border-2 border-[#FDE2C6] flex flex-col justify-between">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-6">Current Plan</h2>
+                  <PlanCard
+                    plan={scholarshipPlan as unknown as Plan}
+                    isScholarship={true}
+                    showExpirationMessage={false}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Management Options (Renew Membership & Change Plan) */}
+              <div className="lg:col-span-7 flex flex-col gap-8 justify-between">
+                {/* RENEW MEMBERSHIP BOX - BUMPED SIZES */}
+                <div className="bg-white p-8 sm:p-10 rounded-3xl border-2 border-gray-100 shadow-md flex-1 flex flex-col justify-center">
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-900">Renew Membership</h3>
+                  <p className="text-lg sm:text-xl text-gray-700 mt-3 font-bold">
+                    Your membership active status is managed annually.
+                  </p>
+                  <button className="mt-8 w-full py-4 sm:py-5 rounded-full bg-[#6B21A8] text-white text-xl sm:text-2xl font-black hover:bg-[#581C87] transition-all cursor-pointer shadow-md">
+                    Renew Membership
+                  </button>
+                </div>
+
+                {/* CHANGE PLAN BOX - BUMPED SIZES */}
+                <div className="bg-white p-8 sm:p-10 rounded-3xl border-2 border-gray-100 shadow-md flex-1 flex flex-col justify-center">
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-900">Change Plan</h3>
+                  <p className="text-lg sm:text-xl text-gray-700 mt-3 font-bold">
+                    Want to switch to Yearly or Monthly plan?
+                  </p>
+                  <button
+                    onClick={() => setShowPlanSelection(true)}
+                    className="mt-8 w-full py-4 sm:py-5 rounded-full border-3 border-[#6B21A8] text-[#6B21A8] text-xl sm:text-2xl font-black hover:bg-[#F7F0FC] transition-all cursor-pointer"
+                  >
+                    Select Different Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Horizontal Scroller Indicators */}
-        <div className="mt-8 flex justify-center">
-          <div className="flex items-center gap-3">
-            {Object.values(MembershipLevelId).map((levelId) => (
-            <div
-              key={levelId}
-              className={`h-3 rounded-full transition-all duration-300 ${
-                selectedPlan === levelId 
-                ? "bg-[#6F219E] w-12" 
-                : "bg-[#B457F5] w-3"
-              }`}
-            />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Scholarship Popup */}
-      <Popup
-        isOpen={showScholarshipPopup}
-        type={PopupType.APPLY_SCHOLARSHIP}
-        primaryButton={{
-          onClick: handleScholarshipApply,
-          text: "Apply for Scholarship"
-        }}
-        secondaryButton={{
-          onClick: () => setShowScholarshipPopup(false),
-          text: "Go Back"
-        }}
-      />
       </div>
     </AuthorizedWrapper1>
   );

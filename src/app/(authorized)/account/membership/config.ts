@@ -76,10 +76,9 @@ export const POPUP_CONFIG: Record<PopupType, PopupConfig> = {
   },
   [PopupType.NO_ACTIVE_MEMBERSHIP]: {
     title: "No Active Membership",
-    content: "You currently do not have active membership. Please subscribe or go back.\n\nWe recommend you to apply for a scholarship. We will release more membership tiers with more benefits in the future. Stay tuned!",
-    
-    primaryButton: "Apply for Scholarship",
-    secondaryButton: "Go Back",
+    content: "You currently do not have an active membership. You can choose a plan to subscribe or apply for a scholarship below.",
+    primaryButton: "Select a Plan",
+    secondaryButton: "Apply for Scholarship",
     primaryButtonStyle: "bg-primary-purple hover:bg-purple-700",
     secondaryButtonStyle: "border-2 border-primary-purple text-primary-purple hover:bg-purple-50"
   }
