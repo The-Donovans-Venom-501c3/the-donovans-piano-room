@@ -27,7 +27,7 @@ export default function Home() {
               <div className="flex flex-col gap-[2vh] mt-[10%]">
                 {isLoggedIn ? (
                   <Link href="/dashboard">
-                    <Button1 text="Enter The Piano Room Dashboard!"></Button1>
+                    <Button1 text="Enter The Donovan's Piano Room"></Button1>
                   </Link>
                 ) : (
                   <>
