@@ -1,9 +1,38 @@
+import { UserUpdateData } from "@/interfaces/profileInterface";
+
 interface ApiResponse<T = any> {
     data: T | null;
     ok: boolean;
     status: number;
     error?: string;
 }
+
+// ---------------------------------------------------------------------------
+// 🔑 HELPER: Handles client-side API requests with auto-refresh on 401
+// ---------------------------------------------------------------------------
+const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
+    let response = await fetch(url, {
+        ...options,
+        credentials: "include" // Always pass session cookies
+    });
+
+    // If access token expired (401), attempt to refresh and retry once
+    if (response.status === 401) {
+        const refreshRes = await refreshToken();
+        if (refreshRes.ok) {
+            response = await fetch(url, {
+                ...options,
+                credentials: "include"
+            });
+        }
+    }
+
+    return response;
+};
+
+// ---------------------------------------------------------------------------
+// Auth Methods
+// ---------------------------------------------------------------------------
 
 export const signup = async (
     fullName: string,
@@ -60,7 +89,7 @@ export const login = async (email: string, password: string): Promise<ApiRespons
         const response = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            credentials: "include", // 👈 Crucial: ensures cookies from backend response are saved
+            credentials: "include",
             body: JSON.stringify({ email, password })
         });
         const data = await response.json().catch(() => null);
@@ -134,5 +163,39 @@ export const refreshToken = async (): Promise<ApiResponse> => {
     } catch (error: any) {
         console.error("Token Refresh Failed:", error);
         return { data: null, ok: false, status: 500, error: error.message };
+    }
+};
+
+// ---------------------------------------------------------------------------
+// User Methods
+// ---------------------------------------------------------------------------
+
+export const getUser = async (): Promise<ApiResponse> => {
+    try {
+        const response = await fetchWithAuth('/api/user/', {
+            method: "GET"
+        });
+        const data = await response.json().catch(() => null);
+        return { data, ok: response.ok, status: response.status };
+    } catch (err: any) {
+        console.error("Get User Failed:", err);
+        return { data: null, ok: false, status: 500, error: err.message };
+    }
+};
+
+export const updateUser = async (userData: UserUpdateData): Promise<ApiResponse> => {
+    try {
+        const response = await fetchWithAuth('/api/user/', {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        const data = await response.json().catch(() => null);
+        return { data, ok: response.ok, status: response.status };
+    } catch (err: any) {
+        console.error("Update User Failed:", err);
+        return { data: null, ok: false, status: 500, error: err.message };
     }
 };
