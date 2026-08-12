@@ -27,15 +27,16 @@ export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('access_token')?.value;
   const refreshToken = request.cookies.get('refresh_token')?.value;
 
-  // Check backend session validity helper
   let isSessionValid = false;
+  let newSetCookieHeader: string | null = null;
 
+  // 2. Step 1: Check if current access token is valid
   if (accessToken) {
     try {
       const verifyResponse = await fetch(`${BACKEND_BASE_URL}/api/user/`, {
         method: 'GET',
         headers: {
-          Cookie: `access_token=${accessToken}; refresh_token=${refreshToken}`,
+          Cookie: `access_token=${accessToken}`,
         },
         credentials: 'include',
       });
@@ -49,15 +50,39 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // 3. Step 2: 🔑 FIX HERE - If access_token failed/expired, attempt refresh!
+  if (!isSessionValid && refreshToken) {
+    try {
+      const refreshResponse = await fetch(`${BACKEND_BASE_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          Cookie: `refresh_token=${refreshToken}`,
+        },
+        credentials: 'include',
+      });
+
+      if (refreshResponse.status === 200) {
+        isSessionValid = true;
+        // Capture the new set-cookie header sent back by the backend refresh route
+        newSetCookieHeader = refreshResponse.headers.get('set-cookie');
+      }
+    } catch (error) {
+      console.error('Error refreshing token in middleware:', error);
+      isSessionValid = false;
+    }
+  }
+
   // --- SCENARIO A: User is trying to access Auth pages (/login, /signup) ---
   if (pathname === '/login' || pathname === '/signup') {
-    // If user is ALREADY logged in and presses BACK arrow to /login -> redirect to /dashboard
     if (isSessionValid) {
       const response = NextResponse.redirect(new URL('/dashboard', request.url));
       response.headers.set(
         'Cache-Control',
         'no-store, no-cache, must-revalidate, proxy-revalidate'
       );
+      if (newSetCookieHeader) {
+        response.headers.set('Set-Cookie', newSetCookieHeader);
+      }
       return response;
     }
     return NextResponse.next();
@@ -65,7 +90,6 @@ export async function middleware(request: NextRequest) {
 
   // --- SCENARIO B: User is trying to access Protected routes (/dashboard, /account) ---
   if (!isSessionValid) {
-    // If user logged out and presses FORWARD arrow -> redirect to /login
     const response = NextResponse.redirect(new URL('/login', request.url));
     response.headers.set(
       'Cache-Control',
@@ -74,16 +98,19 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Allow normal access with no-cache headers to prevent bfcache issues
+  // Allow normal access, forwarding newly refreshed cookies if updated
   const response = NextResponse.next();
   response.headers.set(
     'Cache-Control',
     'no-store, no-cache, must-revalidate, proxy-revalidate'
   );
+  if (newSetCookieHeader) {
+    response.headers.set('Set-Cookie', newSetCookieHeader);
+  }
+
   return response;
 }
 
-// Ensure middleware runs for auth pages AND protected pages
 export const config = {
   matcher: ['/login', '/signup', '/dashboard/:path*', '/account/:path*'],
 };
