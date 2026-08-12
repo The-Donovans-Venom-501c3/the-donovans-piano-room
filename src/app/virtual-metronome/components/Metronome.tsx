@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Slider from "@mui/material/Slider";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface MetronomeProps {
   beatsNum: number;
@@ -23,44 +23,131 @@ const Metronome = ({
   const [animatedIndex, setAnimatedIndex] = useState<number>(0);
   const [animatedImage, setAnimatedImage] = useState<number>(0);
   const [vol, setVol] = useState<number>(5);
+  const isFirstRender = useRef(true);
+  const timePassed = useRef(0);
+  const counter = useRef(1);
+  const isCorner = useRef(false);
+  const index = useRef(0);
+  let interval2: NodeJS.Timeout;
 
   useEffect(() => {
     if (animation) {
-      setAnimatedIndex(0);
-      setAnimatedImage((prev) => prev + 1);
-      const sound = new Audio(soundState[0]);
-      const soundEmp = new Audio(soundState[1]);
-      let index = 0;
+      if (isFirstRender.current) {
+        setAnimatedIndex(0);
+        setAnimatedImage((prev) => prev + 1);
+        const sound = new Audio(soundState[0]);
+        const soundEmp = new Audio(soundState[1]);
 
-      if (beatEmp === index) {
-        soundEmp.volume = vol / 10;
-        soundEmp.play();
-        index = (index + 1) % beatsNum;
+        if (beatEmp === index.current) {
+          soundEmp.volume = vol / 10;
+          soundEmp.play();
+          index.current = (index.current + 1) % beatsNum;
+        } else {
+          sound.volume = vol / 10;
+          sound.play();
+          index.current = (index.current + 1) % beatsNum;
+        }
+
+        const interval = setInterval(
+          () => {
+            if (beatEmp === index.current) {
+              soundEmp.volume = vol / 10;
+              soundEmp.play();
+              index.current = (index.current + 1) % beatsNum;
+              setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
+            } else {
+              sound.volume = vol / 10;
+              sound.play();
+              index.current = (index.current + 1) % beatsNum;
+              setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
+            }
+          },
+          (60 / tempoNum) * 1000,
+        );
+
+        const timer = setInterval(() => {
+          timePassed.current++;
+          if (
+            timePassed.current ===
+            Math.floor((60 / tempoNum) * counter.current * 100)
+          ) {
+            counter.current++;
+            isCorner.current = true;
+          } else {
+            isCorner.current = false;
+          }
+        }, 10);
+
+        isFirstRender.current = false;
+        // Clear the interval on component unmount to avoid memory leaks
+        return () => {
+          clearInterval(interval);
+          clearInterval(timer);
+        };
       } else {
-        sound.volume = vol / 10;
-        sound.play();
-        index = (index + 1) % beatsNum;
-      }
+        console.log("not first render");
 
-      const interval = setInterval(
-        () => {
-          if (beatEmp === index) {
+        const waitForIsCorner = async () => {
+          while (!isCorner.current) {
+            // Wait for 10 milliseconds before checking again
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          // Once isCorner is true, execute your code here
+          console.log("isCorner is true now!");
+
+          const sound = new Audio(soundState[0]);
+          const soundEmp = new Audio(soundState[1]);
+
+          if (beatEmp === index.current) {
             soundEmp.volume = vol / 10;
             soundEmp.play();
-            index = (index + 1) % beatsNum;
+            index.current = (index.current + 1) % beatsNum;
             setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
           } else {
             sound.volume = vol / 10;
             sound.play();
-            index = (index + 1) % beatsNum;
+            index.current = (index.current + 1) % beatsNum;
             setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
           }
-        },
-        (60 / tempoNum) * 1000,
-      );
 
-      // Clear the interval on component unmount to avoid memory leaks
-      return () => clearInterval(interval);
+          interval2 = setInterval(
+            () => {
+              if (beatEmp === index.current) {
+                soundEmp.volume = vol / 10;
+                soundEmp.play();
+                index.current = (index.current + 1) % beatsNum;
+                setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
+              } else {
+                sound.volume = vol / 10;
+                sound.play();
+                index.current = (index.current + 1) % beatsNum;
+                setAnimatedIndex((prevIndex) => (prevIndex + 1) % beatsNum);
+              }
+            },
+            (60 / tempoNum) * 1000,
+          );
+        };
+
+        const timer = setInterval(() => {
+          timePassed.current++;
+          if (
+            timePassed.current ===
+            Math.floor((60 / tempoNum) * counter.current * 100)
+          ) {
+            counter.current++;
+            isCorner.current = true;
+          } else {
+            isCorner.current = false;
+          }
+        }, 10);
+
+        waitForIsCorner();
+
+        return () => {
+          clearInterval(interval2);
+          clearInterval(timer);
+        };
+      }
     }
   }, [animation, beatsNum, tempoNum, beatEmp, vol, soundState]);
 
