@@ -218,8 +218,7 @@ export default function LiveSessionsComponent({
               >
                 Watch on YouTube ↗
               </a>
-              <div className="flex items-center space-x-2 text-rose-500 font-extrabold text-sm">
-                <span className="w-3 h-3 bg-rose-500 rounded-full animate-pulse" />
+              <div className="flex items-center space-x-2 text-purple-900 font-extrabold text-sm">
                 <span>Session in progress</span>
               </div>
             </div>
@@ -554,7 +553,6 @@ export default function LiveSessionsComponent({
             <div>
               <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
                 <div className="flex items-center space-x-2.5">
-                  <span className="w-4 h-4 rounded-full bg-rose-500 animate-pulse" />
                   <span className="text-base font-extrabold text-gray-800">
                     Live session
                   </span>
@@ -568,17 +566,17 @@ export default function LiveSessionsComponent({
               <div className="relative w-full h-64 md:h-80 mb-6 rounded-2xl overflow-hidden bg-amber-100 shadow-inner">
                 <Image
                   src="/journal-book/logo.svg"
-                  alt="Lesson 2 - The eighth note"
+                  alt="Live lesson"
                   fill
                   className="object-cover"
                 />
               </div>
 
               <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3">
-                Lesson 2 - The eighth note
+                Live lesson
               </h3>
-              <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-8 font-medium">
-                Donec sed tortor ut justo consectetur venenatis. Curabitur sed enim in diam porta congue.
+              <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-8 font-medium">
+                Join us every Monday and Thursday for live music lessons, learning, and fun. Tune in and keep growing your musical skills!
               </p>
             </div>
 

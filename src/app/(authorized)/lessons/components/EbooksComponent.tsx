@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import ReaderPortal from "./ReaderPortal";
 
@@ -30,15 +31,15 @@ interface CardProps {
   children: React.ReactNode;
 }
 
-function SelectedCard({ width = 350, height = 380, children }: CardProps) {
+function SelectedCard({ width = 210, height = 210, children }: CardProps) {
   return (
     <div
-      className={`group bg-primary-purple w-[${width}px] border-2 rounded-3xl flex pb-[10px]
-       border-primary-purple cursor-pointer`}
+      style={{ width: `${width}px` }}
+      className="group bg-primary-purple border-2 rounded-3xl flex pb-[10px] border-primary-purple cursor-pointer"
     >
       <div
-        className={` min-h-[${height}px] rounded-3xl flex flex-col p-8
-          bg-secondary-purple`}
+        style={{ minHeight: `${height}px` }}
+        className="w-full rounded-3xl flex flex-col items-center justify-center p-2 bg-secondary-purple"
       >
         {children}
       </div>
@@ -53,21 +54,36 @@ interface EbooksComponentProps {
 export default function EbooksComponent({ searchQuery = "" }: EbooksComponentProps) {
   const [selected, setSelected] = useState<number>(0);
   const [read, setRead] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const q = searchQuery.toLowerCase().trim();
 
-  // Filter books matching search query
   const filteredEbooks = ebooks.filter((book) =>
     book.title.toLowerCase().includes(q)
   );
 
   const handleRead = () => {
+    setCurrentPage(1); // Reset page count when opening a book
     setRead((prev) => !prev);
   };
 
   const handleBack = () => {
-    setRead((prev) => !prev);
+    setRead(false);
   };
+
+  // Listen for page-change postMessage events emitted by the iframe viewer
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "PAGE_CHANGE" && typeof event.data.page === "number") {
+        setCurrentPage(event.data.page);
+      } else if (typeof event.data?.page === "number") {
+        setCurrentPage(event.data.page);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   return (
     <>
@@ -78,10 +94,14 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
           <button onClick={handleBack} className="mb-4 text-purple-700 font-medium">
             &larr; Go Back to All Books
           </button>
-          <ReaderPortal onClose={() => setRead(false)}>
+          
+          <ReaderPortal 
+            onClose={() => setRead(false)}
+            pageId={`book_${ebooks[selected]?.id}_page_${currentPage}`}
+          >
             <iframe
               src={ebooks[selected]?.url}
-              className="w-full min-h-[100vh] rounded-lg"
+              className="w-full h-screen rounded-lg"
               sandbox="allow-same-origin allow-scripts"
               title={ebooks[selected]?.title}
             />
