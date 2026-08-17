@@ -1,3 +1,5 @@
+'use client'
+
 import Button3 from '@/components/atoms/Button3'
 import { isNavOpenAtom } from '@/utils/stores'
 import { useAtomValue } from 'jotai'
@@ -89,7 +91,6 @@ export default function FirstLesson() {
     }
 
     return (
-        /* Fits 100% of parent container, clamped between min and max constraints */
         <div 
             className="relative w-full max-w-[1000px] min-w-[320px] aspect-[704/500] transition-all duration-300 mx-auto"
             style={{
@@ -105,7 +106,7 @@ export default function FirstLesson() {
                             <Image src="/dashboard/book-icon.svg" fill alt=""/>
                         </span>
                         <Link href={{ pathname: "/lessons", query: { tab: "live-sessions" } }}>
-                            <p className="text-primary-brown text-xl 3xl:text-2xl 4xl:text-3xl font-bold">Lessons</p>
+                            <p className="text-primary-brown text-xl 3xl:text-2xl 4xl:text-3xl font-bold">Live Lessons</p>
                         </Link>
                     </div>
                     <div className="bg-[#FFEBD5] flex items-center px-3 py-1.5 rounded-xl gap-2">
@@ -116,16 +117,14 @@ export default function FirstLesson() {
                     </div>
                 </div>
 
-                {/* Video Container */}
+                {/* Lesson Banner Image Container */}
                 <div className="w-full h-[58%] relative rounded-2xl overflow-hidden shadow-sm">
-                    <iframe 
-                        className="w-full h-full"  
-                        src="https://www.youtube.com/embed/Mwt9f9H7dsE?si=D1HT7i873D3VgQ3B" 
-                        title="YouTube video player" 
-                        frameBorder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerPolicy="strict-origin-when-cross-origin" 
-                        allowFullScreen
+                    <Image 
+                        src="/dashboard/Dashboardlesson.png" 
+                        alt="Join us for a fun-filled lesson!"
+                        fill
+                        className="object-cover"
+                        priority
                     />
                 </div>
 
@@ -146,7 +145,7 @@ export default function FirstLesson() {
                             onBlur={(e) => handleClickOutside(e)}
                         >
                             <Button3  
-                                text={`Add to Calendar ${isOpen ? "▲" : "▼"}`}
+                                text="Add to calendar"
                                 onClick={toggleDropdown} 
                             />
 

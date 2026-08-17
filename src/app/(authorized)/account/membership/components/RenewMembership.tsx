@@ -17,14 +17,14 @@ export default function RenewMembership({
     <div className="flex flex-1 flex-col gap-6 rounded-xl bg-primary-skin p-6 h-full">
       {/* Title */}
       <h1 className="font-montserrat text-3xl font-semibold md:text-3xl text-primary-brown">
-        {isBeta ? "Beta Access Status" : "Renew Membership"}
+        Renew Membership
       </h1>
 
       {/* Description */}
       <p className="text-2xl text-primary-black">
         {isBeta ? (
           <>
-            You currently have <span className="font-semibold text-tertiary-orange">full access</span> during our Beta testing period. We will notify you before official paid plans launch!
+            Your membership active status is managed annually. Renewals are paused during <span className="font-semibold text-tertiary-orange">The Piano Room Beta</span>.
           </>
         ) : (
           <>
@@ -33,18 +33,21 @@ export default function RenewMembership({
         )}
       </p>
 
-      {/* Renew Button (Hidden during Beta testing) */}
-      {!isBeta && onRenewClick && (
-        <div className="mt-4 flex w-full justify-center">
-          <button
-            type="button"
-            onClick={onRenewClick}
-            className="w-full rounded-full bg-primary-purple px-6 py-5 text-center text-white font-semibold text-3xl hover:bg-purple-700 transition-colors"
-          >
-            Renew Membership
-          </button>
-        </div>
-      )}
+      {/* Renew Button (Disabled & Grayed out in Beta mode) */}
+      <div className="mt-4 flex w-full justify-center">
+        <button
+          type="button"
+          disabled={isBeta}
+          onClick={isBeta ? undefined : onRenewClick}
+          className={`w-full rounded-full px-6 py-5 text-center font-semibold text-3xl transition-all ${
+            isBeta
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 pointer-events-none"
+              : "bg-primary-purple text-white hover:bg-purple-700"
+          }`}
+        >
+          Renew Membership
+        </button>
+      </div>
     </div>
   );
 }
