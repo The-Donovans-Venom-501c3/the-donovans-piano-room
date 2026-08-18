@@ -4,6 +4,7 @@ import { Mountains_of_Christmas } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import MobileWarningPopup from "@/components/atoms/MobileWarningPopup";
+import BetaBanner from "@/components/atoms/BetaBanner";
 
 const mountainsOfChristmas = Mountains_of_Christmas({
   weight: ["400", "700"],
@@ -26,6 +27,7 @@ export default function RootLayout({
     <html lang="en" className={mountainsOfChristmas.variable}>
       <body>
         <Providers>
+          <BetaBanner />
           {children}
           <MobileWarningPopup />
         </Providers>

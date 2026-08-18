@@ -181,7 +181,7 @@ export default function PublicContactUsForm() {
                   EMAIL US AT
                 </p>
                 <p className="mt-1 text-base font-semibold text-white md:text-lg">
-                  info@theDonovan.org
+                  contact@thedonovan.org
                 </p>
               </div>
             </div>

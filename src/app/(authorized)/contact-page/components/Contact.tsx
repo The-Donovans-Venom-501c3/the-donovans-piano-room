@@ -188,7 +188,7 @@ export default function Contact() {
               <div>
                 <p className="text-sm font-bold text-white/80">EMAIL US AT</p>
                 <p className="mt-1 text-base font-semibold text-white md:text-lg">
-                  info@theDonovan.org
+                  contact@thedonovan.org
                 </p>
               </div>
             </div>

@@ -11,36 +11,11 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
       <>
         <br />
         <p>
-          Yes! The Donovan&apos;s Venom, INC. 501(c)(3) was established 2014 and
+          Yes! The Donovan&apos;s Venom, INC. 501(c)(3) was established in 2014 and
           became a 501(c)(3) organization in 2020.
         </p>
         <br />
         <p>Our Employer Identification Number (EIN) is 27-3996051.</p>
-      </>
-    ),
-  },
-  {
-    question: `Why are you called “The Donovan's Venom”?`,
-    answer: (
-      <>
-        <br />
-        <p>The Donovan is our founder.</p>
-        <br />
-        <p>
-          The name “Venom” is often associated with negativity and harm, but we
-          have chosen to repurpose the name to represent something positive. In
-          our organization, “Venom” represents the power and strength that can
-          be harnessed for good. The best thing about venom is that it&apos;s
-          INFECTIOUS! We believe that everyone has the potential to make a
-          positive impact on the world, and we are committed to empowering
-          individuals to use their own “venom” to create change.
-        </p>
-        <br />
-        <p>
-          By using “venom” in a positive context, we can help to change these
-          negative perceptions and promote a message of community and
-          empowerment.
-        </p>
       </>
     ),
   },
@@ -62,6 +37,7 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
           >
             intake form
           </Link>
+          .
         </p>
       </>
     ),
@@ -125,7 +101,7 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
           vigor. Our primary focus is to service underserved and underprivileged
           youth aged 21 and below. We also would like to focus on the
           often-forgotten seniors aged 60 and older who are within the
-          parameters of the Federal Poverty Line (FPL).{" "}
+          parameters of the Federal Poverty Line (FPL).
         </p>
       </>
     ),
@@ -140,7 +116,14 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
           fortunate enough to have access beyond the Federal Poverty Line. We
           are still able to service you, and you still may be eligible for a
           scholarship provided by our organization for services and music
-          education. Please contact us for more information.
+          education. Please{" "}
+          <Link
+            href="https://new.thedonovanspianoroom.com/contact-us"
+            className="text-primary-blue underline"
+          >
+            contact us
+          </Link>{" "}
+          for more information.
         </p>
       </>
     ),
@@ -193,30 +176,6 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
     ),
   },
   {
-    question:
-      "What is the toy giveaway and how can I participate as a recipient?",
-    answer: (
-      <>
-        <br />
-        <p>
-          The Donovan&apos;s Venom does an annual toy giveaway every year during
-          the holiday season. Those who wish to receive toys for their families
-          should complete an RSVP form before the deadline. Benefits from our
-          events are always given on a first come, first served basis and while
-          supplies last. Our giveaways are open to the public. Take a look at
-          our toy giveaway in 2022{" "}
-          <Link
-            href="https://www.youtube.com/watch?v=qUicXlzMtmA"
-            className="text-primary-blue underline"
-          >
-            here
-          </Link>
-          .
-        </p>
-      </>
-    ),
-  },
-  {
     question: "Can I donate to your organization?",
     answer: (
       <>
@@ -235,47 +194,14 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         </p>
         <br />
         <p>
-          If you wish to donate via another method, please contact us to arrange
-          your donation.
-        </p>
-      </>
-    ),
-  },
-  {
-    question: "How will my donations be used?",
-    answer: (
-      <>
-        <br />
-        <p>
-          You can choose on our Paypal portal the area in which you would like
-          to donate. The funds we raise go directly towards our programs and
-          initiatives that support families in need.
-        </p>
-        <br />
-        <ul className="ml-10 list-disc">
-          <li>
-            The funds raised from our <strong>annual toy giveaway</strong> go
-            towards purchasing toys and gifts for underprivileged families.
-          </li>
-          <li>
-            The funds raised from our <strong>benefit concerts</strong> and
-            performances go towards organizing more events and programs that can
-            be enjoyed by all, especially those who normally can&apos;t afford
-            to attend them.
-          </li>
-          <li>
-            All book sales from the Piano Room go towards scholarships for young
-            students. The scholarships provide financial assistance to deserving
-            students who may not have the means to pursue their educational
-            goals.
-          </li>
-        </ul>
-        <br />
-        <p>
-          Some portions may be used to cover other expenses, such as fees for
-          our website or video equipment for our events. We try to keep our
-          overhead as low as possible to ensure that the majority of the
-          proceeds go towards making a positive impact in the community.
+          If you wish to donate via another method, please{" "}
+          <Link
+            href="https://new.thedonovanspianoroom.com/contact-us"
+            className="text-primary-blue underline"
+          >
+            contact us
+          </Link>{" "}
+          to arrange your donation.
         </p>
       </>
     ),
@@ -286,51 +212,14 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
       <>
         <br />
         <p>
-          Yes! We welcome sponsors at many of our events. Please contact us to
-          discuss more about working with our organization.
-        </p>
-      </>
-    ),
-  },
-  {
-    question: "What is AmazonSmile and how can we use it to help you?",
-    answer: (
-      <>
-        <br />
-        <p>
-          AmazonSmile is a simple way for you to support The Donovan&apos;s
-          Venom every time you shop, at no cost to you. AmazonSmile is available
-          at{" "}
+          Yes! We welcome sponsors at many of our events. Please{" "}
           <Link
-            href="https://www.amazon.com/?ref_=smi_se_saas_lsmi_smi"
+            href="https://new.thedonovanspianoroom.com/contact-us"
             className="text-primary-blue underline"
           >
-            smile.amazon.com
+            contact us
           </Link>{" "}
-          on your web browser and can be activated in the Amazon Shopping app
-          for iOS and Android phones. Please register and use us as your charity
-          today!
-        </p>
-      </>
-    ),
-  },
-  {
-    question: "Can I help purchase something directly for The Donovan's Venom?",
-    answer: (
-      <>
-        <br />
-        <p>
-          Yes! Instead of donating, we also welcome your help with purchasing
-          items from our{" "}
-          <Link
-            href="https://www.amazon.com/hz/wishlist/ls/4I8C4CTHFCUR?ref_=wl_share"
-            className="text-primary-blue underline"
-          >
-            Amazon Wishlist
-          </Link>
-          . The wishlist contains items to help fund the promotion of The
-          Donovan&apos;s Venom so we can continue serving. We also have items to
-          give to the underprivileged in community. Thank you for your help!
+          to discuss more about working with our organization.
         </p>
       </>
     ),
@@ -349,13 +238,13 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         <p>
           You can find open volunteer positions on our{" "}
           <Link
-            href="https://www.volunteermatch.org/search/org1183807.jsp"
+            href="https://www.idealist.org/en/nonprofit/56aa441ea12d4bf8918b0da09672754b-the-donovans-venom-redan"
             className="text-primary-blue underline"
           >
-            VolunteerMatch page
-          </Link>
-          . If there is a position that fits your area of interest, please let
-          us know. We would love to talk with you!
+            VolunteerMatch
+          </Link>{" "}
+          page. If there is a position that fits your area of interest, please
+          let us know. We would love to talk with you!
         </p>
       </div>
     ),
@@ -368,21 +257,6 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         <p>
           Yes! The Donovan&apos;s Venom will happily accommodate, moderate, and
           satisfy community service hours if you need them.
-        </p>
-      </>
-    ),
-  },
-  {
-    question: "What is the President's Volunteer Service Award?",
-    answer: (
-      <>
-        <br />
-        <p>
-          The President&apos;s Volunteer Service Award is a civil award bestowed
-          by the President of the United States. We will happily supply,
-          moderate, and satisfy volunteer hours that are calculated towards
-          achieving The President&apos;s Volunteer Service Award. Please contact
-          us if you need help with this.
         </p>
       </>
     ),
