@@ -20,7 +20,7 @@ export default function Navbar2() {
 
   return (
     <>
-      <nav className="fixed top-0 z-50 h-[9.5vh] w-full border-b-2 border-[#A135E8] py-2 backdrop-blur-sm">
+      <nav className="fixed top-10 z-50 h-[9.5vh] w-full border-b-2 border-[#A135E8] py-2 backdrop-blur-sm">
         <div className="absolute top-0 flex h-[9.3vh] w-[24vw] justify-end rounded-r-full bg-[#601D86] py-2 pr-4">
           <Link href="/" className="flex items-center">
             <Image
