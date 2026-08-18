@@ -26,11 +26,8 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         <br />
         <p>
           All qualifying and permitted applicants are eligible to receive
-          scholarships for music lessons.
-        </p>
-        <br />
-        <p>
-          You can apply for a scholarship by filling out our{" "}
+          scholarships for music lessons. You can apply for a scholarship by
+          filling out our{" "}
           <Link
             href="https://docs.google.com/forms/d/e/1FAIpQLSczYBC5tnRZcjjTBN4J4BXEDxO-8NuM1ZuNlfR4z9heXk3T6w/viewform"
             className="text-primary-blue underline"
@@ -117,10 +114,7 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
           are still able to service you, and you still may be eligible for a
           scholarship provided by our organization for services and music
           education. Please{" "}
-          <Link
-            href="https://new.thedonovanspianoroom.com/contact-us"
-            className="text-primary-blue underline"
-          >
+          <Link href="/contact-us" className="text-primary-blue underline">
             contact us
           </Link>{" "}
           for more information.
@@ -195,10 +189,7 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         <br />
         <p>
           If you wish to donate via another method, please{" "}
-          <Link
-            href="https://new.thedonovanspianoroom.com/contact-us"
-            className="text-primary-blue underline"
-          >
+          <Link href="/contact-us" className="text-primary-blue underline">
             contact us
           </Link>{" "}
           to arrange your donation.
@@ -213,10 +204,7 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         <br />
         <p>
           Yes! We welcome sponsors at many of our events. Please{" "}
-          <Link
-            href="https://new.thedonovanspianoroom.com/contact-us"
-            className="text-primary-blue underline"
-          >
+          <Link href="/contact-us" className="text-primary-blue underline">
             contact us
           </Link>{" "}
           to discuss more about working with our organization.
@@ -238,13 +226,13 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         <p>
           You can find open volunteer positions on our{" "}
           <Link
-            href="https://www.idealist.org/en/nonprofit/56aa441ea12d4bf8918b0da09672754b-the-donovans-venom-redan"
+            href="https://www.volunteermatch.org/search/org1183807.jsp"
             className="text-primary-blue underline"
           >
-            VolunteerMatch
-          </Link>{" "}
-          page. If there is a position that fits your area of interest, please
-          let us know. We would love to talk with you!
+            VolunteerMatch page
+          </Link>
+          . If there is a position that fits your area of interest, please let
+          us know. We would love to talk with you!
         </p>
       </div>
     ),
@@ -270,7 +258,7 @@ export default function FAQsContent() {
         <h4 className="text-center font-montserrat text-6xl font-semibold text-secondary-brown 3xl:text-7xl 4xl:text-8xl">
           Your questions, answered.
         </h4>
-        <div className="mt-6 flex flex-col lg:flex-row w-full justify-between">
+        <div className="mt-6 flex flex-col justify-between w-full lg:flex-row">
           <div className="w-full select-none">
             {faqsList.map((item, i) => (
               <QuestionAndAnswer question={item.question} key={i}>
@@ -280,20 +268,23 @@ export default function FAQsContent() {
           </div>
           <div>
             <div className="w-[240px] rounded-2xl bg-[#FCF0D8] p-7 justify-items-center">
-             <div className="flex w-full justify-center">
-              <Image
-                className="mb-4"
-                src="/about/FAQs/CatImage.svg"
-                alt=""
-                width={90}
-                height={90}
-              />
+              <div className="flex justify-center w-full">
+                <Image
+                  className="mb-4"
+                  src="/about/FAQs/CatImage.svg"
+                  alt=""
+                  width={90}
+                  height={90}
+                />
               </div>
               <p className="mb-4 text-[14px] font-semibold text-gray-800">
                 Still got questions? Reach out!
               </p>
-              <div className=" flex w-full justify-center">
-                <Link className=" button rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white" href="/contact-us">
+              <div className="flex justify-center w-full">
+                <Link
+                  className="button rounded-3xl bg-[#6F219E] px-14 py-2 text-[15px] font-semibold text-white"
+                  href="/contact-us"
+                >
                   Contact us
                 </Link>
               </div>
