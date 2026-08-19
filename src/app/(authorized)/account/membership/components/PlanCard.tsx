@@ -20,6 +20,60 @@ export interface PlanCardProps {
   onToggleBenefits?: () => void;
 }
 
+interface ThemeConfig {
+  cardBorder: string;
+  topAreaStyle: { backgroundColor: string };
+  buttonBg: string;
+  currentBtnBg: string;
+  checkBg: string;
+  musicColor: string;
+  badgeBg: string;
+}
+
+// Config mapping for visual themes based on plan type
+const THEME_CONFIG: Record<string, ThemeConfig> = {
+  Scholarship: {
+    cardBorder: "border-2 border-[#E07A2A] shadow-lg ring-2 ring-[#E07A2A]/20",
+    topAreaStyle: { backgroundColor: "#FFEBD5" },
+    buttonBg: "bg-[#E07A2A] text-white hover:bg-[#c8671b]",
+    currentBtnBg:
+      "bg-[#FDE2C6] text-[#C05600] hover:bg-[#fbd3ad] cursor-pointer transition-colors",
+    checkBg: "bg-[#EA580C] text-white",
+    musicColor: "#E07A2A",
+    badgeBg: "bg-[#E07A2A] text-white",
+  },
+  Yearly: {
+    cardBorder: "border-2 border-gray-200 shadow-md",
+    topAreaStyle: { backgroundColor: "#FFF9E3" },
+    buttonBg: "bg-[#D9A01D] text-white hover:bg-[#C28E18]",
+    currentBtnBg:
+      "bg-[#D4EAD6] text-[#1E6038] hover:bg-[#c3e4c6] cursor-pointer transition-colors",
+    checkBg: "bg-[#D9A01D] text-white",
+    musicColor: "#D9A01D",
+    badgeBg: "bg-[#D9A01D] text-white",
+  },
+  Monthly: {
+    cardBorder: "border-2 border-gray-200 shadow-md",
+    topAreaStyle: { backgroundColor: "#EBF5EC" },
+    buttonBg: "bg-[#337A43] text-white hover:bg-[#286135]",
+    currentBtnBg:
+      "bg-[#D4EAD6] text-[#1E6038] hover:bg-[#c3e4c6] cursor-pointer transition-colors",
+    checkBg: "bg-[#337A43] text-white",
+    musicColor: "#337A43",
+    badgeBg: "bg-[#337A43] text-white",
+  },
+  Default: {
+    cardBorder: "border-2 border-gray-200 shadow-md",
+    topAreaStyle: { backgroundColor: "#F7F0FC" },
+    buttonBg: "bg-[#6B21A8] text-white hover:bg-[#581C87]",
+    currentBtnBg:
+      "bg-[#D4EAD6] text-[#1E6038] hover:bg-[#c3e4c6] cursor-pointer transition-colors",
+    checkBg: "bg-[#6B21A8] text-white",
+    musicColor: "#6B21A8",
+    badgeBg: "bg-[#6B21A8] text-white",
+  },
+};
+
 export default function PlanCard({
   plan,
   isScholarship: isScholarshipProp = false,
@@ -32,62 +86,21 @@ export default function PlanCard({
   const isScholarship = isScholarshipProp || plan?.planName === "Scholarship";
   const isCurrentPlan = isScholarship || plan?.isCurrent;
 
-  const cleanPrice = String(plan?.price || plan?.formattedPrice || "")
-    .replace(/\$/g, "")
-    .trim();
-  const cleanYearlyPrice = String(plan?.yearlyPrice || "")
-    .replace(/\$/g, "")
-    .trim();
+  // Display annual total ($239.88) for Yearly, otherwise fall back to price string
+  const rawPrice =
+    plan?.planName === "Yearly"
+      ? plan?.yearlyPrice || "239.88"
+      : plan?.price || plan?.formattedPrice || "";
 
-  const getTheme = () => {
-    if (isScholarship) {
-      return {
-        cardBorder: "border-2 border-[#E07A2A] shadow-lg ring-2 ring-[#E07A2A]/20",
-        topAreaStyle: { backgroundColor: "#FFEBD5" },
-        buttonBg: "bg-[#E07A2A] text-white hover:bg-[#c8671b]",
-        currentBtnBg: "bg-[#FDE2C6] text-[#C05600] hover:bg-[#fbd3ad] cursor-pointer transition-colors",
-        checkBg: "bg-[#EA580C] text-white",
-        musicColor: "#E07A2A",
-        badgeBg: "bg-[#E07A2A] text-white",
-      };
-    }
+  const cleanPrice = String(rawPrice).replace(/\$/g, "").trim();
 
-    switch (plan?.planName) {
-      case "Yearly":
-        return {
-          cardBorder: "border-2 border-gray-200 shadow-md",
-          topAreaStyle: { backgroundColor: "#FFF9E3" },
-          buttonBg: "bg-[#D9A01D] text-white hover:bg-[#C28E18]",
-          currentBtnBg: "bg-[#D4EAD6] text-[#1E6038] hover:bg-[#c3e4c6] cursor-pointer transition-colors",
-          checkBg: "bg-[#D9A01D] text-white",
-          musicColor: "#D9A01D",
-          badgeBg: "bg-[#D9A01D] text-white",
-        };
-      case "Monthly":
-        return {
-          cardBorder: "border-2 border-gray-200 shadow-md",
-          topAreaStyle: { backgroundColor: "#EBF5EC" },
-          buttonBg: "bg-[#337A43] text-white hover:bg-[#286135]",
-          currentBtnBg: "bg-[#D4EAD6] text-[#1E6038] hover:bg-[#c3e4c6] cursor-pointer transition-colors",
-          checkBg: "bg-[#337A43] text-white",
-          musicColor: "#337A43",
-          badgeBg: "bg-[#337A43] text-white",
-        };
-      case "Day Pass":
-      default:
-        return {
-          cardBorder: "border-2 border-gray-200 shadow-md",
-          topAreaStyle: { backgroundColor: "#F7F0FC" },
-          buttonBg: "bg-[#6B21A8] text-white hover:bg-[#581C87]",
-          currentBtnBg: "bg-[#D4EAD6] text-[#1E6038] hover:bg-[#c3e4c6] cursor-pointer transition-colors",
-          checkBg: "bg-[#6B21A8] text-white",
-          musicColor: "#6B21A8",
-          badgeBg: "bg-[#6B21A8] text-white",
-        };
-    }
-  };
-
-  const theme = getTheme();
+  // Selected theme configuration lookup
+  const themeKey = isScholarship
+    ? "Scholarship"
+    : THEME_CONFIG[plan?.planName]
+    ? plan?.planName
+    : "Default";
+  const theme = THEME_CONFIG[themeKey];
 
   const handleCurrentPlanClick = () => {
     if (chooseButton?.onClick) {
@@ -95,6 +108,27 @@ export default function PlanCard({
     } else {
       router.push("/account/membership");
     }
+  };
+
+  // Helper for dynamic primary billing period label
+  const getBillingLabel = () => {
+    switch (plan?.planName) {
+      case "Day Pass":
+        return "one day";
+      case "Yearly":
+        return "per year";
+      case "Monthly":
+      default:
+        return "per month";
+    }
+  };
+
+  // Helper for conditional subtext / renewal notes
+  const getSubtextMessage = () => {
+    if (!showExpirationMessage) return null;
+    if (isScholarship) return "* Renewed annually if qualified";
+    if (plan?.planName === "Day Pass") return "* Membership expires after 1 Day";
+    return null;
   };
 
   return (
@@ -176,14 +210,25 @@ export default function PlanCard({
                 ${cleanPrice}
               </div>
               <div className="text-sm sm:text-base font-extrabold text-gray-900 mt-1">
-                {plan?.planName === "Day Pass" ? "one day" : "per month"}
+                {getBillingLabel()}
               </div>
-              {cleanYearlyPrice && (
+
+              {/* Explicit breakdown subtext for each plan */}
+              {plan?.planName === "Yearly" && (
                 <div className="text-xs sm:text-sm font-bold text-gray-700 mt-0.5">
-                  ${cleanYearlyPrice}/year, Billed{" "}
-                  {plan?.planName === "Day Pass"
-                    ? "daily"
-                    : plan?.planName?.toLowerCase()}
+                  $19.99/month, Billed yearly
+                </div>
+              )}
+
+              {plan?.planName === "Monthly" && (
+                <div className="text-xs sm:text-sm font-bold text-gray-700 mt-0.5">
+                  $359.88/year, Billed monthly
+                </div>
+              )}
+
+              {plan?.planName === "Day Pass" && (
+                <div className="text-xs sm:text-sm font-bold text-gray-700 mt-0.5">
+                  $726.35/year, Billed daily
                 </div>
               )}
             </>
@@ -208,9 +253,9 @@ export default function PlanCard({
                 />
                 Current plan
               </button>
-              {showExpirationMessage && (
+              {getSubtextMessage() && (
                 <p className="text-xs font-bold text-gray-700 text-center mt-2">
-                  * Membership expires after 1 Day
+                  {getSubtextMessage()}
                 </p>
               )}
             </div>

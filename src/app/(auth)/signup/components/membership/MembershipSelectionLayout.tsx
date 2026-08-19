@@ -89,7 +89,7 @@ export default function MembershipSelectionLayout({
                       24-Hour membership
                     </p>
                     <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
-                      $1.99 now
+                      $1.99 now <span className="font-normal text-gray-500">($726.35/year, Billed daily)</span>
                     </p>
                   </div>
                 </div>
@@ -127,7 +127,7 @@ export default function MembershipSelectionLayout({
                       Monthly membership
                     </p>
                     <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
-                      $29.99/month
+                      $29.99/month <span className="font-normal text-gray-500">($359.88/year, Billed monthly)</span>
                     </p>
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export default function MembershipSelectionLayout({
                       Yearly membership
                     </p>
                     <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
-                      $239.88/year
+                      $239.88/year <span className="font-normal text-gray-500">($19.99/mo, Billed yearly)</span>
                     </p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function MembershipSelectionLayout({
                       Basic membership
                     </p>
                     <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
-                      Free(limited access)
+                      Free (limited access)
                     </p>
                   </div>
                 </div>

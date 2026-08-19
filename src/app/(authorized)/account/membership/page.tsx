@@ -48,7 +48,7 @@ export default function Page() {
       isCurrent: false,
       benefits: [
         "No long-term commitment",
-        "Save $40 vs daily pass",
+        "Save $29.70 vs daily pass",
         "Pay monthly, less upfront",
         "Full access, zero lock-in",
       ],
