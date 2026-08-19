@@ -144,6 +144,7 @@ export default function AccountForm() {
                                 value={profile?.DOB || ''} 
                                 name="DOB"
                                 max={todayStr}
+                                disabled={true}
                             />
                             <InputForm 
                                 error='' 
@@ -195,7 +196,7 @@ export default function AccountForm() {
 
             {/* Bottom Contact Help Text */}
             <p className='mt-8 text-black text-lg font-medium'>
-                To update your Full Name or Email Address, please{' '}
+                To update your Full Name, Email Address, or Date of Birth, please{' '}
                 <Link href='/contact-page' className='text-purple-700 underline font-semibold'>
                     contact us
                 </Link>.
