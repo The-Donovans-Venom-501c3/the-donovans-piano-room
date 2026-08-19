@@ -325,7 +325,9 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
           style={{
             left: `${cursorPos.x}px`,
             top: `${cursorPos.y}px`,
-            transform: "translate(-20%, -85%) rotate(-15deg)",
+            transform: activeTool === "eraser"
+              ? "translate(-50%, -50%) rotate(-15deg)"
+              : "translate(-20%, -85%) rotate(-15deg)",
           }}
         >
           <Image
@@ -427,7 +429,7 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
                 onClick={() => {
                   setActiveTool("eraser");
                   setMode("eraser");
-                  setLineWidth(32);
+                  setLineWidth(100); // Tripled from 32 to 100 (3.125x size)
                   setShowPalette(false);
                 }}
                 className={`w-28 h-28 rounded-full flex items-center justify-center transition-all cursor-pointer ${

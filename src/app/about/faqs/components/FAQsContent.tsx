@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -16,6 +18,17 @@ const faqsList: { question: string; answer: React.ReactNode }[] = [
         </p>
         <br />
         <p>Our Employer Identification Number (EIN) is 27-3996051.</p>
+      </>
+    ),
+  },
+  {
+    question: "What is Beta Mode?",
+    answer: (
+      <>
+        <br />
+        <p>
+          Beta Mode means you’re getting early access to The Donovan’s Piano Room while we continue building and improving the experience. You may notice new features, updates, or changes along the way. Your feedback helps us make the Piano Room experience better.
+        </p>
       </>
     ),
   },
