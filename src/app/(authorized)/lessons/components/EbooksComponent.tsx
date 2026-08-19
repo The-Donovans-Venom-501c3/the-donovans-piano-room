@@ -55,6 +55,7 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
   const [selected, setSelected] = useState<number>(0);
   const [read, setRead] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [readerSessionId, setReaderSessionId] = useState<number>(Date.now());
 
   const q = searchQuery.toLowerCase().trim();
 
@@ -63,8 +64,9 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
   );
 
   const handleRead = () => {
-    setCurrentPage(1); // Reset page count when opening a book
-    setRead((prev) => !prev);
+    setCurrentPage(1); // Reset page state to page 1
+    setReaderSessionId(Date.now()); // Generate a fresh session ID to force-reload iframe
+    setRead(true);
   };
 
   const handleBack = () => {
@@ -100,6 +102,7 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
             pageId={`book_${ebooks[selected]?.id}_page_${currentPage}`}
           >
             <iframe
+              key={`reader-iframe-${selected}-${readerSessionId}`}
               src={ebooks[selected]?.url}
               className="w-full h-screen rounded-lg"
               sandbox="allow-same-origin allow-scripts"

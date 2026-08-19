@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
 import Image from "next/image";
 
 const PALETTE_COLORS = [
@@ -30,7 +30,14 @@ interface EbookCanvasProps {
   pageId: string | number;
 }
 
-export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanvasProps) {
+export interface EbookCanvasRef {
+  clearCurrentPage: () => void;
+}
+
+const EbookCanvas = forwardRef<EbookCanvasRef, EbookCanvasProps>(function EbookCanvas(
+  { isActive, onCloseTool, pageId },
+  ref
+) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const isDrawingRef = useRef(false);
 
@@ -58,23 +65,19 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
     widthRef.current = lineWidth;
   }, [mode, color, lineWidth]);
 
-  // Load drawings and text specific to current pageId
   const loadPageContent = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // 1. Force clear canvas pixels completely
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
 
-    // 2. Clear current text box state
     setTextBoxes([]);
 
-    // 3. Restore text boxes for THIS specific pageId
     const savedBoxes = sessionStorage.getItem(textStorageKey);
     if (savedBoxes) {
       try {
@@ -84,7 +87,6 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
       }
     }
 
-    // 4. Restore canvas image for THIS specific pageId
     const savedData = sessionStorage.getItem(canvasStorageKey);
     if (savedData) {
       const img = new window.Image();
@@ -99,12 +101,31 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
     }
   }, [canvasStorageKey, textStorageKey]);
 
-  // Reload canvas immediately whenever pageId changes
+  // Method to clear the current page progress completely
+  const clearCurrentPage = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      }
+    }
+    setTextBoxes([]);
+    sessionStorage.removeItem(canvasStorageKey);
+    sessionStorage.removeItem(textStorageKey);
+  }, [canvasStorageKey, textStorageKey]);
+
+  useImperativeHandle(ref, () => ({
+    clearCurrentPage,
+  }));
+
   useEffect(() => {
     loadPageContent();
   }, [pageId, loadPageContent]);
 
-  // Save text boxes per page
   useEffect(() => {
     if (textBoxes.length > 0) {
       sessionStorage.setItem(textStorageKey, JSON.stringify(textBoxes));
@@ -113,7 +134,6 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
     }
   }, [textBoxes, textStorageKey]);
 
-  // Canvas size and resize handling
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -429,7 +449,7 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
                 onClick={() => {
                   setActiveTool("eraser");
                   setMode("eraser");
-                  setLineWidth(100); // Tripled from 32 to 100 (3.125x size)
+                  setLineWidth(100);
                   setShowPalette(false);
                 }}
                 className={`w-28 h-28 rounded-full flex items-center justify-center transition-all cursor-pointer ${
@@ -540,4 +560,6 @@ export default function EbookCanvas({ isActive, onCloseTool, pageId }: EbookCanv
       )}
     </>
   );
-}
+});
+
+export default EbookCanvas;

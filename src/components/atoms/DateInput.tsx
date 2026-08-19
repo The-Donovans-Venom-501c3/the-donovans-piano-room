@@ -8,13 +8,15 @@ export default function DateInput({
   label, 
   onChange, 
   name, 
-  max
+  max,
+  disabled = false
 }: {
   value?: string; 
   label: string; 
   onChange: any; 
   name: string; 
   max?: string;
+  disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -22,6 +24,7 @@ export default function DateInput({
   const formattedValue = value ? dayjs(value).format('YYYY-MM-DD') : '';
 
   const openPicker = () => {
+    if (disabled) return;
     if (inputRef.current) {
       if (typeof inputRef.current.showPicker === 'function') {
         try {
@@ -37,6 +40,7 @@ export default function DateInput({
 
   return (
     <TextField
+      disabled={disabled}
       InputLabelProps={{
         shrink: true, // Ensures label stays elevated when date is selected
         className: '3xl:text-2xl 3xl:mt-2 pt-0', 
@@ -48,7 +52,7 @@ export default function DateInput({
         endAdornment: (
           <InputAdornment position='end'>
             <CalendarMonthOutlinedIcon
-              className='text-[#6F219E] cursor-pointer'
+              className={`${disabled ? 'text-gray-400 cursor-not-allowed' : 'text-[#6F219E] cursor-pointer'}`}
               onClick={openPicker}
             />
           </InputAdornment>

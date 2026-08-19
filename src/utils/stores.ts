@@ -115,7 +115,7 @@ const safeLocalStorage = createJSONStorage<notification[]>(
 );
 
 export const notificationsAtom = atomWithStorage<notification[]>(
-    "user_notifications_list",
+    "user_notifications_list_v2",
     dummyNoticationsData,
     safeLocalStorage,
     { getOnInit: true }

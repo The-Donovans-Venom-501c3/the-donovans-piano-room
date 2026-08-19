@@ -7,6 +7,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { logout } from "@/lib/api/authService";
+import { usePathname } from "next/navigation";
 
 interface ProfileProps {
   showGreeting?: boolean;
@@ -18,6 +19,21 @@ export default function Profile({ showGreeting = false }: ProfileProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+
+  // Hide the badge when navigating any internal/dashboard routes
+  const dashboardRoutes = [
+    "/dashboard",
+    "/lessons",
+    "/contact-page",
+    "/games",
+    "/shop",
+    "/settings",
+  ];
+
+  const isDashboardPage = dashboardRoutes.some(
+    (route) => pathname === route || pathname?.startsWith(`${route}/`)
+  );
 
   useEffect(() => {
     setImgError(false);
@@ -32,6 +48,11 @@ export default function Profile({ showGreeting = false }: ProfileProps) {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
+
+  // Return null on dashboard pages so the landing page remains intact
+  if (isDashboardPage) {
+    return null;
+  }
 
   const handleLogout = async () => {
     try {

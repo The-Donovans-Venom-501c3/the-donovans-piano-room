@@ -4,7 +4,7 @@ import "./styles.css";
 import { useEffect, useRef, ReactNode, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import EbookCanvas from "./EbookCanvas";
+import EbookCanvas, { EbookCanvasRef } from "./EbookCanvas";
 
 interface ReaderPortalProps {
   onClose: () => void;
@@ -18,6 +18,7 @@ export default function ReaderPortal({
   pageId,
 }: ReaderPortalProps) {
   const elRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<EbookCanvasRef | null>(null);
   const [isDrawActive, setIsDrawActive] = useState(false);
 
   if (!elRef.current) {
@@ -25,24 +26,7 @@ export default function ReaderPortal({
     elRef.current.id = "reader-portal";
   }
 
-  // Function to clear saved drawing/text data
-  const handleCloseAndClear = useCallback(() => {
-    const bookPrefix = typeof pageId === "string" ? pageId.split("_page_")[0] : "";
-
-    Object.keys(sessionStorage).forEach((key) => {
-      if (
-        (key.startsWith("ebook_canvas_data_page_") ||
-          key.startsWith("ebook_text_boxes_page_")) &&
-        (bookPrefix ? key.includes(bookPrefix) : true)
-      ) {
-        sessionStorage.removeItem(key);
-      }
-    });
-
-    onClose();
-  }, [pageId, onClose]);
-
-  // Lock body scroll, manage browser history stack, and trap back navigation
+  // Lock body scroll
   useEffect(() => {
     const el = elRef.current;
     if (el) {
@@ -50,43 +34,46 @@ export default function ReaderPortal({
       document.body.style.overflow = "hidden";
     }
 
-    // Push dummy history entry so back button/backspace pops this state instead of navigating away
-    window.history.pushState({ ebookOpen: true }, "");
-
-    const handlePopState = () => {
-      // Triggered when user clicks browser Back or presses Backspace navigation key
-      handleCloseAndClear();
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
     return () => {
       if (el && document.body.contains(el)) {
         document.body.removeChild(el);
       }
       document.body.style.overflow = "";
-      window.removeEventListener("popstate", handlePopState);
     };
-  }, [handleCloseAndClear]);
+  }, []);
 
-  const handleCloseButtonClick = () => {
-    // Revert the history state pushed on open, then clear and close
-    if (window.history.state?.ebookOpen) {
-      window.history.back();
-    } else {
-      handleCloseAndClear();
+  const handleCloseButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onClose();
+  };
+
+  const handleClearAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (canvasRef.current) {
+      canvasRef.current.clearCurrentPage();
     }
   };
 
   return createPortal(
     <div className="reader-container fixed inset-0 z-[9990] bg-white w-screen h-screen">
-      {/* Close Button */}
+      {/* Top Right Close Button */}
       <button
         type="button"
-        className="exit-btn absolute top-4 right-4 z-[10002] border border-black px-6 py-2 rounded-full bg-white text-black hover:bg-gray-100 cursor-pointer text-base font-bold shadow-md"
+        className="exit-btn absolute top-4 right-4 z-[10020] border border-black px-6 py-2 rounded-full bg-white text-black hover:bg-gray-100 cursor-pointer text-base font-bold shadow-md select-none"
         onClick={handleCloseButtonClick}
       >
         close
+      </button>
+
+      {/* Bottom Right Clear All Button */}
+      <button
+        type="button"
+        onClick={handleClearAll}
+        className="fixed bottom-6 right-6 z-[10020] bg-[#6B21A8] text-white px-6 py-2.5 rounded-2xl font-semibold text-lg shadow-xl hover:bg-[#581C87] active:scale-95 transition-all cursor-pointer border-2 border-white select-none"
+      >
+        Clear All
       </button>
 
       {/* Drawing Tool Trigger Button */}
@@ -107,8 +94,9 @@ export default function ReaderPortal({
         </button>
       )}
 
-      {/* Canvas */}
+      {/* Canvas Component */}
       <EbookCanvas
+        ref={canvasRef}
         key={`canvas-page-${pageId}`}
         isActive={isDrawActive}
         onCloseTool={() => setIsDrawActive(false)}
@@ -116,7 +104,7 @@ export default function ReaderPortal({
       />
 
       {/* Ebook Frame Container */}
-      <div className="w-full h-full">{children}</div>
+      <div className="w-full h-full pointer-events-auto">{children}</div>
     </div>,
     elRef.current as Element
   );
