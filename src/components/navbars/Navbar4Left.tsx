@@ -178,7 +178,7 @@ export default function Navbar4Left({
                   href="/account/settings/profile"
                   className="inline-block shrink-0 text-primary-yellow-accent underline leading-none transition-opacity hover:opacity-80"
                 >
-                  Edit
+                  Profile
                 </Link>
               </div>
             </div>
