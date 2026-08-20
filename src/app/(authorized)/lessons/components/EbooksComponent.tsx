@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import ReaderPortal from "./ReaderPortal";
 
@@ -53,9 +53,12 @@ interface EbooksComponentProps {
 
 export default function EbooksComponent({ searchQuery = "" }: EbooksComponentProps) {
   const [selected, setSelected] = useState<number>(0);
-  const [read, setRead] = useState(false);
+  const [read, setRead] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [readerSessionId, setReaderSessionId] = useState<number>(Date.now());
+
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const isClosingViaHistoryRef = useRef<boolean>(false);
 
   const q = searchQuery.toLowerCase().trim();
 
@@ -63,17 +66,63 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
     book.title.toLowerCase().includes(q)
   );
 
+  // Core Cleanup & Reset Function
+  const resetReaderToStart = useCallback(() => {
+    // 1. Reset state
+    setCurrentPage(1);
+
+    // 2. Try clearing storage inside iframe if same-origin permits
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        const win = iframeRef.current.contentWindow;
+        win.localStorage?.clear();
+        win.sessionStorage?.clear();
+      } catch {
+        // Cross-origin restriction ignored safely
+      }
+    }
+  }, []);
+
+  // 1. OPEN READER & RESET PAGE
   const handleRead = () => {
-    setCurrentPage(1); // Reset page state to page 1
-    setReaderSessionId(Date.now()); // Generate a fresh session ID to force-reload iframe
+    resetReaderToStart();
+    const newSession = Date.now();
+    setReaderSessionId(newSession); // Unique session ID ensures fresh iframe load
     setRead(true);
+
+    if (window.location.hash !== "#reader") {
+      window.history.pushState({ readerOpen: true }, "", window.location.href);
+    }
   };
 
-  const handleBack = () => {
+  // 2. CLOSE READER VIA CLOSE BUTTON
+  const handleBack = useCallback(() => {
+    resetReaderToStart();
     setRead(false);
-  };
 
-  // Listen for page-change postMessage events emitted by the iframe viewer
+    if (!isClosingViaHistoryRef.current) {
+      if (window.history.state?.readerOpen) {
+        window.history.back();
+      }
+    }
+    isClosingViaHistoryRef.current = false;
+  }, [resetReaderToStart]);
+
+  // 3. LISTEN FOR BROWSER BACK BUTTON
+  useEffect(() => {
+    const handlePopState = () => {
+      if (read) {
+        isClosingViaHistoryRef.current = true;
+        resetReaderToStart(); // Force reset state when back button is hit
+        setRead(false);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [read, resetReaderToStart]);
+
+  // 4. LISTEN FOR PAGE CHANGE MESSAGES
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === "PAGE_CHANGE" && typeof event.data.page === "number") {
@@ -87,30 +136,50 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
+  // 5. GENERATE IFRAME URL FORCING PAGE 1
+  const getEbookUrl = () => {
+    const rawUrl = ebooks[selected]?.url;
+    if (!rawUrl) return "";
+
+    try {
+      const urlObj = new URL(rawUrl, window.location.href);
+      urlObj.searchParams.set("resetSession", readerSessionId.toString());
+      urlObj.searchParams.set("page", "1");
+      urlObj.searchParams.set("startPage", "1");
+      urlObj.hash = "page=1";
+      return urlObj.toString();
+    } catch {
+      return `${rawUrl}?resetSession=${readerSessionId}&page=1#page=1`;
+    }
+  };
+
+  // 6. IFRAME LOAD HANDLER TO FORCE JUMP TO PAGE 1
+  const handleIframeLoad = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const win = iframeRef.current.contentWindow;
+
+      // Clear internal storage if accessible
+      try {
+        win.localStorage?.removeItem("pdfjs.history");
+        win.localStorage?.removeItem("current_page");
+        win.sessionStorage?.clear();
+      } catch {
+        // Cross-origin fallback
+      }
+
+      // Send postMessage signals to jump to page 1
+      win.postMessage({ type: "GO_TO_PAGE", page: 1 }, "*");
+      win.postMessage({ type: "SET_PAGE", page: 1 }, "*");
+      win.postMessage({ action: "gotoPage", page: 1 }, "*");
+      win.postMessage({ type: "PAGE_CHANGE", page: 1 }, "*");
+    }
+  };
+
   return (
     <>
       <h2 className="text-4xl font-medium text-primary-brown mb-4">E-books</h2>
 
-      {read ? (
-        <div>
-          <button onClick={handleBack} className="mb-4 text-purple-700 font-medium">
-            &larr; Go Back to All Books
-          </button>
-          
-          <ReaderPortal 
-            onClose={() => setRead(false)}
-            pageId={`book_${ebooks[selected]?.id}_page_${currentPage}`}
-          >
-            <iframe
-              key={`reader-iframe-${selected}-${readerSessionId}`}
-              src={ebooks[selected]?.url}
-              className="w-full h-screen rounded-lg"
-              sandbox="allow-same-origin allow-scripts"
-              title={ebooks[selected]?.title}
-            />
-          </ReaderPortal>
-        </div>
-      ) : filteredEbooks.length === 0 ? (
+      {filteredEbooks.length === 0 ? (
         <div className="text-center py-12 text-gray-500 font-medium text-lg">
           No e-books found matching &quot;{searchQuery}&quot;
         </div>
@@ -183,6 +252,24 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
             </div>
           )}
         </div>
+      )}
+
+      {/* Renders portal only when read is true, guaranteeing clean unmount */}
+      {read && (
+        <ReaderPortal
+          onClose={handleBack}
+          pageId={`book_${ebooks[selected]?.id}_page_1`}
+        >
+          <iframe
+            ref={iframeRef}
+            key={`reader-iframe-${selected}-${readerSessionId}`}
+            src={getEbookUrl()}
+            onLoad={handleIframeLoad}
+            className="w-full h-screen rounded-lg"
+            sandbox="allow-same-origin allow-scripts"
+            title={ebooks[selected]?.title}
+          />
+        </ReaderPortal>
       )}
     </>
   );
