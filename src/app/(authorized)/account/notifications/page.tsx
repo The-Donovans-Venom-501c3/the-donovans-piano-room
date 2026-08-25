@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import { authorizedWrapperTitles, beenTimeAgo, settingsNavigation } from "@/utils/general";
@@ -10,8 +11,19 @@ import AllCatchUp from "./components/AllCatchUp";
 import { notification } from "@/interfaces/notificationInterface";
 import NotificationItem from "./components/NotificationItem";
 
-// @ts-ignore: allow importing global css without type declarations
-import "@/styles/primary-purple-scrollbar.css";
+const getNotificationImage = (typeId?: string): string => {
+    switch (typeId) {
+        case "N01":
+        case "LIVE_LESSONS":
+            return "/account/notifications/live-lesson.svg";
+        case "N02":
+        case "N05":
+        case "N06":
+            return "/account/notifications/maintenance.svg";
+        default:
+            return "/account/notifications/announcement.svg";
+    }
+};
 
 export default function Page() {
     const [notificationsList, setNotificationsList] = useAtom(notificationsAtom);
@@ -25,27 +37,55 @@ export default function Page() {
     const isNavOpen = useAtomValue(isNavOpenAtom);
     const setHasUnread = useSetAtom(hasUnreadAtom);
 
-    // 1. Fetch user notifications from backend on mount
+    // 1. Fetch & Parse Backend Data
     const fetchNotifications = useCallback(async () => {
         try {
             setIsLoading(true);
-            const res = await fetch("/api/notifications");
-            if (!res.ok) throw new Error("Failed to fetch notifications");
+            const res = await fetch("/api/notifications", { cache: "no-store" });
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
             
-            const data = await res.json();
-            
-            // Map status field and normalize date key to 'date'
-            const parsedData: notification[] = data
-                .filter((item: any) => item.status !== "deleted")
-                .map((item: any) => ({
-                    ...item,
-                    date: item.date || item.dateOfMessageAddition,
-                    unread: item.status === "unread" || item.unread === true,
-                }));
+            const rawData = await res.json();
+            const itemsArray = Array.isArray(rawData) 
+                ? rawData 
+                : (rawData.notifications || rawData.data || []);
+
+            const parsedData: notification[] = itemsArray
+                .filter((item: any) => String(item.status || "").toLowerCase() !== "deleted")
+                .map((item: any, index: number) => {
+                    // Extract Primary Keys safely
+                    const itemId = String(item.id || item.notification_id || item.notificationId || `notif-${index}`);
+                    const messageTypeId = String(item.notificationTypeId || item.notif_type_id || item.messageTypeId || "N03");
+                    
+                    // Extract Content Fields
+                    const titleText = item.title || item.message_title || item.Message_title || "Notification";
+                    const descText = item.message || item.description || item.Message_content || item.message_content || "";
+                    
+                    // Safely normalize SQL ISO Timestamps
+                    const rawDate = item.postedAt || item.posted_at || item.created_at || item.date || new Date().toISOString();
+                    const validDate = isNaN(Date.parse(rawDate)) ? new Date().toISOString() : new Date(rawDate).toISOString();
+
+                    const statusStr = String(item.status || "unread").toLowerCase();
+                    const isUnread = statusStr === "unread";
+
+                    return {
+                        ...item,
+                        id: itemId,
+                        notificationTypeId: messageTypeId,
+                        messageTypeId,
+                        title: titleText,
+                        description: descText,
+                        message: descText,
+                        date: validDate,
+                        postedAt: validDate,
+                        imageSrc: item.imageSrc || getNotificationImage(messageTypeId),
+                        unread: isUnread,
+                        status: isUnread ? "unread" : "read"
+                    };
+                });
 
             setNotificationsList(parsedData);
         } catch (error) {
-            console.error("Error fetching notifications:", error);
+            console.error("Error fetching backend notifications:", error);
         } finally {
             setIsLoading(false);
         }
@@ -56,24 +96,21 @@ export default function Page() {
         fetchNotifications();
     }, [fetchNotifications]);
 
-    // 2. Derive today vs. past notifications and compute unread totals
+    // 2. Filter & Group Items Whenever List or Filter Changes
     useEffect(() => {
-        if (!isMounted || !notificationsList) return;
+        if (!isMounted || !Array.isArray(notificationsList)) return;
 
         const todays: notification[] = [];
         const past: notification[] = [];
-        let count = 0;
+        let unreadCounter = 0;
 
         for (let item of notificationsList) {
-            // Safeguard date parameter with fallback property access
-            const notificationDate = item.date || (item as any).dateOfMessageAddition;
-            const { timeAgo, underADay } = beenTimeAgo(notificationDate);
-            
-            if (item.unread) count += 1;
-
-            const itemWithTime = { ...item, timeAgo };
-
+            if (item.unread) unreadCounter += 1;
             if (filterMode === "unread" && !item.unread) continue;
+
+            const notificationDate = item.postedAt || item.date || item.posted_at || new Date().toISOString();
+            const { timeAgo, underADay } = beenTimeAgo(notificationDate);
+            const itemWithTime = { ...item, timeAgo };
 
             if (underADay) {
                 todays.push({ ...itemWithTime, mainIndex: todays.length });
@@ -82,61 +119,57 @@ export default function Page() {
             }
         }
 
-        setUnreadsNumber(count);
+        setUnreadsNumber(unreadCounter);
+        setHasUnread(unreadCounter > 0);
         setDisplayedNotifications([todays, past]);
-    }, [notificationsList, filterMode, isMounted]);
-
-    useEffect(() => {
-        if (isMounted) {
-            setHasUnread(unreadsNumber > 0);
-        }
-    }, [unreadsNumber, setHasUnread, isMounted]);
+    }, [notificationsList, filterMode, isMounted, setHasUnread]);
 
     const displayAll = () => setFilterMode("all");
     const filterUnreads = () => setFilterMode("unread");
 
-    // 3. Handle Mark as Read with PATCH /api/notifications/:id/read
+    // 3. Handle Mark as Read
     const setItemToRead = async (targetItem: notification) => {
         if (!targetItem.unread) return;
+        const targetId = targetItem.id;
 
         setNotificationsList((prevList) =>
             (prevList || []).map((item) =>
-                item.id === targetItem.id ? { ...item, unread: false, status: "read" } : item
+                item.id === targetId ? { ...item, unread: false, status: "read" } : item
             )
         );
 
         try {
-            const res = await fetch(`/api/notifications/${targetItem.id}/read`, {
+            const res = await fetch(`/api/notifications/${targetId}/read`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
             });
-            if (!res.ok) throw new Error("Failed to mark notification as read");
+            if (!res.ok) throw new Error("Failed to update status on server");
         } catch (error) {
-            console.error("Failed to sync read status to server:", error);
+            console.error("Failed to mark notification read:", error);
             fetchNotifications();
         }
     };
 
-    // 4. Handle Delete with DELETE /api/notifications/:id
+    // 4. Handle Delete
     const deleteItem = async (targetItem: notification) => {
+        const targetId = targetItem.id;
+
         setNotificationsList((prevList) =>
-            (prevList || []).filter((item) => item.id !== targetItem.id)
+            (prevList || []).filter((item) => item.id !== targetId)
         );
 
         try {
-            const res = await fetch(`/api/notifications/${targetItem.id}`, {
+            const res = await fetch(`/api/notifications/${targetId}`, {
                 method: "DELETE",
             });
-            if (!res.ok) throw new Error("Failed to delete notification");
+            if (!res.ok) throw new Error("Failed to delete item on server");
         } catch (error) {
-            console.error("Failed to delete notification on server:", error);
+            console.error("Failed to delete notification:", error);
             fetchNotifications();
         }
     };
 
-    if (!isMounted) {
-        return null;
-    }
+    if (!isMounted) return null;
 
     return (
         <AuthorizedWrapper1 pageTitle={authorizedWrapperTitles.AccountAndSettings} openedLink="">
@@ -149,7 +182,7 @@ export default function Page() {
                     <AllOrUnread unreadsNumber={unreadsNumber} displayAll={displayAll} filterUnreads={filterUnreads} />
 
                     {isLoading ? (
-                        <div className="mt-8 text-primary-brown font-medium">Loading notifications...</div>
+                        <div className="mt-8 text-primary-brown font-medium text-xl">Loading notifications...</div>
                     ) : (
                         <>
                             {!!displayedNotifications[0].length && (
@@ -160,7 +193,7 @@ export default function Page() {
                                     {displayedNotifications[0].map((item, i) => (
                                         <NotificationItem
                                             item={item}
-                                            key={item.id ?? `today-${item.title}-${i}`}
+                                            key={item.id ?? `today-${i}`}
                                             deleteItem={() => deleteItem(item)}
                                             itemIsRead={() => setItemToRead(item)}
                                         />
@@ -176,7 +209,7 @@ export default function Page() {
                                     {displayedNotifications[1].map((item, i) => (
                                         <NotificationItem
                                             item={item}
-                                            key={item.id ?? `past-${item.title}-${i}`}
+                                            key={item.id ?? `past-${i}`}
                                             deleteItem={() => deleteItem(item)}
                                             itemIsRead={() => setItemToRead(item)}
                                         />

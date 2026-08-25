@@ -2,7 +2,6 @@ import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { profileInterface } from "@/interfaces/profileInterface";
 import { notification } from "@/interfaces/notificationInterface";
-import { dummyNoticationsData } from "@/utils/general";
 
 ///////////////
 ////SIGN UP////
@@ -77,7 +76,7 @@ export const failedAttemptsAtom = atomWithStorage<number>(
 ///// NAV ////
 //////////////
 
-export const isNavOpenAtom = atom<boolean>(false);
+export const isNavOpenAtom = atom<boolean>(true);
 
 export const nav4leftLinks = {
     dashboard: "dashboard",
@@ -88,7 +87,7 @@ export const nav4leftLinks = {
     contactUs: "contact-us",
 } as const;
 
-export const hasUnreadAtom = atom<boolean>(false);
+export const hasUnreadAtom = atomWithStorage<boolean>("user_has_unread_notifications", false);
 export const showNotificationAtom = atom<boolean>(false);
 
 //*************//
@@ -107,7 +106,7 @@ const safeLocalStorage = createJSONStorage<notification[]>(
     {
         reviver: (_key, value) => {
             if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-                return new Date(value);
+                return value;
             }
             return value;
         },
@@ -115,8 +114,8 @@ const safeLocalStorage = createJSONStorage<notification[]>(
 );
 
 export const notificationsAtom = atomWithStorage<notification[]>(
-    "user_notifications_list_v2",
-    dummyNoticationsData,
+    "user_notifications_list_v3",
+    [],
     safeLocalStorage,
     { getOnInit: true }
 );
