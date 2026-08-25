@@ -1,12 +1,17 @@
 export interface notification {
-    id?: string;
-    messageTypeId?: string; // Message type ID from the Notifications Master table (e.g., "N01")
+    id: string;
+    notificationTypeId?: string;
+    messageTypeId?: string;
     title: string;
-    description: string;
-    actionTitle: string;
-    date: Date;
+    description?: string;
+    message?: string;
+    date?: string;
+    postedAt?: string;
+    imageSrc?: string;
+    actionTitle?: string;
     unread: boolean;
-    imageSrc: string;
+    status: "unread" | "read" | "deleted";
     timeAgo?: string;
     mainIndex?: number;
+    [key: string]: any;
 }

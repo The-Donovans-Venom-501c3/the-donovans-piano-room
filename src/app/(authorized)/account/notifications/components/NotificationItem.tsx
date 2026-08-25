@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState } from 'react';
 import { notification } from '@/interfaces/notificationInterface';
@@ -13,12 +13,19 @@ type EventDetails = {
     endDate: string;
 };
 
-// List of Message Type IDs corresponding to Live Lessons from the master table
+// Master Table keys for Live Lessons
 const LIVE_LESSON_MESSAGE_TYPE_IDS = ["N01", "LIVE_LESSONS"];
 
-// Helper function to bold dates/times in descriptions
-function renderFormattedDescription(description: string) {
-    const dateTimeRegex = /([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,\s+at\s+\d{1,2}:\d{2}\s*(?:am|pm)\s*[A-Z]{3})/i;
+// Formats JS Date object strictly into YYYYMMDDTHHMMSSZ for ICS / Google Calendar
+const formatICSDate = (date: Date): string => {
+    return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+};
+
+// Helper function to bold dates and times in descriptions
+function renderFormattedDescription(description?: string) {
+    if (!description) return "";
+    // Regex updated to capture standard dates, times, and any timezone format (e.g. EST, EDT, GMT, UTC)
+    const dateTimeRegex = /([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,\s+at\s+\d{1,2}:\d{2}\s*(?:am|pm)\s*[A-Z0-9\+-]{2,5})/i;
     const parts = description.split(dateTimeRegex);
 
     return parts.map((part, index) => {
@@ -48,12 +55,19 @@ export default function NotificationItem({
     const toggleDropdown = () => setDisplayDropdown((prev) => !prev);
     const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
 
+    // Dynamic calendar dates derived from item payload
+    const rawDateVal = item.postedAt || item.date || Date.now();
+    const eventDate = isNaN(Date.parse(String(rawDateVal))) ? new Date() : new Date(rawDateVal);
+    
+    const startDateISO = formatICSDate(eventDate);
+    const endDateISO = formatICSDate(new Date(eventDate.getTime() + 60 * 60 * 1000));
+
     const eventDetails: EventDetails = {
-        title: item.title || "Live lessons with The Donovan",
-        description: item.description || "Live lessons with The Donovan",
+        title: item.title || "Live Lesson",
+        description: item.description || item.message || "Live Lesson Announcement",
         location: "The Donovan's Piano Room",
-        startDate: "20250318T180000Z",
-        endDate: "20250318T190000Z",
+        startDate: startDateISO,
+        endDate: endDateISO,
     };
 
     const handleAddToCalendar = ({ title, description, location, startDate, endDate }: EventDetails) => {
@@ -67,7 +81,7 @@ export default function NotificationItem({
     };
 
     const handleDownloadICS = ({ title, description, location, startDate, endDate }: EventDetails) => {
-        const domain = typeof window !== 'undefined' ? window.location.hostname : "TheDonovan'sPianoRoom";
+        const domain = typeof window !== 'undefined' ? window.location.hostname : "TheDonovansPianoRoom";
         const uid = `${Date.now()}@${domain}`;
         const CRLF = "\r\n";
 
@@ -77,7 +91,7 @@ export default function NotificationItem({
             `PRODID:-//${domain}//EN` + CRLF +
             "BEGIN:VEVENT" + CRLF +
             `UID:${uid}` + CRLF +
-            `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z` + CRLF +
+            `DTSTAMP:${formatICSDate(new Date())}` + CRLF +
             `SUMMARY:${title}` + CRLF +
             `DESCRIPTION:${description}` + CRLF +
             `LOCATION:${location}` + CRLF +
@@ -96,8 +110,8 @@ export default function NotificationItem({
         document.body.removeChild(a);
     };
 
-    // Directly evaluate messageTypeId to decide whether to render the Calendar button
-    const isLiveLessonNotification = !!item.messageTypeId && LIVE_LESSON_MESSAGE_TYPE_IDS.includes(item.messageTypeId);
+    const activeTypeId = item.notificationTypeId || item.messageTypeId;
+    const isLiveLessonNotification = !!activeTypeId && LIVE_LESSON_MESSAGE_TYPE_IDS.includes(activeTypeId);
 
     return (
         <div className="flex min-h-[18vh] w-full p-6 bg-[#FEF8EE] rounded-2xl mt-[2%] hover:bg-[#FBF5FF] border border-[#FCF0D8] hover:border-white shadow-[#AC7A2280] shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px]">
@@ -109,11 +123,15 @@ export default function NotificationItem({
             {/* Notification Icon */}
             <div className="w-[5%]">
                 <div className="relative w-[4.5vh] h-[4.5vh]">
-                    <Image src={item.imageSrc} fill alt="" />
+                    <Image 
+                        src={item.imageSrc || "/account/notifications/announcement.svg"} 
+                        fill 
+                        alt={item.title || "Notification"} 
+                    />
                 </div>
             </div>
 
-            {/* Content & Options */}
+            {/* Content Area */}
             <div className="w-[90%] ml-[2%] flex flex-col justify-between">
                 <div>
                     <div className="flex justify-between items-center">
@@ -124,10 +142,10 @@ export default function NotificationItem({
                     <div className="flex justify-between items-start mt-[1%]">
                         <div className="w-[85%]">
                             <p className="text-xl 3xl:text-2xl 4xl:text-3xl text-[#5A4B43]">
-                                {renderFormattedDescription(item.description)}
+                                {renderFormattedDescription(item.description || item.message)}
                             </p>
                             
-                            {/* Render "Add to calendar" strictly for Live Lessons */}
+                            {/* Calendar Menu for N01 Live Lessons */}
                             {isLiveLessonNotification ? (
                                 <div className="relative inline-block text-left mt-[2%]">
                                     <button
@@ -138,7 +156,6 @@ export default function NotificationItem({
                                         Add to calendar
                                     </button>
 
-                                    {/* Calendar Options Dropdown */}
                                     {isCalendarOpen && (
                                         <>
                                             <div className="fixed inset-0 z-30" onClick={() => setIsCalendarOpen(false)} />
@@ -179,7 +196,7 @@ export default function NotificationItem({
                             ) : null}
                         </div>
 
-                        {/* Options Dropdown Area */}
+                        {/* Options Menu */}
                         <div className="relative">
                             <button
                                 type="button"
@@ -219,18 +236,6 @@ export default function NotificationItem({
                                                 <Image src="/about/membership/Icon-doesnt-include.svg" alt="" fill />
                                             </div>
                                             <p className="text-base font-medium">Delete this notification</p>
-                                        </li>
-                                        <li
-                                            className="p-4 hover:bg-[#F5E8FF] flex items-center gap-3 cursor-pointer text-[#4A3B32]"
-                                            onClick={() => {
-                                                toggleDropdown();
-                                                itemIsRead();
-                                            }}
-                                        >
-                                            <div className="relative w-[2vh] h-[2vh]">
-                                                <Image src="/account/notifications/turn-off.svg" alt="" fill />
-                                            </div>
-                                            <p className="text-base font-medium">Turn off this notification type</p>
                                         </li>
                                     </ul>
                                 </>

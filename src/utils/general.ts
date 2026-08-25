@@ -1,6 +1,5 @@
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import { backendBookInterface, bookInterface } from "@/interfaces/bookInterface";
-import { notification } from "@/interfaces/notificationInterface";
 
 export const aboutNavigationPages = {
     whyChooseUs: "why-choose-us",
@@ -96,49 +95,6 @@ export function beenTimeAgo(date: Date | string): { timeAgo: string; underADay: 
     }
     return { timeAgo: 'just now', underADay: true };
 }
-
-export const dummyNoticationsData: notification[] = [
-    {
-        id: "notif-0",
-        messageTypeId: "N01", // Identifier for Live Lessons
-        title: "Live Lessons with The Donovan!",
-        description: "Join our next live session on March 18, at 2:00 pm EST.",
-        actionTitle: "Add to calendar",
-        date: new Date(),
-        unread: true,
-        imageSrc: "/ToBeRemoved/notification-icons/upgrade.svg",
-    },
-    {
-        id: "notif-1",
-        messageTypeId: "N04", // New feature releases
-        title: "9.0.1 new version launched",
-        description: "Version 9.0.1 has launched, featuring enhanced stability, improved features, and critical bug fixes. Upgrade now for a smoother, more efficient user experience.",
-        actionTitle: "Update",
-        date: new Date("2026-08-07T12:00:00.000Z"),
-        unread: true,
-        imageSrc: "/ToBeRemoved/notification-icons/upgrade.svg",
-    },
-    {
-        id: "notif-2",
-        messageTypeId: "N07", // Other important updates
-        title: "Renew your annual program",
-        description: "Renew your annual program today to continue enjoying all the benefits and features. Don't miss out on the latest updates and exclusive member services for another year!",
-        actionTitle: "Renew",
-        date: new Date("2026-08-07T09:00:00.000Z"),
-        unread: false,
-        imageSrc: "/ToBeRemoved/notification-icons/program.svg",
-    },
-    {
-        id: "notif-3",
-        messageTypeId: "N07",
-        title: "Upload your profile photo",
-        description: "Upload your profile photo to personalize your account and enhance your visibility. A current photo helps others recognize and connect with you more effectively!",
-        actionTitle: "Go to account",
-        date: new Date("2026-08-05T12:00:00.000Z"),
-        unread: true,
-        imageSrc: "/ToBeRemoved/notification-icons/profile.svg",
-    },
-];
 
 export const mapBackendToFrontend = (backendBook: backendBookInterface): bookInterface => {
     return {
