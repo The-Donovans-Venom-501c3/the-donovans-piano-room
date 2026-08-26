@@ -3,6 +3,7 @@
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import { authorizedWrapperTitles, beenTimeAgo, settingsNavigation } from "@/utils/general";
+import { resolveNotificationImage } from "@/utils/notificationUtils";
 import { hasUnreadAtom, isNavOpenAtom, notificationsAtom } from "@/utils/stores";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState, useCallback } from "react";
@@ -10,20 +11,6 @@ import AllOrUnread from "./components/AllOrUnread";
 import AllCatchUp from "./components/AllCatchUp";
 import { notification } from "@/interfaces/notificationInterface";
 import NotificationItem from "./components/NotificationItem";
-
-const getNotificationImage = (typeId?: string): string => {
-    switch (typeId) {
-        case "N01":
-        case "LIVE_LESSONS":
-            return "/ToBeRemoved/notification-icons/upgrade.svg";
-        case "N02":
-        case "N05":
-        case "N06":
-            return "/ToBeRemoved/notification-icons/program.svg";
-        default:
-            return "/ToBeRemoved/notification-icons/profile.svg";
-    }
-};
 
 export default function Page() {
     const [notificationsList, setNotificationsList] = useAtom(notificationsAtom);
@@ -42,26 +29,34 @@ export default function Page() {
             setIsLoading(true);
             const res = await fetch("/api/notifications", { cache: "no-store" });
             if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            
+
             const rawData = await res.json();
-            const itemsArray = Array.isArray(rawData) 
-                ? rawData 
+            const itemsArray = Array.isArray(rawData)
+                ? rawData
                 : (rawData.notifications || rawData.data || []);
 
             const parsedData: notification[] = itemsArray
                 .filter((item: any) => String(item.status || "").toLowerCase() !== "deleted")
                 .map((item: any, index: number) => {
                     const itemId = String(item.id || item.notification_id || item.notificationId || `notif-${index}`);
-                    const messageTypeId = String(item.notificationTypeId || item.notif_type_id || item.messageTypeId || "N03");
-                    
+                    const messageTypeId = String(item.notificationTypeId || item.notif_type_id || item.messageTypeId || item.typeId || "");
+
                     const titleText = item.title || item.message_title || item.Message_title || "Notification";
                     const descText = item.message || item.description || item.Message_content || item.message_content || "";
-                    
+
                     const rawDate = item.postedAt || item.posted_at || item.created_at || item.date || new Date().toISOString();
                     const validDate = isNaN(Date.parse(rawDate)) ? new Date().toISOString() : new Date(rawDate).toISOString();
 
                     const statusStr = String(item.status || "unread").toLowerCase();
                     const isUnread = statusStr === "unread";
+
+                    const resolvedImage = resolveNotificationImage(
+                        item.imageSrc,
+                        messageTypeId,
+                        titleText,
+                        descText,
+                        item.category
+                    );
 
                     return {
                         ...item,
@@ -73,7 +68,7 @@ export default function Page() {
                         message: descText,
                         date: validDate,
                         postedAt: validDate,
-                        imageSrc: item.imageSrc || getNotificationImage(messageTypeId),
+                        imageSrc: resolvedImage,
                         unread: isUnread,
                         status: isUnread ? "unread" : "read"
                     };
@@ -122,7 +117,6 @@ export default function Page() {
     const displayAll = () => setFilterMode("all");
     const filterUnreads = () => setFilterMode("unread");
 
-    // 3. Handle Mark as Read
     const setItemToRead = async (targetItem: notification) => {
         if (!targetItem.unread) return;
         const targetId = targetItem.id;
@@ -146,7 +140,6 @@ export default function Page() {
         }
     };
 
-    // 4. Handle Delete
     const deleteItem = async (targetItem: notification) => {
         const targetId = targetItem.id;
 
@@ -184,12 +177,12 @@ export default function Page() {
                             {!!displayedNotifications[0].length && (
                                 <>
                                     <h5 className="text-primary-brown text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">
-                                        Today ({displayedNotifications[0].length})
+                                        Today
                                     </h5>
-                                    {displayedNotifications[0].map((item, i) => (
+                                    {displayedNotifications[0].map((item) => (
                                         <NotificationItem
+                                            key={item.id}
                                             item={item}
-                                            key={item.id ?? `today-${i}`}
                                             deleteItem={() => deleteItem(item)}
                                             itemIsRead={() => setItemToRead(item)}
                                         />
@@ -199,13 +192,13 @@ export default function Page() {
 
                             {!!displayedNotifications[1].length && (
                                 <>
-                                    <h5 className="text-primary-brown text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">
-                                        Past notifications ({displayedNotifications[1].length})
+                                    <h5 className="text-primary-brown text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[4%]">
+                                        Earlier
                                     </h5>
-                                    {displayedNotifications[1].map((item, i) => (
+                                    {displayedNotifications[1].map((item) => (
                                         <NotificationItem
+                                            key={item.id}
                                             item={item}
-                                            key={item.id ?? `past-${i}`}
                                             deleteItem={() => deleteItem(item)}
                                             itemIsRead={() => setItemToRead(item)}
                                         />
@@ -213,7 +206,9 @@ export default function Page() {
                                 </>
                             )}
 
-                            {!displayedNotifications[0].length && !displayedNotifications[1].length && <AllCatchUp />}
+                            {!displayedNotifications[0].length && !displayedNotifications[1].length && (
+                                <AllCatchUp />
+                            )}
                         </>
                     )}
                 </div>

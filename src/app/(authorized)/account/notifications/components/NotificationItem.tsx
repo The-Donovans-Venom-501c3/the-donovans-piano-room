@@ -13,7 +13,7 @@ type EventDetails = {
     endDate: string;
 };
 
-const LIVE_LESSON_MESSAGE_TYPE_IDS = ["N01", "LIVE_LESSONS"];
+const LIVE_LESSON_MESSAGE_TYPE_IDS = ["N01", "LIVE_LESSON", "LIVE_LESSONS"];
 
 const formatICSDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -53,7 +53,7 @@ export default function NotificationItem({
 
     const rawDateVal = item.postedAt || item.date || Date.now();
     const eventDate = isNaN(Date.parse(String(rawDateVal))) ? new Date() : new Date(rawDateVal);
-    
+
     const startDateISO = formatICSDate(eventDate);
     const endDateISO = formatICSDate(new Date(eventDate.getTime() + 60 * 60 * 1000));
 
@@ -106,7 +106,9 @@ export default function NotificationItem({
     };
 
     const activeTypeId = item.notificationTypeId || item.messageTypeId;
-    const isLiveLessonNotification = !!activeTypeId && LIVE_LESSON_MESSAGE_TYPE_IDS.includes(activeTypeId);
+    const isLiveLessonNotification = !!activeTypeId && LIVE_LESSON_MESSAGE_TYPE_IDS.includes(String(activeTypeId).toUpperCase().trim());
+
+    const activeImage: string = item.imageSrc || "/ToBeRemoved/notification-icons/profile.svg";
 
     return (
         <div className="flex min-h-[18vh] w-full p-6 bg-[#FEF8EE] rounded-2xl mt-[2%] hover:bg-[#FBF5FF] border border-[#FCF0D8] hover:border-white shadow-[#AC7A2280] shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px]">
@@ -116,10 +118,10 @@ export default function NotificationItem({
 
             <div className="w-[5%]">
                 <div className="relative w-[4.5vh] h-[4.5vh]">
-                    <Image 
-                        src={item.imageSrc || "/ToBeRemoved/notification-icons/profile.svg"} 
-                        fill 
-                        alt={item.title || "Notification"} 
+                    <Image
+                        src={activeImage}
+                        fill
+                        alt={item.title || "Notification"}
                     />
                 </div>
             </div>
@@ -136,7 +138,7 @@ export default function NotificationItem({
                             <p className="text-xl 3xl:text-2xl 4xl:text-3xl text-[#5A4B43]">
                                 {renderFormattedDescription(item.description || item.message)}
                             </p>
-                            
+
                             {isLiveLessonNotification ? (
                                 <div className="relative inline-block text-left mt-[2%]">
                                     <button
