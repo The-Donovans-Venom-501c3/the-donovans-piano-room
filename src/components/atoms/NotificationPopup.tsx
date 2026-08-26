@@ -1,6 +1,7 @@
 "use client";
 
 import { beenTimeAgo } from "@/utils/general";
+import { resolveNotificationImage } from "@/utils/notificationUtils";
 import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
 import Button3 from "./Button3";
@@ -18,21 +19,7 @@ type EventDetails = {
     endDate: string;
 };
 
-const LIVE_LESSON_TYPE_IDS = ["N01", "LIVE_LESSONS"];
-
-const getNotificationImage = (typeId?: string): string => {
-    switch (typeId) {
-        case "N01":
-        case "LIVE_LESSONS":
-            return "/ToBeRemoved/notification-icons/upgrade.svg";
-        case "N02":
-        case "N05":
-        case "N06":
-            return "/ToBeRemoved/notification-icons/program.svg";
-        default:
-            return "/ToBeRemoved/notification-icons/profile.svg";
-    }
-};
+const LIVE_LESSON_TYPE_IDS = ["N01", "LIVE_LESSON", "LIVE_LESSONS"];
 
 const formatICSDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -43,6 +30,23 @@ const parseStatus = (rawStatus: any): "unread" | "read" | "deleted" => {
     if (s === "read" || s === "deleted") return s;
     return "unread";
 };
+
+function renderFormattedDescription(description?: string) {
+    if (!description) return "";
+    const dateTimeRegex = /([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,\s+at\s+\d{1,2}:\d{2}\s*(?:am|pm)\s*[A-Z0-9\+-]{2,5})/i;
+    const parts = description.split(dateTimeRegex);
+
+    return parts.map((part, index) => {
+        if (dateTimeRegex.test(part)) {
+            return (
+                <strong key={index} className="font-bold text-primary-brown">
+                    {part}
+                </strong>
+            );
+        }
+        return part;
+    });
+}
 
 export default function NotificationPopup() {
     const [notifications] = useAtom(notificationsAtom);
@@ -62,28 +66,37 @@ export default function NotificationPopup() {
             if (!res.ok) return;
             const rawData = await res.json();
             const itemsArray = Array.isArray(rawData) ? rawData : (rawData.notifications || rawData.data || []);
-            
+
             const activeItems = itemsArray.filter((i: any) => parseStatus(i.status) !== "deleted");
             if (activeItems.length > 0) {
                 const topItem = activeItems[0];
-                const typeId = String(topItem.notificationTypeId || topItem.notif_type_id || topItem.messageTypeId || "N03");
-                
+                const typeId = String(topItem.notificationTypeId || topItem.notif_type_id || topItem.messageTypeId || topItem.typeId || "");
+                const titleText = topItem.title || topItem.message_title || "Notification";
+                const descText = topItem.message || topItem.description || "";
                 const rawDate = topItem.postedAt || topItem.posted_at || topItem.date || new Date().toISOString();
                 const validDate = isNaN(Date.parse(rawDate)) ? new Date().toISOString() : new Date(rawDate).toISOString();
                 const itemStatus = parseStatus(topItem.status);
+
+                const resolvedImage = resolveNotificationImage(
+                    topItem.imageSrc,
+                    typeId,
+                    titleText,
+                    descText,
+                    topItem.category
+                );
 
                 setLatestNotification({
                     id: String(topItem.id || topItem.notification_id || "popup-1"),
                     notificationTypeId: typeId,
                     messageTypeId: typeId,
-                    title: topItem.title || topItem.message_title || "Notification",
-                    description: topItem.message || topItem.description || "",
-                    message: topItem.message || topItem.description || "",
+                    title: titleText,
+                    description: descText,
+                    message: descText,
                     postedAt: validDate,
                     date: validDate,
                     status: itemStatus,
                     unread: itemStatus === "unread",
-                    imageSrc: topItem.imageSrc || getNotificationImage(typeId)
+                    imageSrc: resolvedImage
                 });
             }
         } catch (err) {
@@ -95,6 +108,8 @@ export default function NotificationPopup() {
         if (!isMounted) return;
 
         if (notifications && notifications.length > 0) {
+            // notifications from the atom are already resolved in page.tsx —
+            // don't recompute, just use as-is.
             setLatestNotification(notifications[0]);
         } else {
             fetchLatestNotification();
@@ -113,7 +128,7 @@ export default function NotificationPopup() {
 
     const rawDateVal = latestNotification.postedAt || latestNotification.date || Date.now();
     const eventDate = isNaN(Date.parse(String(rawDateVal))) ? new Date() : new Date(rawDateVal);
-    
+
     const startDateISO = formatICSDate(eventDate);
     const endDateISO = formatICSDate(new Date(eventDate.getTime() + 60 * 60 * 1000));
 
@@ -171,18 +186,20 @@ export default function NotificationPopup() {
         }
     };
 
-    const activeTypeId = latestNotification.notificationTypeId || latestNotification.messageTypeId;
+    const activeTypeId = String(latestNotification.notificationTypeId || latestNotification.messageTypeId || "").toUpperCase().trim();
     const isLiveLesson = !!activeTypeId && LIVE_LESSON_TYPE_IDS.includes(activeTypeId);
+
+    const activeImage: string = latestNotification.imageSrc || "/ToBeRemoved/notification-icons/profile.svg";
 
     return (
         <div className="absolute w-[100vw] h-[100vh] pointer-events-none z-50">
             <div className="pointer-events-auto absolute right-[5%] top-[-2%] flex w-[35%] p-6 bg-[#FEF8EE] rounded-2xl mt-[2%] hover:bg-[#FBF5FF] border border-[#FCF0D8] hover:border-white shadow-[#AC7A2280] shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px]">
                 <div className="w-[5%]">
                     <div className="relative w-[4.5vh] h-[4.5vh]">
-                        <Image 
-                            src={latestNotification.imageSrc || "/ToBeRemoved/notification-icons/profile.svg"} 
-                            fill 
-                            alt={latestNotification.title || "Notification"} 
+                        <Image
+                            src={activeImage}
+                            fill
+                            alt={latestNotification.title || "Notification"}
                         />
                     </div>
                 </div>
@@ -193,7 +210,7 @@ export default function NotificationPopup() {
                     </div>
                     <div>
                         <p className="text-xl 3xl:text-2xl 4xl:text-3xl mt-[2%] w-[90%] text-[#5A4B43]">
-                            {latestNotification.description || latestNotification.message}
+                            {renderFormattedDescription(latestNotification.description || latestNotification.message)}
                         </p>
                         <div className="flex items-center gap-4 mt-[2%]">
                             {isLiveLesson ? (
@@ -232,29 +249,20 @@ export default function NotificationPopup() {
                                         </div>
                                     )}
                                 </div>
-                            ) : latestNotification.actionTitle ? (
-                                <Button3
-                                    text={latestNotification.actionTitle}
-                                    style={{
-                                        width: latestNotification.actionTitle.length > 6 ? "28%" : "22%",
-                                        height: "4.3vh"
-                                    }}
-                                />
                             ) : null}
 
-                            <Link href="/account/notifications" className="underline text-primary-purple text-xl 3xl:text-2xl 4xl:text-3xl font-semibold">
-                                See all notifications
+                            <Link href="/account/notifications">
+                                <Button3 text="View" />
                             </Link>
                         </div>
                     </div>
                 </div>
 
-                <button 
-                    type="button"
+                <button
                     onClick={() => setIsVisible(false)}
-                    className="absolute top-[-6%] right-[-0.3%] bg-[#FEF8EE] hover:bg-[#FBF5FF] w-[4vh] h-[4vh] rounded-full border-2 border-[#FCF0D8] flex items-center justify-center select-none cursor-pointer"
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
                 >
-                    <CloseIcon className="text-4xl 3xl:text-5xl 4xl:text-6xl text-primary-purple" />
+                    <CloseIcon />
                 </button>
             </div>
         </div>
