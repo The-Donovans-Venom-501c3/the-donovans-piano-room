@@ -15,13 +15,13 @@ const getNotificationImage = (typeId?: string): string => {
     switch (typeId) {
         case "N01":
         case "LIVE_LESSONS":
-            return "/account/notifications/live-lesson.svg";
+            return "/ToBeRemoved/notification-icons/upgrade.svg";
         case "N02":
         case "N05":
         case "N06":
-            return "/account/notifications/maintenance.svg";
+            return "/ToBeRemoved/notification-icons/program.svg";
         default:
-            return "/account/notifications/announcement.svg";
+            return "/ToBeRemoved/notification-icons/profile.svg";
     }
 };
 
@@ -37,7 +37,6 @@ export default function Page() {
     const isNavOpen = useAtomValue(isNavOpenAtom);
     const setHasUnread = useSetAtom(hasUnreadAtom);
 
-    // 1. Fetch & Parse Backend Data
     const fetchNotifications = useCallback(async () => {
         try {
             setIsLoading(true);
@@ -52,15 +51,12 @@ export default function Page() {
             const parsedData: notification[] = itemsArray
                 .filter((item: any) => String(item.status || "").toLowerCase() !== "deleted")
                 .map((item: any, index: number) => {
-                    // Extract Primary Keys safely
                     const itemId = String(item.id || item.notification_id || item.notificationId || `notif-${index}`);
                     const messageTypeId = String(item.notificationTypeId || item.notif_type_id || item.messageTypeId || "N03");
                     
-                    // Extract Content Fields
                     const titleText = item.title || item.message_title || item.Message_title || "Notification";
                     const descText = item.message || item.description || item.Message_content || item.message_content || "";
                     
-                    // Safely normalize SQL ISO Timestamps
                     const rawDate = item.postedAt || item.posted_at || item.created_at || item.date || new Date().toISOString();
                     const validDate = isNaN(Date.parse(rawDate)) ? new Date().toISOString() : new Date(rawDate).toISOString();
 
@@ -96,7 +92,6 @@ export default function Page() {
         fetchNotifications();
     }, [fetchNotifications]);
 
-    // 2. Filter & Group Items Whenever List or Filter Changes
     useEffect(() => {
         if (!isMounted || !Array.isArray(notificationsList)) return;
 
@@ -142,6 +137,7 @@ export default function Page() {
             const res = await fetch(`/api/notifications/${targetId}/read`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}),
             });
             if (!res.ok) throw new Error("Failed to update status on server");
         } catch (error) {
