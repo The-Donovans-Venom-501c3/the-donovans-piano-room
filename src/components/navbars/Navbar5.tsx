@@ -17,8 +17,8 @@ export default function Navbar5({ page }: { page: string }) {
   };
   return (
     <>
-      <div className="fixed top-0 z-40 h-[8.8vh] w-[100vw] bg-[#F5E8FF]"></div>
-      <nav className="fixed top-0 z-50 h-[9vh] w-full border-b-2 border-b-[#ecd6fe] bg-[#F5E8FF]">
+      <div className="fixed top-10 z-40 h-[8.8vh] w-[100vw] bg-[#F5E8FF]"></div>
+      <nav className="fixed top-10 z-50 h-[9vh] w-full border-b-2 border-b-[#ecd6fe] bg-[#F5E8FF]">
         <div className="absolute top-0 flex h-[8.8vh] w-[24vw] justify-end rounded-r-full bg-secondary-purple py-2 pr-4">
           <Image
             src="/navbar/Logo.svg"
@@ -28,7 +28,8 @@ export default function Navbar5({ page }: { page: string }) {
           />
         </div>
 
-        <div className="absolute flex float-right h-[8.8vh] p-y-50 top-[0px] right-36 gap-16 justify-center h-full">
+        {/* Position fixed to right-28 and matched button sizing */}
+        <div className="p-y-50 absolute right-28 top-[0px] float-right flex h-[8.8vh] justify-center gap-16">
             <Link 
               className="text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative"
               style={navigationPages.home === page ? highlightLink: {}} 
@@ -56,7 +57,6 @@ export default function Navbar5({ page }: { page: string }) {
               {navigationPages.games === page && displayBorder()}
             </Link>
 
-            {/* ✅ UPDATED: Changed shop to SHOP */}
             <Link 
               className="text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative" 
               style={navigationPages.shop === page ? highlightLink : {}} 
@@ -69,7 +69,7 @@ export default function Navbar5({ page }: { page: string }) {
             <Link 
               className="text-primary-purple hover:text-[#E98427] active:text-[#Da6a1c] text-xl 2xl:text-3xl font-bold flex items-center relative" 
               style={navigationPages.contact === page ? highlightLink: {}} 
-              href="#"
+              href="/contact-us"
             >
               <p>CONTACT</p>
               {navigationPages.contact === page && displayBorder()}
@@ -77,13 +77,13 @@ export default function Navbar5({ page }: { page: string }) {
 
             <Link 
               className="text-primary-purple hover:text-[#E98427] flex items-center" 
-              href="#"
+              href="/cart"
             >
               <ShoppingCartOutlinedIcon sx={iconStyles} />
             </Link>
 
             <Link 
-              className="text-white bg-primary-purple rounded-l-full rounded-r-full px-20 h-16 hover:bg-[#E98427] flex items-center text-xl 2xl:text-3xl font-bold self-center" 
+              className="flex h-12 items-center self-center rounded-l-full rounded-r-full bg-primary-purple px-7 text-xl font-bold text-white hover:bg-[#E98427] 2xl:text-3xl" 
               href="/signup"
             >
               Log In or Sign Up

@@ -11,8 +11,8 @@ export default function Navbar7({ page }: { page: string }) {
 
   return (
     <>
-      <div className="fixed top-0 z-40 h-[8.8vh] w-[100vw] bg-[#F5E8FF]"></div>
-      <nav className="fixed top-0 z-50 h-[9vh] w-full border-b-2 border-b-[#ecd6fe] bg-[#F5E8FF]">
+      <div className="fixed top-10 z-40 h-[8.8vh] w-[100vw] bg-[#F5E8FF]"></div>
+      <nav className="fixed top-10 z-50 h-[9vh] w-full border-b-2 border-b-[#ecd6fe] bg-[#F5E8FF]">
         <div className="absolute top-0 flex h-[8.8vh] w-[24vw] justify-end rounded-r-full bg-[#ECD6FE] py-2 pr-4">
           <Image
             src="/navbar/Logo.svg"
