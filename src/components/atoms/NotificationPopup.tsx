@@ -20,12 +20,24 @@ type EventDetails = {
 
 const LIVE_LESSON_TYPE_IDS = ["N01", "LIVE_LESSONS"];
 
-// Formats JS Date object strictly into YYYYMMDDTHHMMSSZ for ICS / Google Calendar
+const getNotificationImage = (typeId?: string): string => {
+    switch (typeId) {
+        case "N01":
+        case "LIVE_LESSONS":
+            return "/ToBeRemoved/notification-icons/upgrade.svg";
+        case "N02":
+        case "N05":
+        case "N06":
+            return "/ToBeRemoved/notification-icons/program.svg";
+        default:
+            return "/ToBeRemoved/notification-icons/profile.svg";
+    }
+};
+
 const formatICSDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 };
 
-// Safe runtime type guard to map status strings into the strict notification interface union
 const parseStatus = (rawStatus: any): "unread" | "read" | "deleted" => {
     const s = String(rawStatus || "").toLowerCase();
     if (s === "read" || s === "deleted") return s;
@@ -44,7 +56,6 @@ export default function NotificationPopup() {
         setIsMounted(true);
     }, []);
 
-    // Fetch latest notification if Jotai store is empty
     const fetchLatestNotification = useCallback(async () => {
         try {
             const res = await fetch("/api/notifications");
@@ -72,7 +83,7 @@ export default function NotificationPopup() {
                     date: validDate,
                     status: itemStatus,
                     unread: itemStatus === "unread",
-                    imageSrc: topItem.imageSrc || (typeId === "N01" ? "/account/notifications/live-lesson.svg" : "/account/notifications/announcement.svg")
+                    imageSrc: topItem.imageSrc || getNotificationImage(typeId)
                 });
             }
         } catch (err) {
@@ -100,7 +111,6 @@ export default function NotificationPopup() {
 
     if (!isMounted || !isVisible || !latestNotification) return null;
 
-    // Dynamic start/end dates for Google Calendar / ICS
     const rawDateVal = latestNotification.postedAt || latestNotification.date || Date.now();
     const eventDate = isNaN(Date.parse(String(rawDateVal))) ? new Date() : new Date(rawDateVal);
     
@@ -170,7 +180,7 @@ export default function NotificationPopup() {
                 <div className="w-[5%]">
                     <div className="relative w-[4.5vh] h-[4.5vh]">
                         <Image 
-                            src={latestNotification.imageSrc || "/account/notifications/announcement.svg"} 
+                            src={latestNotification.imageSrc || "/ToBeRemoved/notification-icons/profile.svg"} 
                             fill 
                             alt={latestNotification.title || "Notification"} 
                         />
@@ -197,7 +207,6 @@ export default function NotificationPopup() {
                                         onClick={() => setIsOpen((prev) => !prev)}
                                     />
 
-                                    {/* Calendar Dropdown */}
                                     {isOpen && (
                                         <div className="absolute mt-1 left-1/2 -translate-x-1/2 rounded z-40 py-2 divide-y divide-gray-100 w-full bg-primary-purple shadow-xl">
                                             <ul className="text-center text-sm 3xl:text-base text-white font-semibold">
@@ -240,7 +249,6 @@ export default function NotificationPopup() {
                     </div>
                 </div>
 
-                {/* Dismiss Popup */}
                 <button 
                     type="button"
                     onClick={() => setIsVisible(false)}

@@ -13,18 +13,14 @@ type EventDetails = {
     endDate: string;
 };
 
-// Master Table keys for Live Lessons
 const LIVE_LESSON_MESSAGE_TYPE_IDS = ["N01", "LIVE_LESSONS"];
 
-// Formats JS Date object strictly into YYYYMMDDTHHMMSSZ for ICS / Google Calendar
 const formatICSDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 };
 
-// Helper function to bold dates and times in descriptions
 function renderFormattedDescription(description?: string) {
     if (!description) return "";
-    // Regex updated to capture standard dates, times, and any timezone format (e.g. EST, EDT, GMT, UTC)
     const dateTimeRegex = /([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,\s+at\s+\d{1,2}:\d{2}\s*(?:am|pm)\s*[A-Z0-9\+-]{2,5})/i;
     const parts = description.split(dateTimeRegex);
 
@@ -55,7 +51,6 @@ export default function NotificationItem({
     const toggleDropdown = () => setDisplayDropdown((prev) => !prev);
     const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
 
-    // Dynamic calendar dates derived from item payload
     const rawDateVal = item.postedAt || item.date || Date.now();
     const eventDate = isNaN(Date.parse(String(rawDateVal))) ? new Date() : new Date(rawDateVal);
     
@@ -115,23 +110,20 @@ export default function NotificationItem({
 
     return (
         <div className="flex min-h-[18vh] w-full p-6 bg-[#FEF8EE] rounded-2xl mt-[2%] hover:bg-[#FBF5FF] border border-[#FCF0D8] hover:border-white shadow-[#AC7A2280] shadow-[rgba(0,0,15,0.5)_2px_3px_4px_0px]">
-            {/* Unread Indicator */}
             <div className="w-[5%] flex items-center justify-center">
                 {item.unread && <div className="w-[1.5vh] h-[1.5vh] bg-primary-purple rounded-full"></div>}
             </div>
 
-            {/* Notification Icon */}
             <div className="w-[5%]">
                 <div className="relative w-[4.5vh] h-[4.5vh]">
                     <Image 
-                        src={item.imageSrc || "/account/notifications/announcement.svg"} 
+                        src={item.imageSrc || "/ToBeRemoved/notification-icons/profile.svg"} 
                         fill 
                         alt={item.title || "Notification"} 
                     />
                 </div>
             </div>
 
-            {/* Content Area */}
             <div className="w-[90%] ml-[2%] flex flex-col justify-between">
                 <div>
                     <div className="flex justify-between items-center">
@@ -145,7 +137,6 @@ export default function NotificationItem({
                                 {renderFormattedDescription(item.description || item.message)}
                             </p>
                             
-                            {/* Calendar Menu for N01 Live Lessons */}
                             {isLiveLessonNotification ? (
                                 <div className="relative inline-block text-left mt-[2%]">
                                     <button
@@ -196,7 +187,6 @@ export default function NotificationItem({
                             ) : null}
                         </div>
 
-                        {/* Options Menu */}
                         <div className="relative">
                             <button
                                 type="button"
