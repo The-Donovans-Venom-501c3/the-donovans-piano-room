@@ -51,6 +51,16 @@ const getSessionStorage = () => (typeof window !== "undefined" ? sessionStorage 
 const getLocalStorage = () => (typeof window !== "undefined" ? localStorage : dummyStorage);
 
 //****************//
+//***** FORGOT PASSWORD *****//
+//****************//
+
+export const userEmailAtom = atomWithStorage<string>(
+    "user_email",
+    "",
+    createJSONStorage<string>(getSessionStorage)
+);
+
+//****************//
 //***** AUTH *****//
 //****************//
 
