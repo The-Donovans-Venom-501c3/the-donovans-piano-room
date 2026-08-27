@@ -91,9 +91,6 @@ export default function PublicContactUsForm() {
                 <p className="mb-2 text-base font-medium text-gray-800 md:text-lg">
                   A member from our team will get back to you soon.
                 </p>
-                <p className="text-sm font-normal text-gray-600 md:text-base">
-                  Expect a confirmation email with your submission details.
-                </p>
               </div>
 
               <button
