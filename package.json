@@ -1,10 +1,10 @@
 {
   "name": "the-donovans-piano-room",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node -e \"const fs = require('fs'); const version = process.env.VERCEL_GIT_COMMIT_REF || require('./package.json').version; fs.writeFileSync('./public/version.json', JSON.stringify({ version, commit: process.env.VERCEL_GIT_COMMIT_SHA || 'local', deployedAt: new Date().toISOString() }))\" && next build",
     "start": "next start",
     "lint": "next lint",
     "migration:generate": "drizzle-kit generate:sqlite",
