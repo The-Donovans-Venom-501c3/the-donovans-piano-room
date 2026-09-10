@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from "react";
+import Image from "next/image";
 import ShortPiano from './components/ShortPiano';
 import LongPiano from './components/LongPiano';
 import SwitchComponent from "./components/Switch";
@@ -97,11 +98,15 @@ export default function VirtualPiano() {
           <div className="w-full flex flex-wrap items-center justify-between pb-6 border-b border-purple-400/30 gap-4">
             
             {/* Title / Logo */}
-            <div className="flex items-center gap-3 text-white font-bold text-xl md:text-2xl">
-              <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center text-purple-900 font-black text-lg">
-                T
-              </div>
-              The Donovan&apos;s Piano Room
+            <div className="flex items-center">
+              <Image
+                src="/navbar/Logo2.svg"
+                alt="The Donovan's Piano Room"
+                width={320}
+                height={80}
+                className="h-20 md:h-20 w-auto object-contain"
+                priority
+              />
             </div>
 
             {/* Instrument Selector */}
