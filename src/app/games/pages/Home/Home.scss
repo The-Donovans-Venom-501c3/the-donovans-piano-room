@@ -1,0 +1,531 @@
+@use '../../assets/scss/variables' as *;
+
+/*------------------------------------------------------------------------------------------------*/
+
+.background-set {
+  background-color: $black;
+  position: relative;
+  height: calc($page-height - $nav-height);
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  width: 100vw;
+}
+
+.whole-page-layout {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  padding: 0 5rem;
+}
+
+.contentContainer {
+  position: relative;
+  flex-basis: 50%;
+  p {
+    //styleName: Headline XXS/Regular;
+    font-family: Noto Sans;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 28px;
+    letter-spacing: 0em;
+    text-align: left;
+    color: #ffffff;
+    white-space: nowrap;
+  }
+}
+
+.contentContainer_center {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#light-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0.2;
+}
+
+// Bubbles
+.bubble1 {
+  position: absolute;
+  top: -5%;
+  left: 10%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 6s;
+  animation-timing-function: ease-in-out;
+}
+
+.bubble2 {
+  position: absolute;
+  top: -5%;
+  left: 15%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 8s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 2s;
+}
+
+.bubble3 {
+  position: absolute;
+  top: -5%;
+  left: 20%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 7s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0.5s;
+}
+
+.bubble4 {
+  position: absolute;
+  top: -5%;
+  left: 25%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 6s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0.8s;
+}
+
+.bubble5 {
+  position: absolute;
+  top: -5%;
+  left: 30%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 6s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1s;
+}
+
+.bubble6 {
+  position: absolute;
+  top: -5%;
+  left: 35%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 8s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0.4s;
+}
+
+.bubble7 {
+  position: absolute;
+  top: -5%;
+  left: 35%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 7s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 2.6s;
+}
+
+.bubble8 {
+  position: absolute;
+  top: -5%;
+  left: 40%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 6s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1.7s;
+}
+
+.bubble9 {
+  position: absolute;
+  top: -5%;
+  left: 50%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 7s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1.9s;
+}
+
+.bubble10 {
+  position: absolute;
+  top: -5%;
+  left: 55%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 6s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1.4s;
+}
+
+.bubble11 {
+  position: absolute;
+  top: -5%;
+  left: 65%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 8s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1.9s;
+}
+
+.bubble12 {
+  position: absolute;
+  top: -5%;
+  left: 70%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 6s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 2.5s;
+}
+
+.bubble13 {
+  position: absolute;
+  top: -5%;
+  left: 75%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 7s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 1s;
+}
+
+.bubble14 {
+  position: absolute;
+  top: -5%;
+  left: 80%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: infinite fall 8s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 2s;
+}
+
+// Bubbles Animation
+@keyframes fall {
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(100vh);
+    opacity: 1;
+  }
+}
+
+// #homePageBubble {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 100%;
+//   opacity: 0.2;
+// }
+
+.text {
+  font-family: $tertiary-font;
+  font-size: 3rem;
+  white-space: nowrap;
+}
+
+#white-tips {
+  color: #ffffff;
+  font-size: 50px;
+  font-family: $tertiary-font;
+}
+#orange-tips {
+  color: #f6ad69;
+  font-family: $tertiary-font;
+}
+
+#orange {
+  color: #f6ad69;
+  font-size: 50px;
+  font-family: $tertiary-font;
+  margin-top: -20px;
+  font-weight: bold;
+}
+
+.text-small {
+  margin-top: 50px;
+  font-family: Noto Sans;
+  font-size: xx-small;
+}
+
+#yellowGuy {
+  width: 250px;
+  height: 186px;
+  margin-bottom: 50px;
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+p {
+  //styleName: Headline XXS/Regular;
+  font-family: Noto Sans;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: black;
+  white-space: nowrap;
+}
+
+#home-page-tips {
+  margin-top: 1.2rem;
+  font-weight: bold;
+  white-space: wrap;
+  text-align: center;
+}
+
+.buttonContainer {
+  flex-basis: 50%;
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+  // align-items: center;
+  // justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 2rem 0;
+  padding: 0 8rem;
+}
+
+.Button-Layout {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  padding-bottom: 0;
+  cursor: pointer;
+  font-family: $primary-font;
+}
+
+#button-icon {
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  width: 60px;
+  height: 60px;
+  margin-right: 10px;
+}
+
+.Text-Layout {
+  grid-column: 2;
+  display: grid;
+  grid-template-rows: auto auto;
+  text-align: left;
+  place-items: left;
+  gap: 0.5em;
+}
+
+#title {
+  font-weight: bolder;
+}
+#tips {
+  font-size: 11px;
+}
+
+.HomeButton {
+  width: 21rem;
+  height: 6rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+  padding: 0px 25px;
+  font-family: $primary-font;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #1c1a1a;
+  border-radius: 12px;
+  border: 3px solid #dddada;
+  background-color: #ffffff;
+  -webkit-box-shadow: 2px 4px 1px #dddada;
+  -moz-box-shadow: 2px 4px 1px #dddada;
+  box-shadow: 2px 4px 1px #dddada;
+}
+
+.HomeButton:hover {
+  background-color: #dddada;
+}
+
+.HomeButton:active {
+  background-color: #dddada;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+/*------------------------------------------------------------------------------------------------*/
+
+@media only screen and (min-width: 1920px) {
+  .bubble1 {
+    animation: infinite fall 17s;
+    animation-delay: 3s;
+    animation-timing-function: ease-out;
+  }
+  .bubble2{
+    animation: infinite fall 25s;
+    animation-delay: 1.5s;
+    animation-timing-function: ease-out;
+  }
+  .bubble3 {
+    animation: infinite fall 17s;
+    animation-delay: 3.5s;
+    animation-timing-function: ease-out;
+  }
+  .bubble4 {
+    animation: infinite fall 17s;
+    animation-delay: .0s;
+    animation-timing-function: ease-out;
+  }
+  .bubble5{
+
+    animation: infinite fall 18s;
+    animation-delay: 2.9s;
+    animation-timing-function: ease-out;
+  }
+  .bubble6 {
+    animation: infinite fall 20s;
+    animation-delay: 0s;
+    animation-timing-function: ease-out;
+  }
+
+  .bubble7 {
+    animation: infinite fall 25s;
+    animation-delay: 3s;
+    animation-timing-function: ease-out;
+  }
+  .bubble8 {
+    animation: infinite fall 23s;
+    animation-delay: .5s;
+    animation-timing-function: ease-out;
+  }
+  .bubble9{
+    animation: infinite fall 17s;
+    animation-delay: 4s;
+    animation-timing-function: ease-out;
+  }
+  .bubble10{
+    animation: infinite fall 20s;
+    animation-delay: 1s;
+    animation-timing-function: ease-out;
+  }
+  .bubble11{
+    animation: infinite fall 19s;
+    animation-timing-function: ease-out;
+    animation-delay: 6s;
+  }
+  .bubble12{
+    animation: infinite fall 20s;
+    animation-timing-function: ease-out;
+    animation-delay: .3s;
+  }
+  .bubble13{
+    animation: infinite fall 20s;
+    animation-timing-function: ease-out;
+    animation-delay: 4s;
+  }
+  .bubble14{
+
+    animation: infinite fall 20s;
+    animation-timing-function: ease-out;
+    animation-delay: 5s;
+  }
+}
+@media only screen and (max-width: 1920px) {
+  .bubble1,
+  .bubble2,
+  .bubble3,
+  .bubble4,
+  .bubble5,
+  .bubble6,
+  .bubble7,
+  .bubble8,
+  .bubble9,
+  .bubble10,
+  .bubble11,
+  .bubble12 {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  // Bubbles Animation
+  @keyframes fall {
+    0% {
+      transform: translatey(-50px);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateY(100vh);
+      opacity: 1;
+    }
+  }
+}
+
+@media only screen and (max-width: 1366px) {
+  .buttonContainer {
+    gap: 1rem;
+  }
+
+  .HomeButton {
+    transform: scale(0.9);
+  }
+}
+
+@media only screen and (max-width: 1280px) {
+  #yellowGuy {
+    width: 220px;
+    height: 160px;
+  }
+
+  .text {
+    #white-tips,
+    #orange-tips,
+    #orange {
+      font-size: 2.7rem;
+    }
+  }
+}
+
+@media only screen and (max-width: 1200px) {
+  .whole-page-layout {
+    padding: 0 2rem;
+  }
+}
