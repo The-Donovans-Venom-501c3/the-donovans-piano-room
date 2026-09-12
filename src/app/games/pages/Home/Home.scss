@@ -1,15 +1,20 @@
 @use '../../assets/scss/variables' as *;
 
+/* The game is rendered inside the shared sidebar/stage shell. */
+
 /*------------------------------------------------------------------------------------------------*/
 
 .background-set {
-  background-color: $black;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.58) 0 0.35rem, transparent 0.4rem),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.5) 0 0.25rem, transparent 0.3rem),
+    linear-gradient(135deg, rgba(246, 224, 255, 0.96), rgba(211, 169, 230, 0.86));
   position: relative;
   height: calc($page-height - $nav-height);
   box-sizing: border-box;
   margin: 0;
   border: 0;
-  width: 100vw;
+  width: 100%;
 }
 
 .whole-page-layout {
@@ -17,12 +22,14 @@
   flex-direction: row;
   width: 100%;
   height: 100%;
-  padding: 0 5rem;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 4rem);
+  padding: 1.5rem clamp(1rem, 5vw, 5rem);
 }
 
 .contentContainer {
   position: relative;
-  flex-basis: 50%;
+  flex-basis: 40%;
   p {
     //styleName: Headline XXS/Regular;
     font-family: Noto Sans;
@@ -314,16 +321,14 @@ p {
 }
 
 .buttonContainer {
-  flex-basis: 50%;
-  height: 90%;
-  display: flex;
-  flex-direction: column;
-  // align-items: center;
-  // justify-content: flex-start;
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin: 2rem 0;
-  padding: 0 8rem;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: center;
+  gap: 0.8rem;
+  margin: 0;
+  padding: 1rem 0;
+  overflow: visible;
 }
 
 .Button-Layout {
@@ -361,9 +366,10 @@ p {
 }
 
 .HomeButton {
-  width: 21rem;
-  height: 6rem;
-  margin-bottom: 1rem;
+  width: 100%;
+  min-height: 5.25rem;
+  height: auto;
+  margin: 0;
   display: inline-block;
   padding: 0px 25px;
   font-family: $primary-font;
@@ -374,11 +380,11 @@ p {
   outline: none;
   color: #1c1a1a;
   border-radius: 12px;
-  border: 3px solid #dddada;
+  border: 2px solid rgba(255, 255, 255, 0.9);
   background-color: #ffffff;
   -webkit-box-shadow: 2px 4px 1px #dddada;
   -moz-box-shadow: 2px 4px 1px #dddada;
-  box-shadow: 2px 4px 1px #dddada;
+  box-shadow: 0 0.35rem 0 #d3a5e8, inset 0 0 1rem rgba(255, 255, 255, 0.75);
 }
 
 .HomeButton:hover {
@@ -505,7 +511,41 @@ p {
   }
 
   .HomeButton {
-    transform: scale(0.9);
+    transform: none;
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  .whole-page-layout {
+    flex-direction: column;
+    justify-content: center;
+    overflow-y: auto;
+  }
+
+  .contentContainer {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .buttonContainer {
+    width: 100%;
+  }
+}
+
+@media only screen and (max-width: 560px) {
+  .buttonContainer {
+    grid-template-columns: 1fr;
+  }
+
+  #white-tips,
+  #orange {
+    font-size: 2.25rem;
+  }
+
+  #yellowGuy {
+    width: 10rem;
+    height: auto;
+    margin-bottom: 1rem;
   }
 }
 

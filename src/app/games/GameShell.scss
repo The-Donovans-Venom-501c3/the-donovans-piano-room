@@ -1,0 +1,117 @@
+.games-shell {
+  --games-purple: #67218a;
+  --games-purple-dark: #3b185c;
+  --games-lilac: #f3e5ff;
+  --games-orange: #e98427;
+  display: flex;
+  min-height: 100dvh;
+  background: #f4eaff;
+  color: #33223f;
+}
+
+.games-shell__nav {
+  flex: 0 0 clamp(14rem, 20vw, 22rem);
+  min-height: 100dvh;
+}
+
+.games-shell__nav > div {
+  height: 100% !important;
+  min-height: 100dvh;
+}
+
+.games-shell__main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 0;
+}
+
+.games-shell__stage {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: calc(100dvh - 2.5rem);
+  overflow: hidden;
+  border-radius: 0;
+  background:
+    radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.92), transparent 25%),
+    linear-gradient(135deg, #fff5e8 0%, #f5c790 48%, #d8702d 100%);
+  box-shadow: inset 0 0 0 1px rgba(103, 33, 138, 0.08), 0 1rem 3rem rgba(64, 24, 90, 0.12);
+}
+
+.games-shell__stage::before {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: -1;
+  height: 28%;
+  background: repeating-linear-gradient(90deg, rgba(119, 55, 19, 0.12) 0 2px, transparent 2px 7rem), linear-gradient(#e9a04d, #cf6d2b);
+  content: "";
+  transform: perspective(30rem) rotateX(8deg);
+  transform-origin: bottom;
+}
+
+.games-shell__spotlight {
+  position: absolute;
+  top: -12%;
+  left: 50%;
+  z-index: -1;
+  width: min(60vw, 52rem);
+  height: 105%;
+  background: linear-gradient(90deg, transparent, rgba(255, 245, 205, 0.45), transparent);
+  clip-path: polygon(34% 0, 66% 0, 100% 100%, 0 100%);
+  transform: translateX(-50%);
+}
+
+.games-shell__curtain {
+  position: absolute;
+  top: 0;
+  z-index: 0;
+  width: clamp(4rem, 8vw, 9rem);
+  height: 62%;
+  background: repeating-linear-gradient(90deg, #a83220 0 12px, #d2552a 12px 28px, #8c281e 28px 38px);
+  filter: drop-shadow(0.35rem 0.4rem 0.25rem rgba(71, 22, 17, 0.2));
+}
+
+.games-shell__curtain--left {
+  left: 0;
+  border-radius: 0 0 4rem 0;
+  clip-path: polygon(0 0, 100% 0, 74% 78%, 100% 100%, 0 82%);
+}
+
+.games-shell__curtain--right {
+  right: 0;
+  border-radius: 0 0 0 4rem;
+  clip-path: polygon(0 0, 100% 0, 100% 82%, 0 100%, 26% 78%);
+}
+
+.games-shell__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .games-shell__stage {
+    min-height: calc(100dvh - 2.5rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .games-shell {
+    display: block;
+  }
+
+  .games-shell__stage {
+    min-height: calc(100dvh - 2.5rem);
+  }
+
+  .games-shell__curtain {
+    width: 2.4rem;
+  }
+}

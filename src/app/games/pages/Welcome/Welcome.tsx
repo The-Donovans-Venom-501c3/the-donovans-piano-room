@@ -48,15 +48,18 @@ export default function Welcome() {
           <div className='levels'>
             <button className='easy' onClick={() => handleLevelClick('easy')}>
               <p>Easy</p>
+              <span className='level-icon' aria-hidden='true'>✓</span>
             </button>
             <button
               className='medium'
               onClick={() => handleLevelClick('medium')}
             >
               <p>Medium</p>
+              <span className='level-icon' aria-hidden='true'>🔒</span>
             </button>
             <button className='hard' onClick={() => handleLevelClick('hard')}>
               <p>Hard</p>
+              <span className='level-icon' aria-hidden='true'>🔒</span>
             </button>
           </div>
         </main>

@@ -8,31 +8,24 @@ import {
   livesAtom,
   scoreAtom,
   musicStateAtom,
-  levelStateAtom,
 } from "../../../../store/atoms";
 
 const GameFeatures = () => {
   const score = useAtomValue(scoreAtom);
   const lives = useAtomValue(livesAtom);
-  const level = useAtomValue(levelStateAtom);
   const [musicOn, setMusicOn] = useAtom(musicStateAtom);
   const MAX = 100;
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  let src =
-    level === "easy"
-      ? "/easy.mp3"
-      : level === "medium"
-      ? "/medium.mp3"
-      : "/hard.mp3";
+  const src = "/Bongo.wav";
 
   const handleChangeSwitch = () => {
     setMusicOn(!musicOn);
     if (musicOn) {
       audioRef.current?.pause();
     } else {
-      audioRef.current?.play();
+      audioRef.current?.play().catch(() => setMusicOn(false));
     }
   };
 
@@ -45,11 +38,11 @@ const GameFeatures = () => {
 
   useEffect(() => {
     if (musicOn) {
-      audioRef.current?.play();
+      audioRef.current?.play().catch(() => setMusicOn(false));
     } else {
       audioRef.current?.pause();
     }
-  }, [musicOn]);
+  }, [musicOn, setMusicOn]);
 
   return (
     <div className="gameFeatureContainer">

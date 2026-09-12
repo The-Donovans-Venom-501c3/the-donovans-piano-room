@@ -1,13 +1,5 @@
 @use '../../assets/scss/variables' as *;
 
-@keyframes falldown {
-  from {
-    margin: -80rem auto;
-  }
-  to {
-    margin: 3rem auto;
-  }
-}
 @keyframes appear {
   from {
     opacity: 0;
@@ -16,38 +8,25 @@
     opacity: 1;
   }
 }
-@keyframes comesFromRight {
-  from {
-    margin-right: -60vw;
-    margin-left: 30vw;
-    opacity: 0;
-  }
-  to {
-    margin-right: 0vw;
-    margin-left: 0vw;
-    opacity: 1;
-  }
-}
-
 .welcome-container {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: calc($page-height - $nav-height);
+  min-height: 100%;
+  padding: clamp(1rem, 5vh, 4rem);
 
   .welcome {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem;
-    width: 80%;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    width: min(62rem, calc(100% - 2rem));
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    gap: 1.5rem;
     border-radius: 2rem;
     background-color: $white;
-    animation-name: falldown;
-    animation-duration: 1s;
-    animation-fill-mode: forwards;
-    animation-direction: linear;
 
     p {
       white-space: wrap;
@@ -60,12 +39,9 @@
       letter-spacing: -1px;
       opacity: 0;
       color: $black;
-      margin-bottom: 2rem;
-      animation-name: appear;
-      animation-duration: 1s;
-      animation-delay: 1s;
-      animation-fill-mode: forwards;
-      animation-direction: linear;
+      margin: 0;
+      text-align: center;
+      opacity: 1;
 
       span {
         color: $orange-500;
@@ -78,28 +54,28 @@
       justify-items: center;
       justify-content: center;
       width: 100%;
-      gap: 0.5rem;
+      align-items: center;
+      gap: 2rem;
 
       .intro {
-        padding: 1rem;
-        padding-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+
         .bubble {
           display: flex;
           flex-direction: column;
           justify-content: center;
           width: 35rem;
-          margin-left: 1rem;
+          margin: 0;
 
           .chat {
             background-color: $orange-200;
             border-radius: 2rem;
             padding: 1.5rem 1.75rem;
-            opacity: 0;
-            animation-name: appear;
-            animation-duration: 1s;
-            animation-delay: 3s;
-            animation-fill-mode: forwards;
-            animation-direction: linear;
+              opacity: 1;
             width: 100%;
 
             p {
@@ -117,46 +93,30 @@
           }
 
           img {
-            width: 5vw;
+            width: 3rem;
             margin-top: -1px;
-            margin-left: 56%;
-            opacity: 0;
-            animation-name: appear;
-            animation-duration: 1s;
-            animation-delay: 3s;
-            animation-fill-mode: forwards;
-            animation-direction: linear;
+            margin-left: 48%;
+            opacity: 1;
           }
         }
 
         .cat {
-          margin-top: -2rem;
-          margin-left: 2rem;
+          margin: -0.75rem 0 0;
+          object-fit: contain;
           width: 16rem;
           height: 16rem;
-          opacity: 0;
-          animation-name: appear;
-          animation-duration: 1s;
-          animation-delay: 2s;
-          animation-fill-mode: forwards;
-          animation-direction: linear;
+          opacity: 1;
         }
       }
 
       .levels {
         display: flex;
-        margin-right: -60vw;
-        margin-left: 30vw;
+        margin: 0;
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
         width: 50%;
-        opacity: 0;
-        animation-name: comesFromRight;
-        animation-duration: 1.5s;
-        animation-delay: 4s;
-        animation-fill-mode: forwards;
-        animation-direction: linear;
+        opacity: 1;
 
         button {
           display: flex;
@@ -164,11 +124,11 @@
           align-items: center;
           width: 90%;
           padding: 0 2.25rem;
-          height: 30%;
+          min-height: 4.5rem;
           border-radius: 1rem;
 
           p {
-            font-size: 2rem;
+            font-size: 1.15rem;
             font-style: normal;
             font-weight: 700;
             line-height: 2rem;
@@ -177,6 +137,16 @@
 
           img {
             width: 15%;
+          }
+
+          .level-icon {
+            display: grid;
+            width: 2.25rem;
+            height: 2.25rem;
+            place-items: center;
+            border-radius: 50%;
+            font-size: 1.25rem;
+            font-weight: 800;
           }
         }
 
@@ -188,6 +158,11 @@
           &:hover {
             background-color: $green-100-hover;
           }
+
+          .level-icon {
+            color: $white;
+            background: $green-500;
+          }
         }
 
         .medium {
@@ -198,6 +173,10 @@
           &:hover {
             background-color: $yellow-100-hover;
           }
+
+          .level-icon {
+            background: $orange-200;
+          }
         }
 
         .hard {
@@ -207,6 +186,10 @@
 
           &:hover {
             background-color: $grey-100-hover;
+          }
+
+          .level-icon {
+            background: $grey-300;
           }
         }
       }
