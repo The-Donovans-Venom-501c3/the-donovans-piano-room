@@ -22,18 +22,17 @@ export default function VirtualMetronomePage() {
     <div className="w-full max-w-5xl mx-auto py-8 px-4">
       {/* Outer White Main Card */}
       <div className="relative bg-white rounded-3xl p-8 md:p-12 shadow-xs border border-purple-100/50">
-        
-        {/* Mascot Face positioned at the top-right corner */}
-        <div 
-  className="absolute z-30 pointer-events-none select-none"
-  style={{
-    top: "-50px",
-    right: "-240px",
-    width: "140px",
-    height: "118px",
-    transform: "rotate(35.4deg)",
-  }}
->
+        {/* Mascot Face positioned at top-right corner */}
+        <div
+          className="absolute z-30 pointer-events-none select-none"
+          style={{
+            top: "-50px",
+            right: "-240px",
+            width: "140px",
+            height: "118px",
+            transform: "rotate(35.4deg)",
+          }}
+        >
           <Image
             src="/auth/smilingcharacter.svg"
             alt="Mascot"
