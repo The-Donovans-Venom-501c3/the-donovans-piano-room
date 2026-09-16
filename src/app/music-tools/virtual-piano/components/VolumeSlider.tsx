@@ -11,12 +11,11 @@ interface VolumeSliderProps {
   lightMode?: boolean;
 }
 
-export default function VolumeSlider({ volume, setVolume, lightMode = false }: VolumeSliderProps) {
+const VolumeSlider: React.FC<VolumeSliderProps> = ({ volume, setVolume, lightMode = false }) => {
   const handleChange = (_event: Event, newValue: number | number[]) => {
     setVolume(newValue as number);
   };
 
-  // Figma light lavender color values
   const lavenderColor = '#E9D5FF'; 
   const darkPurpleColor = '#6B109B';
 
@@ -34,7 +33,7 @@ export default function VolumeSlider({ volume, setVolume, lightMode = false }: V
             '& .MuiSlider-thumb': {
               width: 18,
               height: 18,
-              backgroundColor: lightMode ? '#E9D5FF' : darkPurpleColor,
+              backgroundColor: lightMode ? lavenderColor : darkPurpleColor,
               boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
               '&:hover, &.Mui-focusVisible, &.Mui-active': {
                 boxShadow: '0 0 0 8px rgba(233, 213, 255, 0.2)',
@@ -56,4 +55,6 @@ export default function VolumeSlider({ volume, setVolume, lightMode = false }: V
       </Stack>
     </Box>
   );
-}
+};
+
+export default VolumeSlider;

@@ -27,21 +27,22 @@ const sections: NavItem[] = [
 
 const tools: ToolCard[] = [
   {
-    title: "Metronome",
-    id: "metronome",
-    imageSrc: "/auth/smilingcharacter.svg",
-    description: "Keep perfect tempo and rhythm with customizable BPM settings.",
+    title: "Virtual piano",
+    id: "piano",
+    imageSrc: "/music_tools/Home/Tool type=Piano.svg",
+    description: "Dive into infinite melodies with our Virtual Piano.",
   },
   {
-    title: "Virtual Piano",
-    id: "piano",
-    imageSrc: "/auth/smilingcharacter.svg",
-    description: "Practice interactive short and long virtual keyboards.",
+    title: "Metronome",
+    id: "metronome",
+    imageSrc: "/music_tools/Home/Tool type=Metronome.svg",
+    description: "Precision and rhythm at your fingertips with our Metronome.",
   },
 ];
 
 export default function MusicToolsPage() {
   const [activeTab, setActiveTab] = useState<"home" | "metronome" | "piano">("home");
+  const [hoveredTool, setHoveredTool] = useState<string | null>("metronome");
 
   return (
     <AuthorizedWrapper2
@@ -50,8 +51,8 @@ export default function MusicToolsPage() {
     >
       <div className="w-full flex flex-col min-h-screen pb-32">
         {/* Navigation Bar Header */}
-        <div className="w-full max-w-[1112px] mx-auto relative z-20 flex items-center justify-between gap-4 mb-6 bg-[#ECD6FE] px-6 py-4 rounded-2xl shadow-xs">
-          <div className="flex items-center space-x-6 sm:space-x-8 overflow-x-auto w-full scrollbar-none py-1">
+        <div className="w-full max-w-[1200px] mx-auto relative z-20 flex items-center justify-between gap-4 mb-8 bg-[#ECD6FE] px-4 py-3 rounded-2xl shadow-xs">
+          <div className="flex items-center space-x-4 overflow-x-auto w-full scrollbar-none">
             {sections.map((item) => {
               const isActive = activeTab === item.id;
               return (
@@ -59,9 +60,9 @@ export default function MusicToolsPage() {
                   key={item.id}
                   type="button"
                   onClick={() => setActiveTab(item.id)}
-                  className={`px-6 py-3 rounded-2xl text-lg md:text-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  className={`px-8 py-2.5 rounded-xl text-base md:text-lg font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     isActive
-                      ? "bg-[#D8BCFD] text-[#6F219E] shadow-sm font-extrabold"
+                      ? "bg-[#D8BCFD] text-[#6F219E] shadow-xs font-extrabold"
                       : "bg-transparent text-[#3F3B3C] hover:text-[#6F219E]"
                   }`}
                 >
@@ -73,49 +74,66 @@ export default function MusicToolsPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="w-full max-w-[1112px] mx-auto bg-white rounded-3xl p-6 md:p-12 shadow-sm">
+        <div className="w-full max-w-[1200px] mx-auto">
           {activeTab === "home" && (
-            <div className="flex flex-col items-center text-center py-6">
-              <h2 className="text-4xl md:text-5xl font-black text-[#2D1B4E] mb-3">
-                Explore Music Tools
+            <div className="flex flex-col items-start py-2">
+              {/* Header Title & Subtitle */}
+              <h2 className="text-4xl md:text-5xl font-black text-[#381E11] mb-2 tracking-tight">
+                Music tools
               </h2>
-              <p className="text-[#5C4D75] text-lg md:text-xl font-medium mb-12">
-                Select an instrument tool below to jump straight in
+              <p className="text-[#381E11]/80 text-xl md:text-2xl font-medium mb-10">
+                Explore, compose, and play with these Virtual Music Tools!
               </p>
 
-              {/* Large Clickable Tool Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl px-2">
-                {tools.map((tool) => (
-                  <button
-                    key={tool.id}
-                    type="button"
-                    onClick={() => setActiveTab(tool.id)}
-                    className="group bg-[#FCF0D8]/50 hover:bg-[#F3E2FF] border-2 border-[#ED9E4A]/40 hover:border-[#6F219E] rounded-[36px] p-10 md:p-12 flex flex-col items-center text-center cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl min-h-[440px]"
-                  >
-                    {/* Icon Container */}
-                    <div className="w-44 h-44 relative mb-8 flex items-center justify-center bg-white rounded-3xl p-5 shadow-xs group-hover:scale-105 transition-transform duration-300">
-                      <Image
-                        src={tool.imageSrc}
-                        alt={tool.title}
-                        width={160}
-                        height={160}
-                        className="object-contain"
-                        unoptimized
-                      />
+              {/* Tool Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                {tools.map((tool) => {
+                  const isSelected = hoveredTool === tool.id;
+
+                  return (
+                    <div
+                      key={tool.id}
+                      onClick={() => setActiveTab(tool.id)}
+                      onMouseEnter={() => setHoveredTool(tool.id)}
+                      className={`group relative rounded-[32px] p-6 flex flex-col justify-between cursor-pointer transition-all duration-300 border-4 min-h-[420px] ${
+                        isSelected
+                          ? "bg-[#E2C3FF] border-[#6F219E] shadow-lg"
+                          : "bg-white border-white hover:border-[#E2C3FF] shadow-sm"
+                      }`}
+                    >
+                      {/* Image Preview Area */}
+                      <div className="w-full h-[260px] bg-[#FAF5EE] rounded-2xl p-4 flex items-center justify-center overflow-hidden mb-6">
+                        <Image
+                          src={tool.imageSrc}
+                          alt={tool.title}
+                          width={400}
+                          height={240}
+                          className="object-contain max-h-full w-auto transition-transform duration-300 group-hover:scale-102"
+                          unoptimized
+                        />
+                      </div>
+
+                      {/* Text & Button Footer Area */}
+                      <div className="flex items-end justify-between gap-4 w-full px-2 pb-2">
+                        <div className="flex flex-col max-w-[80%]">
+                          <h3 className="text-2xl md:text-3xl font-black text-[#2B170C] mb-2">
+                            {tool.title}
+                          </h3>
+                          <p className="text-base md:text-lg font-semibold text-[#3F3B3C]/80 leading-snug">
+                            {tool.description}
+                          </p>
+                        </div>
+
+                        {/* Circular Arrow Button */}
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#6F219E] hover:bg-[#581880] flex items-center justify-center shrink-0 shadow-md transition-transform duration-200 group-hover:scale-110">
+                          <span className="text-white text-2xl font-bold">
+                            &#8250;
+                          </span>
+                        </div>
+                      </div>
                     </div>
-
-                    <h3 className="text-3xl md:text-4xl font-black text-[#2D1B4E] mb-3">
-                      {tool.title}
-                    </h3>
-                    <p className="text-base md:text-lg font-medium text-[#5C4D75] mb-8 leading-relaxed max-w-sm">
-                      {tool.description}
-                    </p>
-
-                    <span className="mt-auto bg-[#6B109B] text-white px-10 py-4 rounded-full font-extrabold text-lg group-hover:bg-[#520B78] transition-colors shadow-md">
-                      Open Tool →
-                    </span>
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
