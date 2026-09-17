@@ -8,6 +8,7 @@ const NOTE_FREQUENCIES: Record<string, number> = {
 };
 
 let audioCtx: AudioContext | null = null;
+const audioSampleCache: Record<string, AudioBuffer> = {};
 
 const getAudioContext = (): AudioContext => {
   if (!audioCtx) {
@@ -22,7 +23,20 @@ const getAudioContext = (): AudioContext => {
   return audioCtx;
 };
 
-export const playSynthesizedNote = (note: string, instrument: string, volume: number) => {
+// Loudness Compensation based on psychoacoustic Equal-Loudness curves
+const getFrequencyLoudnessCompensation = (freq: number): number => {
+  if (freq < 85) return 4.5;   // Octave 2 lower notes
+  if (freq < 130) return 3.2;  // Octave 2 upper notes
+  if (freq < 200) return 2.1;  // Octave 3 lower notes
+  if (freq < 270) return 1.5;  // Octave 3 upper notes
+  return 1.0;                  // Mid and high octaves remain balanced
+};
+
+export const playSynthesizedNote = async (
+  note: string,
+  instrument: string,
+  volume: number
+) => {
   if (volume <= 0) return;
 
   const ctx = getAudioContext();
@@ -31,12 +45,69 @@ export const playSynthesizedNote = (note: string, instrument: string, volume: nu
 
   const now = ctx.currentTime;
   const masterGain = ctx.createGain();
-  const normalizedVolume = (volume / 100) * 0.4;
+
+  // Equalized Volume Base calculation
+  const baseVolume = (volume / 100) * 0.35;
+  const loudnessBoost = getFrequencyLoudnessCompensation(freq);
+  const normalizedVolume = baseVolume * loudnessBoost;
 
   masterGain.connect(ctx.destination);
 
-  // 1. ACOUSTIC PIANO: Multi-harmonic strike with exponential dampening lowpass filter
+  // -------------------------------------------------------------
+  // 1. ACOUSTIC PIANO (Sample Playback with Bass Sub-Oscillator)
+  // -------------------------------------------------------------
   if (instrument.includes("Acoustic")) {
+    try {
+      const sampleUrl = "/sounds/Piano.wav";
+      if (!audioSampleCache[sampleUrl]) {
+        const res = await fetch(sampleUrl);
+        if (res.ok) {
+          const buffer = await res.arrayBuffer();
+          audioSampleCache[sampleUrl] = await ctx.decodeAudioData(buffer);
+        }
+      }
+
+      if (audioSampleCache[sampleUrl]) {
+        const source = ctx.createBufferSource();
+        const gainNode = ctx.createGain();
+        source.buffer = audioSampleCache[sampleUrl];
+
+        // Pitch shift from A4 (440Hz)
+        source.playbackRate.value = freq / 440;
+
+        // Dynamic decay boost for low notes
+        const decayTime = freq < 150 ? 3.5 : 2.5;
+
+        gainNode.gain.setValueAtTime(normalizedVolume * 1.3, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + decayTime);
+
+        // Low Bass Fundamental Reinforcement Node for low notes
+        if (freq < 200) {
+          const bassSub = ctx.createOscillator();
+          const bassGain = ctx.createGain();
+          bassSub.type = "sine";
+          bassSub.frequency.setValueAtTime(freq, now);
+
+          bassGain.gain.setValueAtTime(normalizedVolume * 0.8, now);
+          bassGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+
+          bassSub.connect(bassGain);
+          bassGain.connect(masterGain);
+          bassSub.start(now);
+          bassSub.stop(now + 2.0);
+        }
+
+        source.connect(gainNode);
+        gainNode.connect(masterGain);
+        source.start(now);
+        source.stop(now + decayTime);
+        return;
+      }
+    } catch {
+      // Fallback to synthesis if sample fails
+    }
+
+    // Acoustic Synthesis Fallback
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
     const filter = ctx.createBiquadFilter();
@@ -45,19 +116,14 @@ export const playSynthesizedNote = (note: string, instrument: string, volume: nu
     osc1.frequency.setValueAtTime(freq, now);
 
     osc2.type = "sine";
-    osc2.frequency.setValueAtTime(freq * 2, now);
+    osc2.frequency.setValueAtTime(freq, now);
 
     filter.type = "lowpass";
-    filter.frequency.setValueAtTime(freq * 4, now);
-    filter.frequency.exponentialRampToValueAtTime(freq * 0.8, now + 1.2);
+    filter.frequency.setValueAtTime(Math.max(freq * 5, 450), now);
 
     const gain1 = ctx.createGain();
-    gain1.gain.setValueAtTime(normalizedVolume, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
-
-    const gain2 = ctx.createGain();
-    gain2.gain.setValueAtTime(normalizedVolume * 0.3, now);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    gain1.gain.setValueAtTime(normalizedVolume * 1.2, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
 
     osc1.connect(filter);
     osc2.connect(filter);
@@ -66,39 +132,61 @@ export const playSynthesizedNote = (note: string, instrument: string, volume: nu
 
     osc1.start(now);
     osc2.start(now);
-    osc1.stop(now + 1.8);
-    osc2.stop(now + 1.8);
-  } 
-  // 2. ELECTRIC PIANO: Warm Rhodes-style FM synthesis
+    osc1.stop(now + 2.5);
+    osc2.stop(now + 2.5);
+  }
+  // -------------------------------------------------------------
+  // 2. ELECTRIC PIANO (Warmer Sub-bass Sine Carrier + FM Modulation)
+  // -------------------------------------------------------------
   else if (instrument.includes("Electric")) {
     const carrier = ctx.createOscillator();
     const modulator = ctx.createOscillator();
+    const subOsc = ctx.createOscillator(); // Sub fundamental warmth for low notes
+
     const modGain = ctx.createGain();
+    const envGain = ctx.createGain();
+    const subGain = ctx.createGain();
 
     carrier.type = "sine";
     carrier.frequency.setValueAtTime(freq, now);
 
     modulator.type = "sine";
-    modulator.frequency.setValueAtTime(freq * 14, now);
+    modulator.frequency.setValueAtTime(freq, now); // 1:1 ratio for warm electric bass tine
 
-    modGain.gain.setValueAtTime(freq * 0.5, now);
-    modGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+    // Keep FM modulation balanced so lower notes don't thin out
+    modGain.gain.setValueAtTime(freq * 0.3, now);
+    modGain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
 
     modulator.connect(carrier.frequency);
 
-    const envGain = ctx.createGain();
-    envGain.gain.setValueAtTime(normalizedVolume * 0.9, now);
-    envGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+    envGain.gain.setValueAtTime(normalizedVolume * 1.4, now);
+    envGain.gain.exponentialRampToValueAtTime(0.001, now + 2.8);
 
     carrier.connect(envGain);
     envGain.connect(masterGain);
 
+    // Dynamic fundamental sine body for low notes
+    if (freq < 250) {
+      subOsc.type = "sine";
+      subOsc.frequency.setValueAtTime(freq, now);
+      subGain.gain.setValueAtTime(normalizedVolume * 0.9, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+
+      subOsc.connect(subGain);
+      subGain.connect(masterGain);
+
+      subOsc.start(now);
+      subOsc.stop(now + 2.5);
+    }
+
     modulator.start(now);
     carrier.start(now);
-    modulator.stop(now + 2.2);
-    carrier.stop(now + 2.2);
-  } 
-  // 3. SYNTH: Resonant saw/square pad with filter sweep
+    modulator.stop(now + 2.8);
+    carrier.stop(now + 2.8);
+  }
+  // -------------------------------------------------------------
+  // 3. SYNTH PIANO
+  // -------------------------------------------------------------
   else {
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
@@ -111,15 +199,15 @@ export const playSynthesizedNote = (note: string, instrument: string, volume: nu
     osc2.frequency.setValueAtTime(freq * 1.003, now);
 
     filter.type = "lowpass";
-    filter.Q.setValueAtTime(4, now);
-    filter.frequency.setValueAtTime(400, now);
-    filter.frequency.exponentialRampToValueAtTime(3200, now + 0.15);
-    filter.frequency.exponentialRampToValueAtTime(600, now + 1.5);
+    filter.Q.setValueAtTime(3, now);
+    filter.frequency.setValueAtTime(600, now);
+    filter.frequency.exponentialRampToValueAtTime(3500, now + 0.15);
+    filter.frequency.exponentialRampToValueAtTime(700, now + 1.8);
 
     const envGain = ctx.createGain();
     envGain.gain.setValueAtTime(0.01, now);
-    envGain.gain.linearRampToValueAtTime(normalizedVolume * 0.6, now + 0.04);
-    envGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+    envGain.gain.linearRampToValueAtTime(normalizedVolume * 0.8, now + 0.04);
+    envGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
 
     osc1.connect(filter);
     osc2.connect(filter);
@@ -128,7 +216,7 @@ export const playSynthesizedNote = (note: string, instrument: string, volume: nu
 
     osc1.start(now);
     osc2.start(now);
-    osc1.stop(now + 2.0);
-    osc2.stop(now + 2.0);
+    osc1.stop(now + 2.2);
+    osc2.stop(now + 2.2);
   }
 };

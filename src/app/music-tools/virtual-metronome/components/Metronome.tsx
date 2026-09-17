@@ -32,10 +32,7 @@ export default function Metronome({
     accented: null,
   });
 
-  // Track active audio nodes to guarantee an immediate hard stop on pause
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
-  
-  // High-precision queue matching audio timestamp to beat index
   const beatQueueRef = useRef<ScheduledBeat[]>([]);
 
   const nextBeatTimeRef = useRef<number>(0);
@@ -43,7 +40,6 @@ export default function Metronome({
   const timerIdRef = useRef<number | null>(null);
   const rafIdRef = useRef<number | null>(null);
 
-  // Initialize or retrieve active AudioContext
   const getAudioContext = useCallback(() => {
     if (!audioCtxRef.current) {
       const AudioCtxClass =
@@ -51,10 +47,13 @@ export default function Metronome({
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       audioCtxRef.current = new AudioCtxClass();
     }
+    if (audioCtxRef.current.state === "suspended") {
+      audioCtxRef.current.resume();
+    }
     return audioCtxRef.current;
   }, []);
 
-  // Pre-load audio samples into memory
+  // Audio sample pre-loader matching sound selection
   useEffect(() => {
     const soundMap: Record<string, [string, string]> = {
       "Grand Piano": ["/sounds/Piano.wav", "/sounds/PianoEmp.wav"],
@@ -68,6 +67,7 @@ export default function Metronome({
     const loadBuffer = async (url: string) => {
       try {
         const response = await fetch(url);
+        if (!response.ok) return null;
         const arrayBuffer = await response.arrayBuffer();
         const ctx = getAudioContext();
         return await ctx.decodeAudioData(arrayBuffer);
@@ -77,6 +77,8 @@ export default function Metronome({
     };
 
     let isMounted = true;
+    audioBuffersRef.current = { normal: null, accented: null };
+
     Promise.all([loadBuffer(paths[0]), loadBuffer(paths[1])]).then(([normal, accented]) => {
       if (isMounted) {
         audioBuffersRef.current = { normal, accented };
@@ -88,9 +90,7 @@ export default function Metronome({
     };
   }, [soundType, getAudioContext]);
 
-  // Immediate hard-stop cleanup function
   const clearAllScheduledAudioAndVisuals = () => {
-    // 1. Cancel next scheduler loop & RAF loop
     if (timerIdRef.current !== null) {
       window.clearTimeout(timerIdRef.current);
       timerIdRef.current = null;
@@ -100,22 +100,19 @@ export default function Metronome({
       rafIdRef.current = null;
     }
 
-    // 2. Clear scheduled beat queue
     beatQueueRef.current = [];
 
-    // 3. Hard stop and disconnect all scheduled Web Audio sources instantly
     activeSourcesRef.current.forEach((source) => {
       try {
         source.stop(0);
         source.disconnect();
       } catch {
-        // Source already ended
+        // Source ended
       }
     });
     activeSourcesRef.current = [];
   };
 
-  // Play audio sample on hardware clock with active source registration
   const playBeatSound = useCallback(
     (isAccented: boolean, time: number) => {
       if (volume === 0) return;
@@ -139,28 +136,45 @@ export default function Metronome({
           activeSourcesRef.current = activeSourcesRef.current.filter((s) => s !== source);
         };
       } else {
-        // Fallback synthesizer
+        // Dynamic Synthesizer fallback tailored to soundType selection
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
-        osc.frequency.setValueAtTime(isAccented ? 1050 : 750, time);
-        osc.type = "sine";
+        let basePitch = 750;
+        let waveType: OscillatorType = "sine";
+        let decayDuration = 0.05;
 
-        const gainLevel = (volume / 10) * 0.5;
+        if (soundType === "Wood Block") {
+          basePitch = 1200;
+          waveType = "sine";
+          decayDuration = 0.03;
+        } else if (soundType === "Electronic Click") {
+          basePitch = 1600;
+          waveType = "square";
+          decayDuration = 0.015;
+        } else if (soundType === "Drum") {
+          basePitch = 220;
+          waveType = "triangle";
+          decayDuration = 0.08;
+        }
+
+        osc.frequency.setValueAtTime(isAccented ? basePitch * 1.4 : basePitch, time);
+        osc.type = waveType;
+
+        const gainLevel = (volume / 10) * 0.4;
         gain.gain.setValueAtTime(gainLevel, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + decayDuration);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
 
         osc.start(time);
-        osc.stop(time + 0.05);
+        osc.stop(time + decayDuration + 0.01);
       }
     },
-    [volume, getAudioContext]
+    [volume, soundType, getAudioContext]
   );
 
-  // Master Synchronized Loop
   useEffect(() => {
     if (!animation) {
       clearAllScheduledAudioAndVisuals();
@@ -173,7 +187,6 @@ export default function Metronome({
     const ctx = getAudioContext();
 
     const startScheduler = async () => {
-      // Ensure AudioContext is fully running before calculating start time (fixes start hesitation)
       if (ctx.state === "suspended") {
         await ctx.resume();
       }
@@ -183,24 +196,21 @@ export default function Metronome({
       nextBeatTimeRef.current = ctx.currentTime + 0.05;
       currentBeatRef.current = 0;
 
-      const lookahead = 20; // ms check frequency
-      const scheduleAheadTime = 0.1; // seconds
+      const lookahead = 20;
+      const scheduleAheadTime = 0.1;
 
       const scheduler = () => {
         while (nextBeatTimeRef.current < ctx.currentTime + scheduleAheadTime) {
           const beatIndex = currentBeatRef.current;
           const isAccented = !!accentedBeats[beatIndex];
 
-          // 1. Schedule Audio
           playBeatSound(isAccented, nextBeatTimeRef.current);
 
-          // 2. Queue Beat timestamp for requestAnimationFrame visual sync
           beatQueueRef.current.push({
             time: nextBeatTimeRef.current,
             beatIndex,
           });
 
-          // 3. Increment Beat Counter
           const secondsPerBeat = 60 / tempoNum;
           nextBeatTimeRef.current += secondsPerBeat;
           currentBeatRef.current = (currentBeatRef.current + 1) % beatsNum;
@@ -209,7 +219,6 @@ export default function Metronome({
         timerIdRef.current = window.setTimeout(scheduler, lookahead);
       };
 
-      // Hardware-driven visual animation sync loop
       const updateVisuals = () => {
         const currentTime = ctx.currentTime;
 
@@ -265,9 +274,7 @@ export default function Metronome({
 
   return (
     <div className="flex flex-col items-center justify-center relative w-[345.79px] h-[467px]">
-      {/* Outer Metronome Body Container */}
       <div className="relative w-[345.79px] h-[410px] flex flex-col items-center overflow-visible">
-        {/* Outer Body SVG Frame */}
         <svg
           className="absolute inset-0 w-full h-full drop-shadow-sm"
           viewBox="0 0 300 410"
@@ -280,7 +287,6 @@ export default function Metronome({
           />
         </svg>
 
-        {/* Purple Inner Display Cutout */}
         <div className="relative mt-8 w-[220px] h-[215px] z-10 flex justify-center items-center overflow-hidden rounded-xl">
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 220 215" fill="none">
             <path
@@ -289,7 +295,6 @@ export default function Metronome({
             />
           </svg>
 
-          {/* Centered Vertical Scale Bar */}
           <div className="relative h-full w-10 bg-[#EEF3EB] flex flex-col justify-between py-6 z-10">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="relative w-full flex justify-between items-center">
@@ -299,25 +304,21 @@ export default function Metronome({
             ))}
           </div>
 
-          {/* Centered Pendulum Layer */}
           <div className="absolute inset-0 z-20 flex justify-center items-end pb-3 pointer-events-none">
             <motion.div
               className="relative flex flex-col items-center justify-end"
               style={{ transformOrigin: "bottom center" }}
               initial={{ rotate: -28 }}
               animate={{
-                // Beat 1 (animatedIndex = 0) -> Swing RIGHT (+28 deg)
-                // Beat 2 (animatedIndex = 1) -> Swing LEFT (-28 deg)
-                rotate: animation ? (animatedIndex % 2 === 0 ? 28 : -28) : -28,
+                // SWING DIRECTION FIX: Beat 1 (animatedIndex = 0) stays LEFT (-28), Beat 2 (animatedIndex = 1) swings RIGHT (+28)
+                rotate: animation ? (animatedIndex % 2 === 0 ? -28 : 28) : -28,
               }}
               transition={{
                 duration: beatIntervalSeconds * 0.9,
-                ease: [0.25, 0.1, 0.25, 1.0], // Natural cubic-bezier mechanical pendulum curve
+                ease: [0.25, 0.1, 0.25, 1.0],
               }}
             >
-              {/* Pendulum Rod */}
               <div className="w-7 h-[270px] bg-[#BF94E4] rounded-sm shadow-md relative flex justify-center">
-                {/* Sliding Weight */}
                 <div className="absolute top-[50px] w-12 h-10 bg-[#E0F2E9] shadow-md flex items-center justify-center">
                   <div className="w-6 h-6 border-b-2 border-r-2 border-gray-300 transform rotate-45 -mt-1" />
                 </div>
@@ -326,23 +327,19 @@ export default function Metronome({
           </div>
         </div>
 
-        {/* BPM Card */}
         <div className="bg-white px-8 py-2 rounded-2xl text-center shadow-lg z-30 min-w-[170px] mt-2">
           <div className="text-3xl font-black text-[#2D1B4E] leading-tight">{tempoNum}</div>
           <div className="text-xs font-bold text-[#6B109B]">{getTempoMarking(tempoNum)}</div>
         </div>
 
-        {/* Mascot Face */}
         <div className="flex flex-col items-center justify-center space-y-2.5 z-30 mt-8 mb-4">
           <div className="flex space-x-3 items-center">
-            {/* Left Eye */}
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center relative shadow-xs">
               <div className="w-5 h-6 bg-black rounded-full absolute top-[7px] right-[7px]">
                 <div className="w-2 h-2.5 bg-white rounded-full absolute top-1 right-1" />
                 <div className="w-1 h-1 bg-white rounded-full absolute bottom-1.5 left-1" />
               </div>
             </div>
-            {/* Right Eye */}
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center relative shadow-xs">
               <div className="w-5 h-6 bg-black rounded-full absolute top-[7px] left-[7px]">
                 <div className="w-2 h-2.5 bg-white rounded-full absolute top-1 right-1" />
@@ -350,20 +347,17 @@ export default function Metronome({
               </div>
             </div>
           </div>
-          {/* Mouth */}
           <svg className="w-[22px] h-[8px]" viewBox="0 0 22 8" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M 2 2 Q 11 8 20 2" stroke="black" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
         </div>
       </div>
 
-      {/* Outer Feet */}
       <div className="w-[300px] flex justify-between px-8 -mt-1.5 z-0">
         <div className="w-14 h-4 bg-[#B2830E] rounded-b-lg" />
         <div className="w-14 h-4 bg-[#B2830E] rounded-b-lg" />
       </div>
 
-      {/* Perfectly Centered Beat Indicator Pill Bar */}
       <div className="mt-5 flex items-center justify-center bg-[#D8BCFD] px-5 py-3.5 rounded-[18px] w-[301px] relative">
         <div className="flex items-center justify-center gap-3 w-full">
           {Array.from({ length: beatsNum }, (_, index) => {
