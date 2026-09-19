@@ -8,7 +8,7 @@ import {
   livesAtom,
   scoreAtom,
   musicStateAtom,
-} from "../../../../store/atoms";
+} from "@/store/game-atoms";
 
 const GameFeatures = () => {
   const score = useAtomValue(scoreAtom);
@@ -17,7 +17,6 @@ const GameFeatures = () => {
   const MAX = 100;
 
   const audioRef = useRef<HTMLAudioElement>(null);
-
   const src = "/Bongo.wav";
 
   const handleChangeSwitch = () => {
@@ -46,108 +45,54 @@ const GameFeatures = () => {
 
   return (
     <div className="gameFeatureContainer">
-      <div className="gameLives">
-        <div>
-          <span className="gameFeatureName">Timer</span>
-          <div className="gameFeatureValue">
-            <Timer />
-          </div>
+      <div className="gameHeaderHUD">
+        <div className="hudItem">
+          <span className="hudLabel">Lives:</span>
+          <span id="lives">
+            {Array.from({ length: lives }, (_, index) => (
+              <LiveAnimated key={index} />
+            ))}
+          </span>
         </div>
-        <div>
-          <span className="gameFeatureName">Score</span>
-          <div className="gameFeatureValue">
-            <span id="score">{score}</span>
-          </div>
-        </div>
-        <div>
-          <span className="gameFeatureName">Lives</span>
-          <div className="gameFeatureValue">
-            <span id="lives">
-              {Array.from({ length: lives }, (_, index) => (
-                <LiveAnimated key={index} />
-              ))}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="gameSetting">
-        <div>
-          <span className="gameFeatureName">Music</span>
-          <div id="music" className={musicOn ? "on" : ""}>
-            <button onClick={handleChangeSwitch}>
-              <img src="/games/MusicNote.svg" alt="Music toggle" />
-            </button>
-            <span className="gameFeatureValue">{musicOn ? "ON" : "OFF"}</span>
-            {/* <FormControlLabel
-              label={musicOn ? 'ON' : 'OFF'}
-              sx={{
-                '.MuiFormControlLabel-label': {
-                  color: '#817676',
-                  fontSize: '20px',
-                  lineHeight: '30px',
-                },
-              }}
-              control={
-                <Switch color='success'
-                  sx={{
-                    '& .MuiSwitch-thumb': {
-                      borderRadius: '5px',
-                      height: '5vh',
-                      backgroundColor: '$grey-100',
-                      border: '2px solid $grey-500',
-                      width: '3.5vw',
-                      transform: 'translateX(0px)',
-                      boxShadow: '0px 5px 0px 0px #BFBABB',
 
-                    },
-                    '& .MuiSwitch-track': {
-                      borderRadius: '5px',
-                      width: '25vw'
-                    },
-                    '.css-1xvpzln-MuiButtonBase-root-MuiSwitch-switchBase.Mui-checked': {
-                      '-webkit-transform': 'translateX(3.5vw)',
-                      '-moz-transform': 'translateX(3.5vw)',
-                      ' -ms-transform': 'translateX(3.5vw)',
-                      transform: "translateX(3.5vw)",
-                      color: '#F0EEEE'
-                    },
-                    width: '7vw',
-                    height: '8.5vh',
-
-                  }}
-                  checked={musicOn}
-                  onChange={handleChangeSwitch}
-                />
-              }
-            /> */}
-          </div>
+        <div className="hudItem">
+          <span className="hudLabel">Score:</span>
+          <span id="score">{score}</span>
         </div>
-        <div>
-          <span className="gameFeatureName">Volume</span>
+
+        <div className="hudItem">
+          <span className="hudLabel">Time:</span>
+          <Timer />
+        </div>
+
+        <div className="hudItem controls">
+          <button className={`musicBtn ${musicOn ? "on" : ""}`} onClick={handleChangeSwitch}>
+            <img src="/games/MusicNote.svg" alt="Music toggle" />
+            <span>{musicOn ? "ON" : "OFF"}</span>
+          </button>
+
           <div id="volume">
             <Slider
               defaultValue={30}
               onChange={handleChangeVolume}
-              valueLabelDisplay="auto"
+              size="small"
               sx={{
-                width: "7vw",
-                ".css-eg0mwd-MuiSlider-thumb": {
+                width: "60px",
+                color: "#BFBABB",
+                "& .MuiSlider-thumb": {
                   color: "#F0EEEE",
-                },
-                "& .css-2bajgq-MuiSlider-root": {
-                  color: "#F0EEEE",
-                },
-                ".css-1gv0vcd-MuiSlider-track": {
-                  color: "#BFBABB",
-                  height: "1vh",
+                  width: 14,
+                  height: 14,
                 },
               }}
             />
           </div>
         </div>
       </div>
+
       <audio ref={audioRef} loop src={src} />
     </div>
   );
 };
+
 export default GameFeatures;

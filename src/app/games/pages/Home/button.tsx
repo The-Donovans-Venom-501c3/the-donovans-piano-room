@@ -1,54 +1,45 @@
 import React, { useState } from "react";
-import "./Home.scss";
+import "./Button.scss";
 
-interface ButtonProps {
+export interface ButtonProps {
   icon: string;
-  hoverIcon: string;
+  hoverIcon?: string;
   title: string;
   tips: string;
-  hoverColor: string;
-  hoverBorderColor: string;
-  onClick: () => void;
+  hoverColor?: string;
+  hoverBorderColor?: string;
+  onClick?: () => void;
 }
 
-const Button = (props: ButtonProps) => {
-  const [icon, setIcon] = useState(props.icon);
-  const [bgColor, setbgColor] = useState("#FFFFFF");
-  const [borderColor, setBorderColor] = useState("#DDDADA");
+const Button: React.FC<ButtonProps> = ({
+  icon,
+  hoverIcon,
+  title,
+  tips,
+  onClick,
+}) => {
+  const [currentIcon, setCurrentIcon] = useState(icon);
+
   return (
     <button
       className="HomeButton"
-      onClick={props.onClick}
-      onMouseOver={() => {
-        setIcon(props.hoverIcon);
-        setbgColor(props.hoverColor);
-        setBorderColor(props.hoverBorderColor);
+      onClick={onClick}
+      onMouseEnter={() => {
+        if (hoverIcon) setCurrentIcon(hoverIcon);
       }}
-      onMouseOut={() => {
-        setIcon(props.icon);
-        setbgColor("#FFFFFF");
-        setBorderColor("#DDDADA");
-      }}
-      style={{
-        backgroundColor: bgColor,
-        border: `3px solid ${borderColor}`,
-        WebkitBoxShadow: `2px 4px 1px ${borderColor}`,
-        MozBoxShadow: `2px 4px 1px ${borderColor}`,
-        boxShadow: `2px 4px 1px ${borderColor}`,
+      onMouseLeave={() => {
+        setCurrentIcon(icon);
       }}
     >
       <div className="Button-Layout">
         <div className="Img-Layout">
-          <img src={icon} id="button-icon" alt={props.title} />
+          <img src={currentIcon} id="button-icon" alt={title} />
         </div>
 
         <div className="Text-Layout">
-          <span id="title">{props.title}</span>
-
-          <span id="tips">{props.tips}</span>
+          <span id="title">{title}</span>
+          <span id="tips">{tips}</span>
         </div>
-
-        {/* {props.children} */}
       </div>
     </button>
   );

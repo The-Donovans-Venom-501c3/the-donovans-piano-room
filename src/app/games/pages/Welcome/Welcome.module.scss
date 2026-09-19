@@ -1,0 +1,231 @@
+@use '../../assets/scss/variables' as *;
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.stageContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  padding: clamp(1rem, 5vh, 4rem);
+  background: radial-gradient(circle at center, #f97316 0%, #ea580c 60%, #c2410c 100%);
+  overflow: hidden;
+
+  .modalCard {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(2rem, 3.5vw, 3.5rem);
+    width: min(60rem, calc(100% - 2rem));
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    border-radius: 2rem;
+    background-color: $white;
+    box-shadow: 0px 16px 40px rgba(0, 0, 0, 0.2);
+    animation: appear 0.4s ease-out;
+
+    h1 {
+      font-family: $tertiary-font;
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: $black;
+      margin: 0 0 2rem 0;
+      text-align: center;
+
+      span {
+        color: $orange-500;
+      }
+    }
+
+    .contentGrid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 2.5rem;
+      width: 100%;
+      align-items: flex-end;
+
+      .mascotSection {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        .speechBubble {
+          position: relative;
+          background-color: $orange-200;
+          border-radius: 1.5rem;
+          padding: 1.5rem 1.75rem;
+          width: 100%;
+
+          p {
+            font-size: 0.95rem;
+            line-height: 1.45;
+            font-weight: 400;
+            color: $black;
+            margin: 0;
+          }
+
+          .callout {
+            margin-top: 0.75rem;
+            font-weight: 700;
+          }
+
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 3rem;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid $orange-200;
+          }
+        }
+
+        .catWrapper {
+          margin-top: 0.75rem;
+          margin-left: 1.5rem;
+
+          img {
+            object-fit: contain;
+            width: 10rem;
+            height: auto;
+          }
+        }
+      }
+
+      .levelsSection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+        width: 100%;
+
+        .levelBtn {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          padding: 1rem 1.5rem;
+          min-height: 4.5rem;
+          border-radius: 1.25rem;
+          cursor: pointer;
+          transition: transform 0.15s ease, filter 0.15s ease;
+
+          &:hover:not(:disabled) {
+            filter: brightness(0.97);
+            transform: translateY(-2px);
+          }
+
+          &:active:not(:disabled) {
+            transform: translateY(1px);
+          }
+
+          &:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+          }
+
+          .levelInfo {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+
+            .levelTitle {
+              font-size: 1.25rem;
+              font-weight: 700;
+              color: $grey-700;
+            }
+
+            .levelSubtext {
+              font-size: 0.8rem;
+              font-weight: 600;
+              color: $green-500;
+              margin-top: 0.25rem;
+            }
+          }
+
+          .levelIcon {
+            display: grid;
+            width: 2.25rem;
+            height: 2.25rem;
+            place-items: center;
+            border-radius: 50%;
+            font-size: 1rem;
+            font-weight: 800;
+          }
+
+          &.easy {
+            background-color: $green-100;
+            border: 2px solid $green-300;
+            border-bottom: 6px solid $green-300;
+
+            .levelIcon {
+              color: $white;
+              background: $green-500;
+            }
+          }
+
+          &.medium {
+            background-color: $yellow-100;
+            border: 2px solid $yellow-300;
+            border-bottom: 6px solid $yellow-300;
+
+            .levelIcon {
+              color: $black;
+              background: $orange-200;
+            }
+          }
+
+          &.hard {
+            background-color: $grey-100;
+            border: 2px solid $grey-300;
+            border-bottom: 6px solid $grey-300;
+
+            .levelIcon {
+              color: $black;
+              background: $grey-300;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  .stageContainer {
+    .modalCard {
+      width: 95%;
+      padding: 1.5rem;
+
+      .contentGrid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+
+        .mascotSection {
+          align-items: center;
+
+          .catWrapper {
+            margin-left: 0;
+          }
+        }
+      }
+    }
+  }
+}

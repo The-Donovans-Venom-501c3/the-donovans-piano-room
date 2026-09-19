@@ -1,69 +1,64 @@
-import './Welcome.scss';
-const cat = '/games/Welcome_Character.svg';
-const polygon = '/games/Welcome_Polygon.svg';
-import { appStateAtom, gameStateAtom, levelStateAtom } from '../../../../store/atoms';
-import { useAtomValue, useSetAtom } from 'jotai';
+import React from 'react';
+import './Welcome.module.scss'; // Adjust to your preferred stylesheet setup
 
-export default function Welcome() {
-  const game = useAtomValue(gameStateAtom);
-  const setLevel = useSetAtom(levelStateAtom);
-  const setAppState = useSetAtom(appStateAtom);
+export type Level = 'easy' | 'medium' | 'hard';
 
-  const handleLevelClick = (level: import('../../types').Level) => {
-    setLevel(level);
-    setAppState('quiz');
-  };
+interface WelcomeStepProps {
+  onSelectLevel: (level: Level) => void;
+}
 
-  let gameHeading = '';
-  let gameText = '';
-  if (game === 'key') {
-    gameHeading = 'Key Signature';
-    gameText = 'key signature';
-  } else {
-    gameHeading = game.charAt(0).toUpperCase() + game.slice(1);
-    gameText = game;
-  }
+const welcomeCat = '/games/Welcome_Character.svg';
 
+export const WelcomeStep: React.FC<WelcomeStepProps> = ({ onSelectLevel }) => {
   return (
-    <div className='welcome-container'>
-      <div className='welcome'>
-        <h1>
-          Welcome to the <span>{gameHeading} Identification Game</span>
-        </h1>
-        <main>
-          <div className='intro'>
-            <div className='bubble'>
-              <div className='chat'>
-                <p>
-                  Hey Superstars! Get ready for musical fun. Identify the{' '}
-                  {gameText} on the staff and move to the next level, with less
-                  than three mistakes. Learn {gameText} basics and become a pro!
-                </p>
-                <p>Choose the level you want to play!</p>
-              </div>
-              <img src={polygon} alt='' />
+    <div className="welcome-container">
+      <div className="welcome-card">
+        <h2>
+          Welcome to the <span>Note Identification Game</span>
+        </h2>
+
+        <div className="welcome-body" style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
+          {/* Mascot & Speech Section */}
+          <div className="mascot-section" style={{ flex: 1 }}>
+            <div className="speech-bubble">
+              <p className="description">
+                Hey Superstars! Get ready for musical fun. Identify the note on the staff and move to the next level with less than three mistakes. Learn note basics and become a pro!
+              </p>
+              <p className="instruction">
+                <strong>Choose the level you want to play!</strong>
+              </p>
             </div>
-            <img src={cat} className='cat' alt='Crescendo' />
+            <img src={welcomeCat} alt="Piano Cat Mascot" className="cat-mascot" style={{ width: '180px', marginTop: '10px' }} />
           </div>
-          <div className='levels'>
-            <button className='easy' onClick={() => handleLevelClick('easy')}>
-              <p>Easy</p>
-              <span className='level-icon' aria-hidden='true'>✓</span>
+
+          {/* Level Selection Buttons */}
+          <div className="level-buttons-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <button
+              type="button"
+              className="level-btn easy"
+              onClick={() => onSelectLevel('easy')}
+            >
+              Easy
             </button>
             <button
-              className='medium'
-              onClick={() => handleLevelClick('medium')}
+              type="button"
+              className="level-btn medium"
+              onClick={() => onSelectLevel('medium')}
             >
-              <p>Medium</p>
-              <span className='level-icon' aria-hidden='true'>🔒</span>
+              Medium
             </button>
-            <button className='hard' onClick={() => handleLevelClick('hard')}>
-              <p>Hard</p>
-              <span className='level-icon' aria-hidden='true'>🔒</span>
+            <button
+              type="button"
+              className="level-btn hard"
+              onClick={() => onSelectLevel('hard')}
+            >
+              Hard
             </button>
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default WelcomeStep;

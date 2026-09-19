@@ -1,5 +1,7 @@
-import React from 'react';
-import { useAtomValue, useSetAtom, useAtom } from 'jotai';
+"use client";
+
+import React from "react";
+import { useAtomValue, useSetAtom, useAtom } from "jotai";
 import {
   affirmationAtom,
   appStateAtom,
@@ -7,39 +9,37 @@ import {
   overlayAtom,
   questionAtom,
   quizStateAtom,
-  scoreAtom,
   totalQuestionsAtom,
   currentCorrectOptionAtom,
-} from '../../../../../store/atoms';
-const successCharacter = '/games/Affirmation_Success_Character.svg';
-const failCharacter = '/games/sadCat.svg';
-import './Affirmation.scss';
+} from "../../../../../store/atoms";
+import "./Affirmation.scss";
+
+const successCharacter = "/games/Affirmation_Success_Character.svg";
+const failCharacter = "/games/sadCat.svg";
 
 const affirmationData = {
   success: {
-    sentence: 'Correct. Good job!',
-    buttonText: 'CONTINUE',
-    bgColor: '#CDE6CC',
+    sentence: "Correct. Good job!",
+    buttonText: "CONTINUE",
+    bgColor: "#CDE6CC",
     pic: successCharacter,
   },
   tryAgain: {
-    sentence:
-      "Oops, that's not the right answer. Sorry, we need to take one of your lives.",
-    buttonText: 'TRY AGAIN',
-    bgColor: '#F6E892',
+    sentence: "Oops, that's not the right answer. Sorry, we need to take one of your lives.",
+    buttonText: "TRY AGAIN",
+    bgColor: "#F6E892",
     pic: failCharacter,
   },
   fail: {
-    sentence: 'The correct answer is ',
-    buttonText: 'CONTINUE',
-    bgColor: '#FED2AA',
+    sentence: "The correct answer is ",
+    buttonText: "CONTINUE",
+    bgColor: "#FED2AA",
     pic: failCharacter,
   },
 };
 
-// Calculate how many points the user get per corrected question
-
 export default function Affirmation() {
+  const quizState = useAtomValue(quizStateAtom);
   const affirmation = useAtomValue(affirmationAtom);
   const { sentence, buttonText, bgColor, pic } =
     affirmationData[affirmation as keyof typeof affirmationData] || affirmationData.fail;
@@ -48,88 +48,43 @@ export default function Affirmation() {
   const setQuizState = useSetAtom(quizStateAtom);
   const totalQuestions = useAtomValue(totalQuestionsAtom);
   const setAppState = useSetAtom(appStateAtom);
-  const [score, setScore] = useAtom(scoreAtom);
   const [lives, setLives] = useAtom(livesAtom);
   const setOverlay = useSetAtom(overlayAtom);
   const correctOption = useAtomValue(currentCorrectOptionAtom);
 
+  if (quizState !== "affirmation") return null;
+
   const handleResponseBtn = () => {
-    if (affirmation == 'success') {
+    if (affirmation === "success") {
       if (questionNum === totalQuestions) {
-        setAppState('game-finished');
+        setAppState("game-finished");
       } else {
         setQuestionNum(questionNum + 1);
-        setQuizState('quiz');
+        setQuizState("quiz");
       }
-    } else if (affirmation == 'fail') {
-      setOverlay('lives');
-      setQuizState('overlay');
+    } else if (affirmation === "fail") {
+      setOverlay("lives");
+      setQuizState("overlay");
     } else {
       setLives(lives - 1);
-      setQuizState('quiz');
+      setQuizState("quiz");
     }
   };
 
   return (
-    <div>
-      {affirmation === 'tryAgain' ? (
-        <div className='container'>
-          <div className='overlay'></div>
-          <img src={pic} className='beater' alt='Game character' />
-          <div
-            className='background-rectangle'
-            style={{ backgroundColor: bgColor }}
-          >
-            <section className='tip-try-again'>{sentence}</section>
-            <button
-              className='ButtonResponse'
-              id='ButtonResponse'
-              onClick={handleResponseBtn}
-            >
-              {buttonText}
-            </button>
-          </div>
-        </div>
-      ) : affirmation === 'success' ? (
-        <div className='container'>
-          <div className='overlay'></div>
-          <img src={pic} className='beater' alt='Game character' />
-          <div
-            className='background-rectangle'
-            style={{ backgroundColor: bgColor }}
-          >
-            <section className='tip'>{sentence}</section>
-            <button
-              className='ButtonResponse'
-              id='ButtonResponse'
-              onClick={handleResponseBtn}
-            >
-              {buttonText}
-            </button>
-          </div>
-        </div>
-      ) : affirmation === 'fail' ? (
-        <div className='container'>
-          <div className='overlay'></div>
-          <img src={pic} className='beater' alt='Game character' />
-          <div
-            className='background-rectangle'
-            style={{ backgroundColor: bgColor }}
-          >
-            <section className='tip'>
-              {sentence}
-              <span>{correctOption}</span>
-            </section>
-            <button
-              className='ButtonResponse'
-              id='ButtonResponse'
-              onClick={handleResponseBtn}
-            >
-              {buttonText}
-            </button>
-          </div>
-        </div>
-      ) : null}
+    <div className="mascotCalloutContainer">
+      <div className="mascotWrapper">
+        <img src={pic} className="mascotImg" alt="Game character state" />
+      </div>
+      <div className="calloutBox" style={{ backgroundColor: bgColor }}>
+        <p className="calloutText">
+          {sentence}
+          {affirmation === "fail" && <span>{correctOption}</span>}
+        </p>
+        <button className="responseBtn" onClick={handleResponseBtn}>
+          {buttonText}
+        </button>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import "./QuizSection.scss";
 import Options from "./Options/Options";
+import Affirmation from "../../pages/Quiz/Affirmation/Affirmation";
 import { useEffect, useMemo, useState } from "react";
 import { useAtomValue, useSetAtom, useAtom } from "jotai";
 import {
@@ -19,10 +20,9 @@ import {
   hasAnsweredWrongAtom,
 } from "../../../../store/atoms";
 import { getQuestions } from "../../utils/questions";
-import { DndContext, type DragEndEvent } from '@dnd-kit/core';
-import { Droppable } from './Options/ReadingOptions/Droppable';
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { Droppable } from "./Options/ReadingOptions/Droppable";
 import type { GameType, OptionClickHandler } from "../../types";
-
 
 const QuizSectionReading = () => {
   const level = useAtomValue(levelStateAtom);
@@ -32,9 +32,7 @@ const QuizSectionReading = () => {
   const currQuestion = questions[questionNum - 1] ?? questions[0];
 
   const setTotalQuestions = useSetAtom(totalQuestionsAtom);
-  const totalQuestions = useMemo(() => {
-    return questions.length;
-  }, [questions]);
+  const totalQuestions = useMemo(() => questions.length, [questions]);
   useEffect(() => setTotalQuestions(totalQuestions), [setTotalQuestions, totalQuestions]);
 
   const setCorrectOptions = useSetAtom(correctOptionAtom);
@@ -49,35 +47,31 @@ const QuizSectionReading = () => {
 
   const lives = useAtomValue(livesAtom);
 
-  const sentence = currQuestion.sentence.replace(' ', '  ')
-  const sentenceParts = sentence.split('_');
+  const sentence = currQuestion.sentence.replace(" ", "  ");
+  const sentenceParts = sentence.split("_");
   const numBlanks = sentenceParts.length - 1;
   const [parents, setParents] = useState(Array(numBlanks).fill(null));
   const [droppedNotes, setDroppedNotes] = useState(Array(numBlanks).fill(null));
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { over, active } = event;
-    if (!over) {
-        return;
-    }
-    if (typeof over.id !== "string" || !over.id.startsWith('droppable')) {
-        return;
+    if (!over || typeof over.id !== "string" || !over.id.startsWith("droppable")) {
+      return;
     }
 
-
-    const droppableIndex = parseInt(over.id.replace('droppable-', ''), 10);
+    const droppableIndex = parseInt(over.id.replace("droppable-", ""), 10);
     const updatedDroppedNotes = [...droppedNotes];
-    updatedDroppedNotes[droppableIndex] = String(active.id).replace('draggable-', '');
+    updatedDroppedNotes[droppableIndex] = String(active.id).replace("draggable-", "");
     const updatedParents = [...parents];
     updatedParents[droppableIndex] = over.id;
     setParents(updatedParents);
     setDroppedNotes(updatedDroppedNotes);
 
-
-    if (updatedDroppedNotes.filter(note => note !== null).length === numBlanks) {
-      const correct = updatedDroppedNotes.join(',').toLowerCase() === currQuestion.correctOption.toLowerCase();
+    if (updatedDroppedNotes.filter((note) => note !== null).length === numBlanks) {
+      const correct = updatedDroppedNotes.join(",").toLowerCase() === currQuestion.correctOption.toLowerCase();
       if (correct) {
         if (!hasAnsweredWrong) {
-          setScore(prevScore => prevScore + Math.floor((1 / totalQuestions) * 100));
+          setScore((prevScore) => prevScore + Math.floor((1 / totalQuestions) * 100));
         }
         setHasAnsweredWrong(false);
         if (level !== "hard") {
@@ -102,7 +96,7 @@ const QuizSectionReading = () => {
       setParents(Array(numBlanks).fill(null));
       setDroppedNotes(Array(numBlanks).fill(null));
     }
-  }
+  };
 
   return (
     <div className="quizSection">
@@ -132,9 +126,12 @@ const QuizSectionReading = () => {
           <Options displayText="Can you find the missing letters?" currQuestion={currQuestion} />
         </DndContext>
       </div>
+
+      {/* Mascot Callout Overlay */}
+      <Affirmation />
     </div>
   );
-}
+};
 
 const QuizSection = () => {
   const game = useAtomValue(gameStateAtom);
@@ -146,7 +143,6 @@ const QuizSection = () => {
 };
 
 const QuizSectionStandard = ({ game }: { game: GameType }) => {
-
   const level = useAtomValue(levelStateAtom);
   const [questionNum, setQuestionNum] = useAtom(questionAtom);
   const questions = useMemo(() => getQuestions(game, level), [game, level]);
@@ -154,9 +150,7 @@ const QuizSectionStandard = ({ game }: { game: GameType }) => {
   const currQuestion = questions[questionNum - 1] ?? questions[0];
 
   const setTotalQuestions = useSetAtom(totalQuestionsAtom);
-  const totalQuestions = useMemo(() => {
-    return questions.length;
-  }, [questions]);
+  const totalQuestions = useMemo(() => questions.length, [questions]);
   useEffect(() => setTotalQuestions(totalQuestions), [setTotalQuestions, totalQuestions]);
 
   const setCorrectOption = useSetAtom(correctOptionAtom);
@@ -176,14 +170,13 @@ const QuizSectionStandard = ({ game }: { game: GameType }) => {
     setcurrentCorrectOption(currQuestion.correctOption);
     if (option === currQuestion.correctOption) {
       if (!hasAnsweredWrong) {
-        setScore(prevScore => prevScore + Math.floor((1 / totalQuestions) * 100));
+        setScore((prevScore) => prevScore + Math.floor((1 / totalQuestions) * 100));
       }
       setHasAnsweredWrong(false);
       if (level !== "hard") {
         setAffirmation("success");
         setQuizState("affirmation");
       } else {
-        // setScore((prev) => prev + calculatedScore);
         if (questionNum === totalQuestions) {
           setAppState("game-finished");
           setQuestionNum(1);
@@ -214,11 +207,11 @@ const QuizSectionStandard = ({ game }: { game: GameType }) => {
   const displayTextArr = [
     "What note is shown?",
     "What key signature is shown?",
-    "What  major/minor is shown?",
+    "What major/minor is shown?",
     "What scale is shown?",
-    "what interval is shown?",
+    "What interval is shown?",
     "What chord is shown?",
-    '',
+    "",
     "What ledger line is shown?",
     "Can you find the missing letters?",
   ];
@@ -239,6 +232,9 @@ const QuizSectionStandard = ({ game }: { game: GameType }) => {
         <p>{displayText}</p>
         <Options handleOptionClick={handleOptionClick} />
       </div>
+
+      {/* Mascot Callout Overlay */}
+      <Affirmation />
     </div>
   );
 };

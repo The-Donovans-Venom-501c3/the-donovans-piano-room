@@ -1,6 +1,4 @@
 import './Popup.scss';
-const start = '/games/Start.svg';
-const pause = '/games/Pause.svg';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   popupAtom,
@@ -9,6 +7,9 @@ import {
   musicStateAtom,
 } from '../../../../../store/atoms';
 import { useEffect } from 'react';
+
+const start = '/games/Start.svg';
+const pause = '/games/Pause.svg';
 
 const popupData = {
   play: {
@@ -20,27 +21,27 @@ const popupData = {
   pause: {
     class: 'pause',
     state: 'paused',
-    sentence: 'Click the Play button to resume the game',
+    sentence: 'Click anywhere to resume',
     pic: pause,
   },
 };
 
 export default function Popup() {
   const setQuizState = useSetAtom(quizStateAtom);
-  const setMusicOn = useSetAtom(musicStateAtom);
-  const timerOn = useAtomValue(timerOnAtom);
   const setPopupState = useSetAtom(popupAtom);
   const popupValue = useAtomValue(popupAtom);
 
-  const play = () => {
+  const currentPopup = popupData[popupValue] || popupData.pause;
+
+  const handleResume = () => {
     setPopupState('play');
     setTimeout(() => {
       setQuizState('quiz');
-      // setMusicOn(true);
-    }, 1500);
+    }, 300);
   };
+
   useEffect(() => {
-    if (popupValue == 'play') {
+    if (popupValue === 'play') {
       const timeout = setTimeout(() => {
         setQuizState('quiz');
       }, 0);
@@ -50,14 +51,14 @@ export default function Popup() {
   }, [popupValue, setQuizState]);
 
   return (
-    <div className='toast' onClick={play}>
-      <div className='toastContainer'>
-        <div className={popupData[popupValue].class}>
-          <img src={popupData[popupValue].pic} alt="Game status" />
+    <div className='popup-backdrop' onClick={handleResume}>
+      <div className='popup-card'>
+        <div className={`status-icon ${currentPopup.class}`}>
+          <img src={currentPopup.pic} alt="Game status" />
         </div>
-        <div className='textDialog'>
-          <span>Game is {popupData[popupValue].state}</span>
-          <span>{popupData[popupValue].sentence}</span>
+        <div className='popup-text'>
+          <h3>Game is {currentPopup.state}</h3>
+          <p>{currentPopup.sentence}</p>
         </div>
       </div>
     </div>

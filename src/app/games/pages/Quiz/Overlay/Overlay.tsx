@@ -1,9 +1,18 @@
 import "./Overlay.scss";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  appStateAtom,
+  overlayAtom,
+  quizStateAtom,
+  scoreAtom,
+  livesAtom,
+  questionAtom,
+  resetTimerAtom,
+} from "@/store/game-atoms";
+
 const cryingCat = '/games/cryingCat.svg';
 const BrokenCat = '/games/BrokenCat.svg';
 const sadCat = '/games/sadCat.svg';
-import { useAtomValue, useSetAtom } from "jotai";
-import { appStateAtom, overlayAtom, quizStateAtom, scoreAtom, livesAtom, questionAtom, resetTimerAtom } from "../../../../../store/atoms";
 
 const overlay = {
   exit: {
@@ -23,13 +32,13 @@ const overlay = {
     colour_btn_txt: "REVIEW LESSONS",
   },
   restart: {
-    cat:sadCat,
+    cat: sadCat,
     question: "Are you sure you want to restart?",
     sentence: "Restarting the game before you finish will reset your progress.",
     id_btn: "btn-orange",
     white_btn_txt: "KEEP PLAYING",
     colour_btn_txt: "RESTART",
-  }
+  },
 };
 
 export default function Overlay() {
@@ -37,53 +46,54 @@ export default function Overlay() {
   const setAppState = useSetAtom(appStateAtom);
   const setQuizState = useSetAtom(quizStateAtom);
 
+  const setScoreAtom = useSetAtom(scoreAtom);
+  const setLivesAtom = useSetAtom(livesAtom);
+  const setQuestion = useSetAtom(questionAtom);
+  const setResetTimer = useSetAtom(resetTimerAtom);
+
+  const currentOverlay = overlay[overlayState] || overlay.exit;
+
   const handleButton1 = () => {
-    if (overlayState == "lives") {
+    if (overlayState === "lives") {
       setAppState("home");
     } else {
       setQuizState("quiz");
     }
   };
 
-  const setScoreAtom = useSetAtom(scoreAtom);
-  const setLivesAtom = useSetAtom(livesAtom);
-  const setQuestion = useSetAtom(questionAtom);
-  const setResetTimer = useSetAtom(resetTimerAtom);
-
   const handleButton2 = () => {
-    if(overlayState === 'lives'){
-      window.location.href = 'https://thedonovanspianoroom.com/bookshelf/';
-    } else if(overlayState === 'exit'){
-      setAppState('home');
-    } else{
+    if (overlayState === "lives") {
+      window.location.href = "/bookshelf/";
+    } else if (overlayState === "exit") {
+      setAppState("home");
+    } else {
       setScoreAtom(0);
       setLivesAtom(3);
       setQuestion(1);
       setResetTimer((prev) => prev + 1);
-      setQuizState('quiz');
+      setQuizState("quiz");
     }
   };
 
   return (
-    <div className="dialog">
-      <div className=" dialogContainer">
-        <div className="cat">
-          <img src={overlay[overlayState].cat} alt="Game character" />
+    <div className="overlay-backdrop">
+      <div className="overlay-modal">
+        <div className="mascot-container">
+          <img src={currentOverlay.cat} alt="Game character status" />
         </div>
-        <div className="textDialog">
-          <span>{overlay[overlayState].question}</span>
-          <span id="text">{overlay[overlayState].sentence}</span>
+        <div className="overlay-text">
+          <h2>{currentOverlay.question}</h2>
+          <p>{currentOverlay.sentence}</p>
         </div>
-        <div className="btnDialog">
-          <button id="btn-white" onClick={handleButton1}>
-            {overlay[overlayState].white_btn_txt}
+        <div className="overlay-actions">
+          <button className="btn-pill btn-white" onClick={handleButton1}>
+            {currentOverlay.white_btn_txt}
           </button>
           <button
-            className="overlay-btn"
-            id={overlay[overlayState].id_btn}
+            className={`btn-pill ${currentOverlay.id_btn}`}
             onClick={handleButton2}
           >
-            {overlay[overlayState].colour_btn_txt}
+            {currentOverlay.colour_btn_txt}
           </button>
         </div>
       </div>

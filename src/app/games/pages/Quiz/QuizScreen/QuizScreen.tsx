@@ -1,15 +1,10 @@
 import "./QuizScreen.scss";
-const music = '/games/Music_stand.svg';
-const cat = '/games/Cat.svg';
-const x = '/games/X.svg';
-const pause = '/games/Pause.svg';
-const play = '/games/Icon_Play.svg';
-const restart = '/games/Restart.svg';
-const questionMark = '/games/QuestionMark.svg';
 import GameFeatures from "../../../components/GameFeatures/GameFeatures";
 import QuizSection from "../../../components/QuizSection/QuizSection";
 import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import { useEffect, useRef, useState } from "react";
+
+// Go up 4 levels (Quiz -> pages -> games -> app -> src) to reach store/
 import {
   overlayAtom,
   quizStateAtom,
@@ -18,7 +13,15 @@ import {
   musicStateAtom,
   questionAtom,
   gameStateAtom,
-} from "../../../../../store/atoms";
+} from "@/store/game-atoms"; // Uses @/ alias instead of ../../../../../
+
+const music = '/games/Music_stand.svg';
+const cat = '/games/Cat.svg';
+const x = '/games/X.svg';
+const pause = '/games/Pause.svg';
+const play = '/games/Icon_Play.svg';
+const restart = '/games/Restart.svg';
+const questionMark = '/games/QuestionMark.svg';
 
 const cheerup_dialogs = [
   "Practice makes Perfect!",
@@ -28,15 +31,17 @@ const cheerup_dialogs = [
 
 const QuizScreen = () => {
   const [quizState, setQuizState] = useAtom(quizStateAtom);
-  const [popup, setPopup] = useAtom(popupAtom);
+  const [, setPopup] = useAtom(popupAtom);
   const setOverlay = useSetAtom(overlayAtom);
   const [timerOn, setTimerOn] = useAtom(timerOnAtom);
-  const [musicOn, setMusicOn] = useAtom(musicStateAtom);
+  const [, setMusicOn] = useAtom(musicStateAtom);
   const [currentDialogIndex, setCurrentDialogIndex] = useState<number | null>(null);
   const [showBubble, setShowBubble] = useState(false);
-  const [questionNum, setQuestionNum] = useAtom(questionAtom);
+  const [questionNum] = useAtom(questionAtom);
   const gameState = useAtomValue(gameStateAtom);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Typed as undefined to prevent TypeScript null overload errors with clearInterval
+  const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -50,8 +55,9 @@ const QuizScreen = () => {
       intervalRef.current = intervalId;
       return () => clearInterval(intervalId);
     } else {
-      if (!!intervalRef.current) {
+      if (intervalRef.current !== undefined) {
         clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
       }
     }
   }, [questionNum]);
@@ -91,7 +97,7 @@ const QuizScreen = () => {
 
   if (gameState === "chord" || gameState === "scale") {
     gameScreenStyle.bottom =
-        windowWidth < 1280
+      windowWidth < 1280
         ? "1rem"
         : windowWidth < 1380
         ? "3rem"
@@ -102,11 +108,11 @@ const QuizScreen = () => {
         : undefined;
   }
 
-  const gameFeatures: React.CSSProperties = {}
-  if(gameState === "chord"){
+  const gameFeatures: React.CSSProperties = {};
+  if (gameState === "chord") {
     gameFeatures.paddingBottom = "45px";
-
   }
+
   useEffect(() => {
     if (quizState !== "quiz") {
       setTimerOn(false);
@@ -132,6 +138,7 @@ const QuizScreen = () => {
       <div className="bubble12"></div>
       <div className="bubble13"></div>
       <div className="bubble14"></div>
+
       <div className="musicStand">
         <img id="music" src={music} width="100%" height="100%" alt="Music stand" />
       </div>
@@ -147,27 +154,27 @@ const QuizScreen = () => {
           )}
           <img id="cat" src={cat} alt="Game character" />
         </div>
+
         <div className="setting">
-          <button className="btnIcon" onClick={handleRuleModal}>
+          <button type="button" className="btnIcon" onClick={handleRuleModal}>
             <img className="icon-questionMark" src={questionMark} alt="Rules" />
           </button>
 
-          <button className="btnSetting btnRestart" onClick={handleRestart}>
+          <button type="button" className="btnSetting btnRestart" onClick={handleRestart}>
             <img src={restart} alt="Restart" />
             <span>RESTART</span>
           </button>
-          <button className="btnSetting btnPause" onClick={handlePause}>
+
+          <button type="button" className="btnSetting btnPause" onClick={handlePause}>
             <img src={timerOn ? pause : play} alt={timerOn ? 'Pause' : 'Play'} />
             <span>{timerOn ? "PAUSE" : "PLAY"}</span>
           </button>
-          <button
-            className="
-          btnExit"
-            onClick={handleExit}
-          >
-            <img className="icon-x" src={x} alt="x" />
+
+          <button type="button" className="btnExit" onClick={handleExit}>
+            <img className="icon-x" src={x} alt="Close" />
           </button>
         </div>
+
         <div className="gameMain" style={gameFeatures}>
           <div className="left">
             <GameFeatures />
@@ -181,4 +188,5 @@ const QuizScreen = () => {
     </div>
   );
 };
+
 export default QuizScreen;

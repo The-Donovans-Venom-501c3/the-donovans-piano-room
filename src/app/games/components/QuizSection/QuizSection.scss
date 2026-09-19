@@ -1,51 +1,53 @@
 @use '../../assets/scss/variables' as *;
 
 .quizSection {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  margin: auto;
-  gap: 5%;
-  background-color: white;
-  width: 80%;
-  height: 90%;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border-radius: 12px;
 
   .quizNumber {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 5rem;
-    font-weight: 400;
-    border-bottom: 1px solid black;
-    font-size: 22px;
+    width: 4.5rem;
+    font-weight: 500;
+    border-bottom: 1px solid $grey-500;
+    font-size: 18px;
     gap: 0.3rem;
-
-    img {
-      width: 20%;
-      height: 80%;
-    }
   }
 
   .noteQuestionnGraph {
     width: 100%;
-    height: 30%;
+    height: 35%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     img {
-      width: 100%;
-      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
     }
   }
 
   .questionText {
     text-align: center;
-    font-size: 22px;
+    font-size: 20px;
 
     p {
       text-align: center;
+      margin-bottom: 1rem;
     }
 
     #sentence {
-      font-size: 2rem;
+      font-size: 1.8rem;
     }
   }
 }
