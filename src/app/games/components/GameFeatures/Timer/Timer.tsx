@@ -1,6 +1,6 @@
 import { useAtomValue, useAtom } from "jotai";
 import { useState, useEffect } from "react";
-import { resetTimerAtom, timerOnAtom, seconds } from "../../../../../store/atoms";
+import { resetTimerAtom, timerOnAtom, seconds } from '@/store/game-atoms'
 
 export default function Timer() {
   const timerOn = useAtomValue(timerOnAtom);

@@ -5,7 +5,7 @@ import {
   quizStateAtom,
   timerOnAtom,
   musicStateAtom,
-} from '../../../../../store/atoms';
+} from '@/store/game-atoms';
 import { useEffect } from 'react';
 
 const start = '/games/Start.svg';

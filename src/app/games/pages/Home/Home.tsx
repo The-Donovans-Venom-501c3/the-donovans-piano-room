@@ -10,7 +10,13 @@ import {
   scoreAtom,
   livesAtom,
   questionAtom,
+  levelStateAtom,
 } from "@/store/game-atoms";
+
+// Imports from types and utils using correct relative paths
+import type { GameType, Level, Question } from "../../types";
+import { getQuestions } from "../../utils/questions";
+
 import "./Home.scss";
 
 // Correct PNG paths from public/games folder
@@ -68,24 +74,6 @@ type GameFlowStage =
 
 type DifficultyLevel = "easy" | "medium" | "hard";
 
-interface Question {
-  id: number;
-  title: string;
-  answer: string;
-  notePosition: string;
-}
-
-const SAMPLE_QUESTIONS: Question[] = [
-  { id: 1, title: "What note is shown?", answer: "F", notePosition: "1st-space" },
-  { id: 2, title: "What note is shown?", answer: "G", notePosition: "2nd-line" },
-  { id: 3, title: "What note is shown?", answer: "B", notePosition: "3rd-line" },
-  { id: 4, title: "What note is shown?", answer: "C", notePosition: "3rd-space" },
-  { id: 5, title: "What note is shown?", answer: "D", notePosition: "4th-line" },
-  { id: 6, title: "What note is shown?", answer: "E", notePosition: "4th-space" },
-  { id: 7, title: "What note is shown?", answer: "F", notePosition: "5th-line" },
-  { id: 8, title: "What note is shown?", answer: "A", notePosition: "2nd-space" },
-];
-
 const FULL_NOTE_ROWS: string[][] = [
   ["C", "D", "E", "F", "G", "A", "B"],
   ["C#", "D#", "E#", "F#", "G#", "A#", "B#"],
@@ -95,8 +83,11 @@ const FULL_NOTE_ROWS: string[][] = [
 export default function Home() {
   const setAppState = useSetAtom(appStateAtom);
   const setGameState = useSetAtom(gameStateAtom);
+  const setLevelState = useSetAtom(levelStateAtom);
   const [flowStage, setFlowStage] = useState<GameFlowStage>("dashboard");
   const [selectedGameTitle, setSelectedGameTitle] = useState("Note Identification Game");
+  const [selectedGameKey, setSelectedGameKey] = useState<GameType>("note");
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [, setSelectedLevel] = useState<DifficultyLevel | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "report">("dashboard");
   const setLoadingState = useSetAtom(loadingStateAtom);
@@ -184,14 +175,21 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
 
-  const handleSelectGame = (gameKey: string, title: string) => {
+  const handleSelectGame = (gameKey: GameType, title: string) => {
     setGameState(gameKey as unknown as Parameters<typeof setGameState>[0]);
     setSelectedGameTitle(title);
+    setSelectedGameKey(gameKey);
     setFlowStage("banner");
   };
 
   const handleSelectLevel = (level: DifficultyLevel) => {
     if (level === "hard") return;
+
+    // Load dynamic questions from questions.ts utility
+    const loadedQuestions = getQuestions(selectedGameKey, level as Level) || [];
+    setQuestions(loadedQuestions);
+
+    setLevelState(level);
     setSelectedLevel(level);
     setLoadingState("loading");
     setQuizState("quiz");
@@ -203,17 +201,22 @@ export default function Home() {
     setFlowStage("loading_screen");
   };
 
+  const currentQuestion =
+    questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
+
   const handleAnswerSubmit = (selectedOption: string) => {
-    if (answerStatus !== null) return;
-    const currentQuestion = SAMPLE_QUESTIONS[(questionIndex - 1) % SAMPLE_QUESTIONS.length];
+    if (answerStatus !== null || !currentQuestion) return;
+
+    const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
-    if (selectedOption === currentQuestion.answer) {
+
+    if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
       setScore((prev) => prev + 25);
       setTimeout(() => {
         setSelectedAnswer(null);
         setAnswerStatus(null);
-        if (questionIndex >= 8) {
+        if (questionIndex >= (questions.length || 8)) {
           setFlowStage("game_finished");
         } else {
           setQuestionIndex((prev) => prev + 1);
@@ -287,8 +290,6 @@ export default function Home() {
   const formatNoteLabel = (note: string): string => {
     return note.replace("#", "♯").replace("b", "♭");
   };
-
-  const currentQuestion = SAMPLE_QUESTIONS[(questionIndex - 1) % SAMPLE_QUESTIONS.length];
 
   return (
     <div className={`games-home-wrapper ${isExpanded ? "is-fullscreen" : ""}`}>
@@ -583,28 +584,44 @@ export default function Home() {
               {/* Game Body */}
               <div className="game-screen-body">
                 <div className="game-screen-left">
-                  {/* Music Staff */}
-                  <div className="music-staff-container">
-                    <div className="treble-clef-wrapper">
-                      <img src={trebleClefIcon} alt="Treble Clef" />
+                  {/* Dynamic SVG / Staff Question Display */}
+                  {currentQuestion?.questionImage ? (
+                    <div className="question-image-container" style={{ textAlign: "center", margin: "1rem 0" }}>
+                      <img
+                        src={currentQuestion.questionImage}
+                        alt="Question SVG"
+                        className="question-svg-image"
+                        style={{ maxHeight: "180px", maxWidth: "100%", objectFit: "contain" }}
+                      />
                     </div>
-                    <div className="staff-lines">
-                      <span className="line" />
-                      <span className="line" />
-                      <span className="line" />
-                      <span className="line" />
-                      <span className="line" />
+                  ) : (
+                    <div className="music-staff-container">
+                      <div className="treble-clef-wrapper">
+                        <img src={trebleClefIcon} alt="Treble Clef" />
+                      </div>
+                      <div className="staff-lines">
+                        <span className="line" />
+                        <span className="line" />
+                        <span className="line" />
+                        <span className="line" />
+                        <span className="line" />
+                      </div>
+                      {currentQuestion?.notePosition && (
+                        <div className={`note-marker position-${currentQuestion.notePosition}`}>
+                          <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
+                            <ellipse cx="12" cy="9" rx="10" ry="7" fill="#2B1236" transform="rotate(-15 12 9)" />
+                            <ellipse cx="12" cy="9" rx="5" ry="3" fill="#FFFFFF" transform="rotate(-35 12 9)" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
-                    <div className={`note-marker position-${currentQuestion.notePosition}`}>
-                      <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
-                        <ellipse cx="12" cy="9" rx="10" ry="7" fill="#2B1236" transform="rotate(-15 12 9)" />
-                        <ellipse cx="12" cy="9" rx="5" ry="3" fill="#FFFFFF" transform="rotate(-35 12 9)" />
-                      </svg>
-                    </div>
-                  </div>
-                  <p className="question-prompt">{currentQuestion.title}</p>
+                  )}
 
-                  {/* Keyboard Matrix & Overlays */}
+                  <p className="question-prompt">
+                    {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
+                  </p>
+
+                  {/* Options Matrix & Callout Overlays */}
                   <div className="keyboard-matrix-wrapper">
                     {answerStatus === "wrong" && (
                       <div className="callout-overlay wrong-overlay">
@@ -626,26 +643,57 @@ export default function Home() {
                         <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />
                       </div>
                     )}
-                    <div className="keyboard-grid">
-                      {FULL_NOTE_ROWS.map((row) =>
-                        row.map((note) => {
-                          const isSelected = selectedAnswer === note;
+
+                    {/* Display JSON Multiple Choice Options if present, else fallback to full keyboard */}
+                    {currentQuestion?.options && currentQuestion.options.length > 0 ? (
+                      <div
+                        className="options-grid"
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(2, 1fr)",
+                          gap: "10px",
+                          width: "100%",
+                        }}
+                      >
+                        {currentQuestion.options.map((option) => {
+                          const isSelected = selectedAnswer === option;
                           let btnClass = "grid-note-btn";
                           if (isSelected) {
                             btnClass += answerStatus === "correct" ? " correct" : " wrong";
                           }
                           return (
                             <button
-                              key={note}
+                              key={option}
                               className={btnClass}
-                              onClick={() => handleAnswerSubmit(note)}
+                              onClick={() => handleAnswerSubmit(option)}
                             >
-                              {formatNoteLabel(note)}
+                              {option}
                             </button>
                           );
-                        })
-                      )}
-                    </div>
+                        })}
+                      </div>
+                    ) : (
+                      <div className="keyboard-grid">
+                        {FULL_NOTE_ROWS.map((row) =>
+                          row.map((note) => {
+                            const isSelected = selectedAnswer === note;
+                            let btnClass = "grid-note-btn";
+                            if (isSelected) {
+                              btnClass += answerStatus === "correct" ? " correct" : " wrong";
+                            }
+                            return (
+                              <button
+                                key={note}
+                                className={btnClass}
+                                onClick={() => handleAnswerSubmit(note)}
+                              >
+                                {formatNoteLabel(note)}
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -708,10 +756,12 @@ export default function Home() {
                     >
                       ‹
                     </button>
-                    <span className="page-text">&lt; {questionIndex} of 8 &gt;</span>
+                    <span className="page-text">
+                      &lt; {questionIndex} of {questions.length || 8} &gt;
+                    </span>
                     <button
                       className="nav-arrow"
-                      onClick={() => setQuestionIndex((prev) => Math.min(8, prev + 1))}
+                      onClick={() => setQuestionIndex((prev) => Math.min(questions.length || 8, prev + 1))}
                     >
                       ›
                     </button>

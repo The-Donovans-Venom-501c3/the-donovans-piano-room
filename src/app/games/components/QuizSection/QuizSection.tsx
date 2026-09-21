@@ -18,7 +18,7 @@ import {
   appStateAtom,
   currentCorrectOptionAtom,
   hasAnsweredWrongAtom,
-} from "../../../../store/atoms";
+} from "@/store/game-atoms";
 import { getQuestions } from "../../utils/questions";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { Droppable } from "./Options/ReadingOptions/Droppable";
@@ -47,7 +47,8 @@ const QuizSectionReading = () => {
 
   const lives = useAtomValue(livesAtom);
 
-  const sentence = currQuestion.sentence.replace(" ", "  ");
+  // Fix: TypeScript error solve karne ke liye fallback safe string ("") add kiya gaya hai
+  const sentence = (currQuestion.sentence ?? "").replace(" ", "  ");
   const sentenceParts = sentence.split("_");
   const numBlanks = sentenceParts.length - 1;
   const [parents, setParents] = useState(Array(numBlanks).fill(null));

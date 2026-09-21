@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useState, useEffect } from "react";
-import { levelStateAtom, countDownOnAtom } from "../../../../../store/atoms";
+import { levelStateAtom, countDownOnAtom } from '@/store/game-atoms';
 export default function Countdown() {
   const countDownOn = useAtomValue(countDownOnAtom);
   const level = useAtomValue(levelStateAtom);

@@ -11,7 +11,7 @@ import {
   quizStateAtom,
   totalQuestionsAtom,
   currentCorrectOptionAtom,
-} from "../../../../../store/atoms";
+} from "@/store/game-atoms";
 import "./Affirmation.scss";
 
 const successCharacter = "/games/Affirmation_Success_Character.svg";

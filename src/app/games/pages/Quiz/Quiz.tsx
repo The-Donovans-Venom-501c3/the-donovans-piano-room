@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai';
-import { loadingStateAtom, quizStateAtom } from '../../../../store/atoms';
+import { loadingStateAtom, quizStateAtom } from '@/store/game-atoms';
 
 import Loading from './Loading/Loading';
 import Affirmation from './Affirmation/Affirmation';

@@ -10,7 +10,7 @@ import {
   correctOptionAtom,
   questionAtom,
   livesAtom,
-} from '../../../../../store/atoms';
+} from '@/store/game-atoms';
 
 export default function PlayAgainDialog() {
   const setAppState = useSetAtom(appStateAtom);

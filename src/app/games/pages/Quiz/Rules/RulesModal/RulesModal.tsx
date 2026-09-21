@@ -5,7 +5,7 @@ import {
   quizStateAtom,
   gameStateAtom,
   timerOnAtom,
-} from "../../../../../../store/atoms";
+} from '@/store/game-atoms';
 
 const rulesData: Record<string, { Introduction: string; Explanation: string[] }> = {
   note: {

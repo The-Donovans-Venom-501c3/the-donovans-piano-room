@@ -6,7 +6,7 @@ import {
   scoreAtom,
   totalQuestionsAtom,
   seconds,
-} from '../../../../../store/atoms';
+} from '@/store/game-atoms';
 
 const scoreState = {
   perfect: {
