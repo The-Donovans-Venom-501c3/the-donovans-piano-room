@@ -48,9 +48,10 @@ export default function Affirmation() {
   const setQuizState = useSetAtom(quizStateAtom);
   const totalQuestions = useAtomValue(totalQuestionsAtom);
   const setAppState = useSetAtom(appStateAtom);
-  const [lives, setLives] = useAtom(livesAtom);
   const setOverlay = useSetAtom(overlayAtom);
   const correctOption = useAtomValue(currentCorrectOptionAtom);
+  // lives is no longer decremented here — it's decremented at answer-time
+  // in QuizSectionStandard / QuizSectionReading, so this component only reads it.
 
   if (quizState !== "affirmation") return null;
 
@@ -66,7 +67,8 @@ export default function Affirmation() {
       setOverlay("lives");
       setQuizState("overlay");
     } else {
-      setLives(lives - 1);
+      // "tryAgain" — lives were already decremented when the wrong
+      // answer was submitted, so just go back to the quiz.
       setQuizState("quiz");
     }
   };
