@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 interface MetronomeProps {
@@ -37,8 +36,10 @@ export default function Metronome({
 
   const nextBeatTimeRef = useRef<number>(0);
   const currentBeatRef = useRef<number>(0);
+  const startTimeRef = useRef<number>(0); // Reference point for zero-latency swing phase
   const timerIdRef = useRef<number | null>(null);
   const rafIdRef = useRef<number | null>(null);
+  const pendulumRef = useRef<HTMLDivElement | null>(null);
 
   const getAudioContext = useCallback(() => {
     if (!audioCtxRef.current) {
@@ -111,6 +112,10 @@ export default function Metronome({
       }
     });
     activeSourcesRef.current = [];
+
+    if (pendulumRef.current) {
+      pendulumRef.current.style.transform = "rotate(-28deg)";
+    }
   };
 
   const playBeatSound = useCallback(
@@ -136,7 +141,6 @@ export default function Metronome({
           activeSourcesRef.current = activeSourcesRef.current.filter((s) => s !== source);
         };
       } else {
-        // Dynamic Synthesizer fallback tailored to soundType selection
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
@@ -193,7 +197,9 @@ export default function Metronome({
 
       if (!isRunning) return;
 
-      nextBeatTimeRef.current = ctx.currentTime + 0.05;
+      const startTime = ctx.currentTime + 0.05;
+      startTimeRef.current = startTime;
+      nextBeatTimeRef.current = startTime;
       currentBeatRef.current = 0;
 
       const lookahead = 20;
@@ -222,6 +228,7 @@ export default function Metronome({
       const updateVisuals = () => {
         const currentTime = ctx.currentTime;
 
+        // 1. Update beat dot indicator
         while (
           beatQueueRef.current.length > 0 &&
           beatQueueRef.current[0].time <= currentTime
@@ -230,6 +237,19 @@ export default function Metronome({
           if (currentBeat) {
             setAnimatedIndex(currentBeat.beatIndex);
           }
+        }
+
+        // 2. Direct real-time pendulum animation aligned to AudioContext timeline
+        if (pendulumRef.current) {
+          const secondsPerBeat = 60 / tempoNum;
+          const elapsedTime = currentTime - startTimeRef.current;
+          
+          // Using -cos ensures that at time=0 (Beat 1), angle is -28deg (extreme left),
+          // at time=1 beat, angle is +28deg (extreme right), precisely hitting peak angles on the tick.
+          const progress = (elapsedTime / secondsPerBeat) * Math.PI;
+          const angle = -28 * Math.cos(progress);
+
+          pendulumRef.current.style.transform = `rotate(${angle}deg)`;
         }
 
         if (isRunning) {
@@ -270,8 +290,6 @@ export default function Metronome({
     return "Prestissimo";
   }
 
-  const beatIntervalSeconds = 60 / tempoNum;
-
   return (
     <div className="flex flex-col items-center justify-center relative w-[345.79px] h-[467px]">
       <div className="relative w-[345.79px] h-[410px] flex flex-col items-center overflow-visible">
@@ -305,17 +323,13 @@ export default function Metronome({
           </div>
 
           <div className="absolute inset-0 z-20 flex justify-center items-end pb-3 pointer-events-none">
-            <motion.div
+            <div
+              ref={pendulumRef}
               className="relative flex flex-col items-center justify-end"
-              style={{ transformOrigin: "bottom center" }}
-              initial={{ rotate: -28 }}
-              animate={{
-                // SWING DIRECTION FIX: Beat 1 (animatedIndex = 0) stays LEFT (-28), Beat 2 (animatedIndex = 1) swings RIGHT (+28)
-                rotate: animation ? (animatedIndex % 2 === 0 ? -28 : 28) : -28,
-              }}
-              transition={{
-                duration: beatIntervalSeconds * 0.9,
-                ease: [0.25, 0.1, 0.25, 1.0],
+              style={{
+                transformOrigin: "bottom center",
+                transform: "rotate(-28deg)",
+                willChange: "transform",
               }}
             >
               <div className="w-7 h-[270px] bg-[#BF94E4] rounded-sm shadow-md relative flex justify-center">
@@ -323,7 +337,7 @@ export default function Metronome({
                   <div className="w-6 h-6 border-b-2 border-r-2 border-gray-300 transform rotate-45 -mt-1" />
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
