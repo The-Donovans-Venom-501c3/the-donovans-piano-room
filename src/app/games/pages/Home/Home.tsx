@@ -179,6 +179,8 @@ export default function Home() {
     setGameState(gameKey as unknown as Parameters<typeof setGameState>[0]);
     setSelectedGameTitle(title);
     setSelectedGameKey(gameKey);
+    setSelectedAnswer(null);
+    setAnswerStatus(null);
     setFlowStage("banner");
   };
 
@@ -198,6 +200,8 @@ export default function Home() {
     setQuestionIndex(1);
     setTimerSeconds(0);
     setIsPaused(false);
+    setSelectedAnswer(null);
+    setAnswerStatus(null);
     setFlowStage("loading_screen");
   };
 
@@ -212,7 +216,11 @@ export default function Home() {
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
-      setScore((prev) => prev + 25);
+      // fix: score per question is now dynamic (100 / total questions in this round)
+      // instead of a hardcoded +25, so a perfect run always totals exactly 100
+      // regardless of how many questions the level has (10, 20, 30, etc.)
+      const increment = questions.length > 0 ? 100 / questions.length : 0;
+      setScore((prev) => Math.min(100, Math.round(prev + increment)));
       setTimeout(() => {
         setSelectedAnswer(null);
         setAnswerStatus(null);

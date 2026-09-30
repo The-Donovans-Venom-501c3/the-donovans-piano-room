@@ -19,10 +19,12 @@ import {
   currentCorrectOptionAtom,
   hasAnsweredWrongAtom,
 } from "@/store/game-atoms";
-import { getQuestions } from "../../utils/questions";
+import { getQuestions, normalizeGameKey, normalizeOptionString } from "../../utils/questions";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { Droppable } from "./Options/ReadingOptions/Droppable";
 import type { GameType, OptionClickHandler } from "../../types";
+
+const DEFAULT_LIVES = 3;
 
 const QuizSectionReading = () => {
   const level = useAtomValue(levelStateAtom);
@@ -44,10 +46,10 @@ const QuizSectionReading = () => {
   const setScore = useSetAtom(scoreAtom);
   const setAppState = useSetAtom(appStateAtom);
   const [hasAnsweredWrong, setHasAnsweredWrong] = useAtom(hasAnsweredWrongAtom);
+  const setCurrentCorrectOption = useSetAtom(currentCorrectOptionAtom);
 
-  const lives = useAtomValue(livesAtom);
+  const [lives, setLives] = useAtom(livesAtom); // was: useAtomValue(livesAtom)
 
-  // Fix: TypeScript error solve karne ke liye fallback safe string ("") add kiya gaya hai
   const sentence = (currQuestion.sentence ?? "").replace(" ", "  ");
   const sentenceParts = sentence.split("_");
   const numBlanks = sentenceParts.length - 1;
@@ -69,7 +71,12 @@ const QuizSectionReading = () => {
     setDroppedNotes(updatedDroppedNotes);
 
     if (updatedDroppedNotes.filter((note) => note !== null).length === numBlanks) {
-      const correct = updatedDroppedNotes.join(",").toLowerCase() === currQuestion.correctOption.toLowerCase();
+      setCurrentCorrectOption(currQuestion.correctOption);
+
+      const correct =
+        normalizeOptionString(updatedDroppedNotes.join(",")) ===
+        normalizeOptionString(currQuestion.correctOption);
+
       if (correct) {
         if (!hasAnsweredWrong) {
           setScore((prevScore) => prevScore + Math.floor((1 / totalQuestions) * 100));
@@ -86,13 +93,17 @@ const QuizSectionReading = () => {
             setQuestionNum(questionNum + 1);
           }
         }
-      } else if (lives > 1) {
-        setAffirmation("tryAgain");
-        setQuizState("affirmation");
-        setHasAnsweredWrong(true);
       } else {
-        setAffirmation("fail");
-        setQuizState("affirmation");
+        const remainingLives = lives - 1;
+        setLives(remainingLives);
+        if (remainingLives > 0) {
+          setAffirmation("tryAgain");
+          setQuizState("affirmation");
+          setHasAnsweredWrong(true);
+        } else {
+          setAffirmation("fail");
+          setQuizState("affirmation");
+        }
       }
       setParents(Array(numBlanks).fill(null));
       setDroppedNotes(Array(numBlanks).fill(null));
@@ -128,14 +139,34 @@ const QuizSectionReading = () => {
         </DndContext>
       </div>
 
-      {/* Mascot Callout Overlay */}
       <Affirmation />
     </div>
   );
 };
 
 const QuizSection = () => {
-  const game = useAtomValue(gameStateAtom);
+  const rawGame = useAtomValue(gameStateAtom);
+  const game = normalizeGameKey(rawGame);
+
+  const setLives = useSetAtom(livesAtom);
+  const setScore = useSetAtom(scoreAtom);
+  const setQuestionNum = useSetAtom(questionAtom);
+  const setHasAnsweredWrong = useSetAtom(hasAnsweredWrongAtom);
+  const setQuizState = useSetAtom(quizStateAtom);
+  const setAffirmation = useSetAtom(affirmationAtom);
+  const setCurrentCorrectOption = useSetAtom(currentCorrectOptionAtom);
+
+  useEffect(() => {
+    setLives(DEFAULT_LIVES);
+    setScore(0);
+    setQuestionNum(1);
+    setHasAnsweredWrong(false);
+    setQuizState("quiz");
+    setAffirmation("");
+    setCurrentCorrectOption("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game]);
+
   if (game === "reading") {
     return <QuizSectionReading />;
   }
@@ -143,7 +174,8 @@ const QuizSection = () => {
   return <QuizSectionStandard game={game} />;
 };
 
-const QuizSectionStandard = ({ game }: { game: GameType }) => {
+const QuizSectionStandard = ({ game: rawGame }: { game: GameType }) => {
+  const game = normalizeGameKey(rawGame);
   const level = useAtomValue(levelStateAtom);
   const [questionNum, setQuestionNum] = useAtom(questionAtom);
   const questions = useMemo(() => getQuestions(game, level), [game, level]);
@@ -165,11 +197,15 @@ const QuizSectionStandard = ({ game }: { game: GameType }) => {
   const setAppState = useSetAtom(appStateAtom);
   const [hasAnsweredWrong, setHasAnsweredWrong] = useAtom(hasAnsweredWrongAtom);
 
-  const lives = useAtomValue(livesAtom);
+  const [lives, setLives] = useAtom(livesAtom); // was: useAtomValue(livesAtom)
 
   const handleOptionClick: OptionClickHandler = (option) => {
     setcurrentCorrectOption(currQuestion.correctOption);
-    if (option === currQuestion.correctOption) {
+
+    const isCorrect =
+      normalizeOptionString(option) === normalizeOptionString(currQuestion.correctOption);
+
+    if (isCorrect) {
       if (!hasAnsweredWrong) {
         setScore((prevScore) => prevScore + Math.floor((1 / totalQuestions) * 100));
       }
@@ -185,39 +221,32 @@ const QuizSectionStandard = ({ game }: { game: GameType }) => {
           setQuestionNum(questionNum + 1);
         }
       }
-    } else if (option && lives > 1) {
-      setAffirmation("tryAgain");
-      setQuizState("affirmation");
-      setHasAnsweredWrong(true);
-    } else {
-      setAffirmation("fail");
-      setQuizState("affirmation");
+    } else if (option) {
+      const remainingLives = lives - 1;
+      setLives(remainingLives);
+      if (remainingLives > 0) {
+        setAffirmation("tryAgain");
+        setQuizState("affirmation");
+        setHasAnsweredWrong(true);
+      } else {
+        setAffirmation("fail");
+        setQuizState("affirmation");
+      }
     }
   };
 
-  const displayTextIdx: Record<GameType, number> = {
-    note: 0,
-    key: 1,
-    "major-minor": 2,
-    scale: 3,
-    interval: 4,
-    chord: 5,
-    ledger: 7,
-    reading: 8,
-  };
-  const displayTextArr = [
-    "What note is shown?",
-    "What key signature is shown?",
-    "What major/minor is shown?",
-    "What scale is shown?",
-    "What interval is shown?",
-    "What chord is shown?",
-    "",
-    "What ledger line is shown?",
-    "Can you find the missing letters?",
-  ];
+  const displayTextMap: Record<string, string> = {
+  note: "What note is shown?",
+  key: "What key signature is shown?",
+  "major-minor": "What major/minor is shown?",
+  scale: "What scale is shown?",
+  interval: "What interval is shown?",
+  chord: "What chord is shown?",
+  ledger: "What ledger line is shown?",
+  reading: "Can you find the missing letters?",
+};
 
-  const displayText = displayTextArr[displayTextIdx[game]];
+  const displayText = displayTextMap[game] ?? "What element is shown?";
 
   return (
     <div className="quizSection">
@@ -234,7 +263,6 @@ const QuizSectionStandard = ({ game }: { game: GameType }) => {
         <Options handleOptionClick={handleOptionClick} />
       </div>
 
-      {/* Mascot Callout Overlay */}
       <Affirmation />
     </div>
   );

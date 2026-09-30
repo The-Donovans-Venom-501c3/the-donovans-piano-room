@@ -9,7 +9,38 @@ import scaleData from "../data/scaleIdentification.json";
 
 import type { GameType, Level, Question } from "../types";
 
-// Type definitions for raw JSON file structures
+export const normalizeGameKey = (rawGame: string): GameType => {
+  if (!rawGame) return "reading";
+  // Strip spaces, dashes, and underscores
+  const clean = rawGame.trim().toLowerCase().replace(/[\s-_]/g, "");
+
+  if (clean.includes("key")) return "key";
+  if (clean.includes("majorminor")) return "major-minor";
+  if (clean.includes("note")) return "note";
+  if (clean.includes("scale")) return "scale";
+  if (clean.includes("chord")) return "chord";
+  if (clean.includes("ledger")) return "ledger";
+  if (clean.includes("interval")) return "interval";
+  if (clean.includes("reading")) return "reading";
+
+  return (rawGame as GameType) || "reading";
+};
+
+// Every Unicode code point that could plausibly appear as a "flat" or
+// "sharp" symbol, whether typed directly, pasted from a design tool, or
+// copied from a rich-text editor.
+const FLAT_CHARS = /[\u266D\u1D12B\uFE53\uFF0D\u02D3]/g; // ♭ and lookalikes
+const SHARP_CHARS = /[\u266F\u1D12A\uFF03]/g; // ♯ and lookalikes
+
+export const normalizeOptionString = (val?: string): string =>
+  (val ?? "")
+    .normalize("NFKC")
+    .replace(FLAT_CHARS, "b")
+    .replace(SHARP_CHARS, "#")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
 interface RawLevelData {
   level: string;
   numberOfQuestions?: Record<string, number>;
@@ -21,7 +52,6 @@ interface RawGameData {
   levels: RawLevelData[];
 }
 
-// Map GameType strings to imported JSON files cast to RawGameData
 const gameDataMap: Record<GameType, RawGameData> = {
   chord: chordData as unknown as RawGameData,
   interval: intervalData as unknown as RawGameData,
@@ -33,7 +63,6 @@ const gameDataMap: Record<GameType, RawGameData> = {
   scale: scaleData as unknown as RawGameData,
 };
 
-// Generic Fisher-Yates array shuffling algorithm
 function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -43,25 +72,23 @@ function shuffleArray<T>(array: T[]): T[] {
   return arr;
 }
 
-export function getQuestions(game: GameType, level: Level): Question[] {
+export function getQuestions(rawGame: string, level: Level): Question[] {
+  const game = normalizeGameKey(rawGame);
   const gameData = gameDataMap[game];
   if (!gameData || !gameData.levels) return [];
 
-  // Find configuration matching selected level (case-insensitive)
   const levelConfig = gameData.levels.find(
     (l) => l.level.toLowerCase() === level.toLowerCase()
   );
 
   if (!levelConfig) return [];
 
-  // Map levels for cross-level question lookup (e.g. Medium pulling from Easy pool)
   const levelMap = new Map<string, RawLevelData>();
   gameData.levels.forEach((l) => levelMap.set(l.level.toLowerCase(), l));
 
   const selectedQuestions: Question[] = [];
   const rules: Record<string, number> = levelConfig.numberOfQuestions || {};
 
-  // Gather required question counts per difficulty key
   Object.entries(rules).forEach(([diffKey, count]) => {
     const targetPool = levelMap.get(diffKey.toLowerCase());
     if (targetPool && targetPool.questions && count > 0) {
@@ -70,7 +97,6 @@ export function getQuestions(game: GameType, level: Level): Question[] {
     }
   });
 
-  // Fallback: If no rules are defined, return all questions for the level
   if (selectedQuestions.length === 0 && levelConfig.questions) {
     return shuffleArray(levelConfig.questions);
   }

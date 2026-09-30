@@ -45,7 +45,9 @@ export default function VerificationCodeInput({
       {verificationCode.map((code, index) => (
         <input
           key={index}
-          ref={(el) => (inputRefs.current[index] = el)}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
           maxLength={1}
           type="text"
           value={code}
