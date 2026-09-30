@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAtomValue } from "jotai";
 import { profileAtom } from "@/utils/stores";
+import HomeCar, { type HomeCarHandle } from "@/app/components/HomeMap/HomeCar";
 
 // TRACKS array matching exact audio filenames while displaying full title with artist credit
 const TRACKS = [
@@ -48,6 +49,7 @@ const TRACKS = [
 
 export default function Home() {
   const profile = useAtomValue(profileAtom);
+  const carRef = useRef<HomeCarHandle>(null);
   const isLoggedIn = Boolean(profile?.id);
 
   const [currentTrack, setCurrentTrack] = useState(TRACKS[0]);
@@ -164,30 +166,59 @@ export default function Home() {
 
           {/* Right Interactive Map Section */}
           <div className="relative w-[60%] h-[100%]">
-            {/* Map Canvas Background */}
-            <Image
-              className="w-full h-full object-contain"
-              src="/home/map.svg"
-              fill
-              alt="Map"
-            />
+            {/* Matches exactly where map.svg (761x677) actually renders inside the box
+                above via object-contain, so the car's road math lines up with the art
+                instead of the letterboxed empty space around it. The Shop/About/Games
+                labels and music badge below stay positioned against the outer box
+                directly (their percentages were tuned against that frame originally,
+                same as the live site — moving them in here would shift them off). */}
+            <div className="absolute inset-0 m-auto aspect-[761/677] max-w-full max-h-full">
+              {/* Map Canvas Background */}
+              <Image
+                className="w-full h-full object-contain"
+                src="/home/map.svg"
+                fill
+                alt="Map"
+              />
+
+              {/* Animated car: idles at home, drives to whichever building is clicked or dragged onto */}
+              <HomeCar ref={carRef} />
+            </div>
 
             {/* Shop Link */}
-            <Link href="/shop">
+            <Link
+              href="/shop"
+              onClick={(e) => {
+                e.preventDefault();
+                carRef.current?.driveTo("/shop");
+              }}
+            >
               <button className="absolute font-mountains font-bold left-[34%] top-[20%] -translate-x-1/2 -translate-y-1/2 xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200 z-10">
                 Shop
               </button>
             </Link>
 
             {/* About Link */}
-            <Link href="/about/why-choose-us">
+            <Link
+              href="/about/why-choose-us"
+              onClick={(e) => {
+                e.preventDefault();
+                carRef.current?.driveTo("/about/why-choose-us");
+              }}
+            >
               <button className="absolute font-mountains font-bold left-[60%] top-[26%] -translate-x-1/2 -translate-y-1/2 xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200 z-10">
                 About
               </button>
             </Link>
 
             {/* Games Link */}
-            <Link href="/games">
+            <Link
+              href="/games"
+              onClick={(e) => {
+                e.preventDefault();
+                carRef.current?.driveTo("/games");
+              }}
+            >
               <button className="absolute font-mountains font-bold left-[44%] top-[63%] -translate-x-1/2 -translate-y-1/2 xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200 z-10">
                 Games
               </button>
