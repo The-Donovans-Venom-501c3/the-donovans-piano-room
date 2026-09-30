@@ -166,13 +166,24 @@ export default function Home() {
 
           {/* Right Interactive Map Section */}
           <div className="relative w-[60%] h-[100%]">
-            {/* Map Canvas Background */}
-            <Image
-              className="w-full h-full object-contain"
-              src="/home/map.svg"
-              fill
-              alt="Map"
-            />
+            {/* Matches exactly where map.svg (761x677) actually renders inside the box
+                above via object-contain, so the car's road math lines up with the art
+                instead of the letterboxed empty space around it. The Shop/About/Games
+                labels and music badge below stay positioned against the outer box
+                directly (their percentages were tuned against that frame originally,
+                same as the live site — moving them in here would shift them off). */}
+            <div className="absolute inset-0 m-auto aspect-[761/677] max-w-full max-h-full">
+              {/* Map Canvas Background */}
+              <Image
+                className="w-full h-full object-contain"
+                src="/home/map.svg"
+                fill
+                alt="Map"
+              />
+
+              {/* Animated car: idles at home, drives to whichever building is clicked or dragged onto */}
+              <HomeCar ref={carRef} />
+            </div>
 
             {/* Shop Link */}
             <Link
@@ -212,9 +223,6 @@ export default function Home() {
                 Games
               </button>
             </Link>
-
-            {/* Animated car: idles at home, drives to whichever building is clicked or dragged onto */}
-            <HomeCar ref={carRef} />
 
             {/* Music Player Badge */}
             <button

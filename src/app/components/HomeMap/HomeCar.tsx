@@ -13,7 +13,6 @@ export type HomeCarHandle = {
 };
 
 const LEG_SECONDS = 0.35; // per road-path waypoint
-const ARRIVE_SCALE = 0.3;
 const DROP_RADIUS = 6; // percent — how close a drag-drop must land to a destination to count
 
 function isDestinationHref(href: string): href is DestinationHref {
@@ -31,7 +30,6 @@ const HomeCar = forwardRef<HomeCarHandle>(function HomeCar(_props, ref) {
 
   const left = useMotionValue(HOME.x);
   const top = useMotionValue(HOME.y);
-  const scale = useMotionValue(1);
   const [orientation, setOrientation] = useState<"horizontal" | "vertical">("horizontal");
 
   const driveLeg = useCallback(
@@ -57,10 +55,9 @@ const HomeCar = forwardRef<HomeCarHandle>(function HomeCar(_props, ref) {
         setOrientation(orientationFor(route[i - 1], route[i]));
         await driveLeg(route[i]);
       }
-      await animate(scale, ARRIVE_SCALE, { duration: 0.25, ease: "easeIn" });
       router.push(href);
     },
-    [driveLeg, router, scale],
+    [driveLeg, router],
   );
 
   useImperativeHandle(ref, () => ({ driveTo }), [driveTo]);
@@ -100,17 +97,16 @@ const HomeCar = forwardRef<HomeCarHandle>(function HomeCar(_props, ref) {
       setOrientation(orientationFor(dropped, anchor));
       void (async () => {
         await driveLeg(anchor);
-        await animate(scale, ARRIVE_SCALE, { duration: 0.25, ease: "easeIn" });
         router.push(href);
       })();
     },
-    [driveHome, driveLeg, left, router, scale, top],
+    [driveHome, driveLeg, left, router, top],
   );
 
   return (
     <div ref={containerRef} className="absolute inset-0 z-20 pointer-events-none">
       <DndContext onDragEnd={handleDragEnd}>
-        <CarSprite left={left} top={top} scale={scale} orientation={orientation} />
+        <CarSprite left={left} top={top} orientation={orientation} />
       </DndContext>
     </div>
   );
@@ -118,15 +114,19 @@ const HomeCar = forwardRef<HomeCarHandle>(function HomeCar(_props, ref) {
 
 export default HomeCar;
 
+// Native piano-horizontal.svg is 48x33 — keeping the box at that ratio (instead of
+// forcing it into a square) means rotating for vertical legs doesn't change the
+// car's apparent size, unlike swapping to a separately-shaped image did before.
+const CAR_WIDTH_PERCENT = 7;
+const CAR_HEIGHT_PERCENT = CAR_WIDTH_PERCENT * (33 / 48);
+
 function CarSprite({
   left,
   top,
-  scale,
   orientation,
 }: {
   left: MotionValue<number>;
   top: MotionValue<number>;
-  scale: MotionValue<number>;
   orientation: "horizontal" | "vertical";
 }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: "home-map-car" });
@@ -139,20 +139,21 @@ function CarSprite({
       {...listeners}
       {...attributes}
       className="absolute cursor-grab active:cursor-grabbing touch-none pointer-events-auto"
+      animate={{ rotate: orientation === "vertical" ? 90 : 0 }}
+      transition={{ duration: 0.2 }}
       style={{
         left: leftPct,
         top: topPct,
-        width: "5%",
-        height: "5%",
+        width: `${CAR_WIDTH_PERCENT}%`,
+        height: `${CAR_HEIGHT_PERCENT}%`,
         translateX: "-50%",
         translateY: "-50%",
         x: transform?.x ?? 0,
         y: transform?.y ?? 0,
-        scale,
       }}
     >
       <Image
-        src={orientation === "horizontal" ? "/home/car/piano-horizontal.svg" : "/home/car/piano-vertical.svg"}
+        src="/home/car/piano-horizontal.svg"
         alt="Car"
         fill
         draggable={false}
