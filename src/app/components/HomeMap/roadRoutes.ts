@@ -5,8 +5,8 @@
 
 export type Point = { x: number; y: number };
 
-/** Car's idle/home spot: the base of the 4th (unlabeled, non-clickable) building. */
-export const HOME: Point = { x: 72.93, y: 63.81 };
+/** Car's idle/home spot: the center of the roundabout. */
+export const HOME: Point = { x: 52.29, y: 39.62 };
 
 export type DestinationHref = "/shop" | "/about/why-choose-us" | "/games";
 
@@ -14,14 +14,6 @@ export type DestinationHref = "/shop" | "/about/why-choose-us" | "/games";
 export const ROUTES: Record<DestinationHref, Point[]> = {
   "/shop": [
     HOME,
-    { x: 71.77, y: 63.81 },
-    { x: 69.14, y: 60.86 },
-    { x: 69.14, y: 59.8 },
-    { x: 66.57, y: 56.91 },
-    { x: 64.0, y: 54.02 },
-    { x: 64.0, y: 39.75 }, // onto the main road
-    { x: 57.0, y: 39.75 }, // roundabout east entry
-    { x: 52.29, y: 39.62 }, // roundabout center
     { x: 52.37, y: 35.19 }, // roundabout north entry
     { x: 52.37, y: 30.67 }, // Bookstore junction
     { x: 50.93, y: 30.67 },
@@ -31,26 +23,13 @@ export const ROUTES: Record<DestinationHref, Point[]> = {
   ],
   "/about/why-choose-us": [
     HOME,
-    { x: 71.77, y: 63.81 },
-    { x: 69.14, y: 60.86 },
-    { x: 69.14, y: 59.8 },
-    { x: 66.57, y: 56.91 },
-    { x: 64.0, y: 54.02 },
-    { x: 64.0, y: 39.75 }, // onto the main road
+    { x: 57.0, y: 39.75 }, // roundabout east entry
     { x: 71.22, y: 39.75 }, // About junction
     { x: 71.22, y: 38.26 },
     { x: 71.22, y: 35.15 }, // About
   ],
   "/games": [
     HOME,
-    { x: 71.77, y: 63.81 },
-    { x: 69.14, y: 60.86 },
-    { x: 69.14, y: 59.8 },
-    { x: 66.57, y: 56.91 },
-    { x: 64.0, y: 54.02 },
-    { x: 64.0, y: 39.75 }, // onto the main road
-    { x: 57.0, y: 39.75 }, // roundabout east entry
-    { x: 52.29, y: 39.62 }, // roundabout center
     { x: 52.48, y: 44.27 }, // roundabout south entry
     { x: 52.48, y: 68.85 },
     { x: 51.16, y: 70.33 },
