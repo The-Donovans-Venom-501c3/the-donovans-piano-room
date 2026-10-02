@@ -26,6 +26,10 @@ import type { GameType, OptionClickHandler } from "../../types";
 
 const DEFAULT_LIVES = 3;
 
+// Games whose SVG images already have the question text drawn inside the image.
+// For these, we do NOT render the extra <p> question text above the options.
+const GAMES_WITH_CAPTION_IN_IMAGE: string[] = ["note"];
+
 const QuizSectionReading = () => {
   const level = useAtomValue(levelStateAtom);
   const [questionNum, setQuestionNum] = useAtom(questionAtom);
@@ -236,17 +240,21 @@ const QuizSectionStandard = ({ game: rawGame }: { game: GameType }) => {
   };
 
   const displayTextMap: Record<string, string> = {
-  note: "What note is shown?",
-  key: "What key signature is shown?",
-  "major-minor": "What major/minor is shown?",
-  scale: "What scale is shown?",
-  interval: "What interval is shown?",
-  chord: "What chord is shown?",
-  ledger: "What ledger line is shown?",
-  reading: "Can you find the missing letters?",
-};
+    note: "What note is shown?",
+    key: "What key signature is shown?",
+    "major-minor": "What major/minor is shown?",
+    scale: "What scale is shown?",
+    interval: "What interval is shown?",
+    chord: "What chord is shown?",
+    ledger: "What ledger line is shown?",
+    reading: "Can you find the missing letters?",
+  };
 
   const displayText = displayTextMap[game] ?? "What element is shown?";
+
+  // The note-identification SVGs already contain "What note is shown?",
+  // so skip the duplicate text for those games.
+  const imageHasCaption = GAMES_WITH_CAPTION_IN_IMAGE.includes(game);
 
   return (
     <div className="quizSection">
@@ -259,7 +267,7 @@ const QuizSectionStandard = ({ game: rawGame }: { game: GameType }) => {
         <img src={currQuestion.questionImage} alt="Question" />
       </div>
       <div className="questionText">
-        <p>{displayText}</p>
+        {!imageHasCaption && <p>{displayText}</p>}
         <Options handleOptionClick={handleOptionClick} />
       </div>
 
