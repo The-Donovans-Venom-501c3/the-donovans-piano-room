@@ -40,12 +40,15 @@ export default function SignupPayment() {
         </p>
       </div>
 
-      <div className="pt-2">
+      <div className="pt-2 text-center">
         <Button1
           type="button"
           text="Continue to Summary"
           onClick={handleNextStep}
         />
+        <p className="text-white/90 text-sm font-medium mt-3 leading-relaxed">
+          Beta Scholarship is FREE till Nov 27, 2026. Please click the button to complete your signup
+        </p>
       </div>
     </section>
   );
