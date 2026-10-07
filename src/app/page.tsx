@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useAtomValue } from "jotai";
 import { profileAtom } from "@/utils/stores";
 import HomeCar, { type HomeCarHandle } from "@/app/components/HomeMap/HomeCar";
+import { BUILDING_HIT_BOXES } from "@/app/components/HomeMap/roadRoutes";
 
 // TRACKS array matching exact audio filenames while displaying full title with artist credit
 const TRACKS = [
@@ -168,7 +169,7 @@ export default function Home() {
           <div className="relative w-[60%] h-[100%]">
             {/* Matches exactly where map.svg (761x677) actually renders inside the box
                 above via object-contain, so the car's road math lines up with the art
-                instead of the letterboxed empty space around it. The Shop/About/Games
+                instead of the letterboxed empty space around it. The Bookstore/About/Games
                 labels and music badge below stay positioned against the outer box
                 directly (their percentages were tuned against that frame originally,
                 same as the live site — moving them in here would shift them off). */}
@@ -180,6 +181,23 @@ export default function Home() {
                 fill
                 alt="Map"
               />
+
+              {/* Clicking a house itself also drives the car there, same as the word links below */}
+              {BUILDING_HIT_BOXES.map((building) => (
+                <button
+                  key={building.href}
+                  type="button"
+                  aria-label={building.label}
+                  onClick={() => carRef.current?.driveTo(building.href)}
+                  className="absolute z-10 cursor-pointer"
+                  style={{
+                    left: `${building.box.left}%`,
+                    top: `${building.box.top}%`,
+                    width: `${building.box.width}%`,
+                    height: `${building.box.height}%`,
+                  }}
+                />
+              ))}
 
               {/* Animated car: idles at home, drives to whichever building is clicked or dragged onto */}
               <HomeCar ref={carRef} />
@@ -193,8 +211,8 @@ export default function Home() {
                 carRef.current?.driveTo("/shop");
               }}
             >
-              <button className="absolute font-mountains font-bold left-[34%] top-[20%] -translate-x-1/2 -translate-y-1/2 xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200 z-10">
-                Shop
+              <button className="absolute font-mountains font-bold left-[34%] top-[16%] -translate-x-1/2 -translate-y-1/2 xl:text-[28px] sm:max-md:text-[16px] md:max-lg:text-[18px] lg:max-xl:text-[20px] xl:max-2xl:text-[26px] text-green-accent hover:text-gray-200 z-10">
+                Bookstore
               </button>
             </Link>
 
