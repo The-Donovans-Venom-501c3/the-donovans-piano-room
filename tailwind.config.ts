@@ -54,7 +54,7 @@ const config: Config = {
       fontFamily: {
         montserrat: ['Montserrat', 'sans-serif'],
         roboto: ['Roboto', 'sans-serif'],
-        mountains: ['"Mountains of Christmas"', 'cursive'],
+        mountains: ['var(--font-mountains-of-christmas)', 'cursive'],
       },
       boxShadow: {
         'custom': '2px 2px 4px 0px #AC7A2280', // Custom box shadow
