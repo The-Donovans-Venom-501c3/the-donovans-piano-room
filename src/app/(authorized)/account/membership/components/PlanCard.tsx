@@ -80,13 +80,13 @@ export default function PlanCard({
   showCurrentInHeader = true,
   showExpirationMessage = true,
   chooseButton,
-  isBeta = true,
+  isBeta = false, // Set default to false for production
 }: PlanCardProps) {
   const router = useRouter();
   const isScholarship = isScholarshipProp || plan?.planName === "Scholarship";
   const isCurrentPlan = isScholarship || plan?.isCurrent;
 
-  // Display annual total ($239.88) for Yearly, otherwise fall back to price string
+  // Display annual total (\$239.88) for Yearly, otherwise fall back to price string
   const rawPrice =
     plan?.planName === "Yearly"
       ? plan?.yearlyPrice || "239.88"
@@ -266,7 +266,7 @@ export default function PlanCard({
               className={`w-full py-3 px-4 rounded-full text-sm sm:text-base font-black transition-all ${
                 isBeta
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 pointer-events-none shadow-none"
-                  : `active:scale-95 cursor-pointer shadow-md ${theme.buttonBg}`
+                  : `active:scale-95 cursor-pointer shadow-md \${theme.buttonBg}`
               }`}
             >
               {isBeta ? "Choose plan" : chooseButton?.text || "Choose plan"}

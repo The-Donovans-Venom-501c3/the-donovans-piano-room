@@ -72,12 +72,11 @@ interface DiscountSectionProps {
   isBeta?: boolean;
 }
 
-function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSectionProps) {
+function DiscountSection({ membershipId, currentKey, isBeta = false }: DiscountSectionProps) {
   const [discountCode, setDiscountCode] = useState("");
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Safely retrieve user email dynamically using optional chaining
   const formData = useAtomValue(signupFormDataAtom);
   const profile = useAtomValue(profileAtom);
   const userEmail = formData?.email || profile?.email || "";
@@ -177,7 +176,7 @@ function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSe
   );
 }
 
-export default function MembershipIncludes({ isBeta = true }: { isBeta?: boolean }) {
+export default function MembershipIncludes({ isBeta = false }: { isBeta?: boolean }) {
   const membershipChoice = useAtomValue(membershipChoiceAtom);
 
   const currentKey =

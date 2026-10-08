@@ -6,7 +6,7 @@ import {
   membershipChoiceAtom, 
   membershipTypes, 
   signupStepAtom, 
-  couponVerifiedAtom // Shared state to track coupon success
+  couponVerifiedAtom 
 } from "@/utils/stores";
 import SignupHeader from "../SignupHeader";
 import MembershipIncludes from "./MembershipIncludes";
@@ -16,7 +16,7 @@ interface MembershipSelectionLayoutProps {
 }
 
 export default function MembershipSelectionLayout({
-  isBeta = true,
+  isBeta = false, // Changed default to false
 }: MembershipSelectionLayoutProps) {
   const [membershipChoice, setMembershipChoice] = useAtom(membershipChoiceAtom);
   const isCouponVerified = useAtomValue(couponVerifiedAtom);
@@ -24,7 +24,7 @@ export default function MembershipSelectionLayout({
 
   const isScholarship = membershipChoice === membershipTypes["scholarship"];
 
-  // Logic to determine if the submit button should be disabled
+  // Enable button for any selected plan when isBeta is false
   const isButtonDisabled = isBeta 
     ? (isScholarship ? !isCouponVerified : true)
     : !membershipChoice;
@@ -38,7 +38,6 @@ export default function MembershipSelectionLayout({
 
   return (
     <div className="w-full min-h-[calc(100vh-160px)] flex items-center justify-center py-12 px-4">
-      {/* Outer wrapper centered on screen */}
       <div className="w-full max-w-[880px] mx-auto flex flex-col md:flex-row gap-8 items-start justify-center">
 
         {/* LEFT COLUMN */}
@@ -52,10 +51,12 @@ export default function MembershipSelectionLayout({
               navLink="/"
               navName="Account"
             />
-            {/* 1. Added 1-liner under Select Membership title */}
-            <p className="text-[#FACC15] font-semibold text-sm sm:text-base mt-2">
-              For Beta version, choose Scholarship and apply code: TDPRBETA
-            </p>
+            {/* Show Beta warning text only when in Beta mode */}
+            {isBeta && (
+              <p className="text-[#FACC15] font-semibold text-sm sm:text-base mt-2">
+                For Beta version, choose Scholarship and apply code: TDPRBETA
+              </p>
+            )}
           </div>
 
           <form onSubmit={goToPayment} className="w-full flex flex-col gap-5">
@@ -279,8 +280,8 @@ export default function MembershipSelectionLayout({
                 </button>
               )}
 
-              {/* Updated: Yellow text, larger font size (text-sm sm:text-base), and bold */}
-              {(!isButtonDisabled || isScholarship) && (
+              {/* Show Beta disclaimer only when in Beta mode */}
+              {isBeta && (!isButtonDisabled || isScholarship) && (
                 <p className="text-[#FACC15] text-sm sm:text-base font-bold mt-3 leading-snug">
                   Beta Scholarship is FREE till Nov 27, 2026. Please click the button to complete your signup
                 </p>

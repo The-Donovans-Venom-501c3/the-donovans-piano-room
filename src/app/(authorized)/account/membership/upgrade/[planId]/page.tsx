@@ -16,10 +16,10 @@ import {
   previewMembershipUpgrade, 
   requestMembershipUpgrade 
 } from "@/lib/api/membershipService";
-import Payment from "../../components/Payment";
-import PlanCard from "../../components/PlanCard";
-import Popup from "../../components/Popup";
-import PaymentMethodSelectionPopup from "../../components/PaymentMethodSelectionPopup";
+import Payment from "@/app/(authorized)/account/membership/components/Payment";
+import PlanCard from "@/app/(authorized)/account/membership/components/PlanCard";
+import Popup from "@/app/(authorized)/account/membership/components/Popup";
+import PaymentMethodSelectionPopup from "@/app/(authorized)/account/membership/components/PaymentMethodSelectionPopup";
 import { 
   UserMembership, 
   MembershipLevelId, 
@@ -28,10 +28,10 @@ import {
   UpgradePreview, 
   UpgradeResponse 
 } from "@/interfaces/membershipInterface";
-import { PopupType, ButtonConfig, getYearlyPriceMultiplier } from "../../config";
+import { PopupType, ButtonConfig, getYearlyPriceMultiplier } from "@/app/(authorized)/account/membership/config";
 import "@/styles/primary-purple-scrollbar.css";
 
-// Map planId from URL to MembershipLevelId
+// Map planId slug from URL to MembershipLevelId
 const PLAN_ID_MAP: Record<string, MembershipLevelId> = {
   'yearly': MembershipLevelId.YEAR,
   'monthly': MembershipLevelId.MONTH,
@@ -60,13 +60,11 @@ export default function UpgradeConfirmationPage() {
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [effectiveDate, setEffectiveDate] = useState<string | null>(null);
 
-  // Get the MembershipLevelId from the URL parameter
   const levelId = PLAN_ID_MAP[planId];
 
   useEffect(() => {
     let isMounted = true;
     
-    // Validate planId
     if (!levelId) {
       setError("Invalid plan selected");
       setLoading(false);
@@ -87,12 +85,12 @@ export default function UpgradeConfirmationPage() {
         setMembership(userMembership);
         setSelectedPlan({ 
           ...planDetails, 
-          isCurrent: false, // This is a selected plan, not current
+          isCurrent: false,
           isPopular: planDetails.levelId === MembershipLevelId.YEAR,
           yearlyPrice: (planDetails.price * getYearlyPriceMultiplier(levelId)).toFixed(2)
         });
 
-        // Check if user already has the target membership level (successful upgrade)
+        // Redirect if user already owns this tier
         if (userMembership.levelId === levelId) {
           setTimeout(() => {
             router.push('/account/membership');
@@ -100,18 +98,16 @@ export default function UpgradeConfirmationPage() {
           return;
         }
 
-        // Check if user is switching from scholarship plan
+        // Prompt warning if user moves off scholarship plan
         if (userMembership.levelId === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
           setShowScholarshipWarningPopup(true);
         }
         
-        // Set payment methods and select default
         const methods = paymentMethodsData.data || [];
         setPaymentMethods(methods);
         const defaultMethod = methods.find((method: PaymentMethod) => method.isDefault) || methods[0];
         setSelectedPaymentMethod(defaultMethod);
         
-        // Get switch preview if we have the required data
         if (planDetails?.levelId) {
           const memberIdMap = {
             [MembershipLevelId.FREE]: '003',
@@ -147,7 +143,8 @@ export default function UpgradeConfirmationPage() {
   }, [levelId, router]);
 
   const handleBackButton = () => {
-    router.push('/account/membership/upgrade');
+    // Correct route target back to main dashboard
+    router.push('/account/membership');
   };
 
   const handleBackClick = () => {
@@ -243,7 +240,7 @@ export default function UpgradeConfirmationPage() {
 
   const handleScholarshipWarningCancel = () => {
     setShowScholarshipWarningPopup(false);
-    router.push('/account/membership/upgrade');
+    router.push('/account/membership');
   };
 
   const handleRetry = () => {
@@ -258,14 +255,14 @@ export default function UpgradeConfirmationPage() {
       text: 'Add payment method',
       disabled: false,
       loading: false,
-      style: 'w-full rounded-full bg-primary-purple px-6 py-5 text-center text-white'
+      style: 'w-full rounded-full bg-primary-purple px-6 py-5 text-center text-white cursor-pointer'
     },
     {
       onClick: handleBackClick,
       text: 'Back',
       disabled: false,
       loading: false,
-      style: 'w-full rounded-full px-6 py-5 text-center border border-primary-purple text-primary-purple'
+      style: 'w-full rounded-full px-6 py-5 text-center border border-primary-purple text-primary-purple cursor-pointer'
     }
   ];
 
@@ -298,7 +295,7 @@ export default function UpgradeConfirmationPage() {
           </p>
           <button 
             onClick={handleBackButton}
-            className="mt-4 text-primary-purple text-xl underline"
+            className="mt-4 text-primary-purple text-xl underline cursor-pointer"
           >
             ← Back to membership
           </button>
@@ -322,7 +319,7 @@ export default function UpgradeConfirmationPage() {
           >
             <Image
               className="h-5 w-5 shrink-0"
-              src="../../../../memberships/upgrade/arrow_back_FILL0_wght400_GRAD0_opsz24 1.svg"
+              src="/memberships/upgrade/arrow_back_FILL0_wght400_GRAD0_opsz24 1.svg"
               alt="Back arrow"
               width={20}
               height={20}
@@ -356,12 +353,12 @@ export default function UpgradeConfirmationPage() {
                 Select your plan
               </h1>
               <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">
-                There are multiple membership you can choose from, select the one that best suits your interests.
+                There are multiple memberships you can choose from, select the one that best suits your interests.
               </p>
             </>
           )}
           
-          <div className='mt-[5vh] mb-[5vh] bg-[#FED2AA] h-1'></div>
+          <div className="mt-[5vh] mb-[5vh] bg-[#FED2AA] h-1"></div>
 
           <div className="grid w-full grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-9 md:max-w-[1000px]">
             <div className="flex flex-1 flex-col gap-6 rounded-xl bg-primary-skin p-6">
@@ -369,7 +366,6 @@ export default function UpgradeConfirmationPage() {
                 Selected plan
               </h1>
 
-              {/* Clean PlanCard call with no invalid uiConfig prop */}
               <PlanCard plan={selectedPlan} />
               
               {upgradePreview && upgradePreview.proration && (
@@ -388,7 +384,7 @@ export default function UpgradeConfirmationPage() {
                 <div className="mt-4 flex w-full justify-end text-3xl gap-4 font-semibold">
                   <button
                     type="button"
-                    className="w-auto rounded-full bg-primary-purple px-6 py-5 text-center text-white cursor-pointer"
+                    className="w-auto rounded-full bg-primary-purple px-6 py-5 text-center text-white cursor-pointer hover:bg-purple-700"
                     onClick={handleSwitch}
                   >
                     Confirm Plan Selection

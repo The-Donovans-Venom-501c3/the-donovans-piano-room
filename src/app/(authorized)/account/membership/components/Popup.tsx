@@ -6,7 +6,6 @@ interface PopupProps {
   type: PopupType;
   primaryButton?: ButtonConfig;
   secondaryButton?: ButtonConfig;
-  // Custom dynamic content override (useful for rendering custom Beta notices)
   customTitle?: string;
   customContent?: string;
 }
@@ -56,7 +55,7 @@ export default function Popup({
               disabled={primaryButton.disabled || primaryButton.loading}
               className={
                 primaryButton.style ||
-                `flex-1 text-white px-6 py-3 rounded-full font-medium transition-colors ${
+                `flex-1 text-white px-6 py-3 rounded-full font-medium transition-colors cursor-pointer ${
                   config.primaryButtonStyle || "bg-primary-purple hover:bg-purple-700"
                 }`
               }
@@ -75,7 +74,7 @@ export default function Popup({
               disabled={secondaryButton.disabled || secondaryButton.loading}
               className={
                 secondaryButton.style ||
-                `flex-1 px-6 py-3 rounded-full font-medium transition-colors ${
+                `flex-1 px-6 py-3 rounded-full font-medium transition-colors cursor-pointer ${
                   config.secondaryButtonStyle || "border border-gray-300 text-gray-700 hover:bg-gray-100"
                 }`
               }

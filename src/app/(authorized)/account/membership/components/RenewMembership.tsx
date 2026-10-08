@@ -1,15 +1,17 @@
+"use client";
+
 import { formatRenewalDate } from "@/app/(authorized)/account/membership/config";
 
 interface RenewMembershipProps {
   nextRenewalAt?: string;
   onRenewClick?: () => void;
-  isBeta?: boolean; // Controls Beta UI mode
+  isBeta?: boolean;
 }
 
 export default function RenewMembership({
   nextRenewalAt,
   onRenewClick,
-  isBeta = true, // Default to true for Beta launch
+  isBeta = false,
 }: RenewMembershipProps) {
   const formattedDate = formatRenewalDate(nextRenewalAt);
 
@@ -24,26 +26,27 @@ export default function RenewMembership({
       <p className="text-2xl text-primary-black">
         {isBeta ? (
           <>
-            Your membership active status is managed annually. Renewals are paused during <span className="font-semibold text-tertiary-orange">The Piano Room Beta</span>.
+            Your membership active status is managed annually. Renewals are paused during{" "}
+            <span className="font-semibold text-tertiary-orange">The Piano Room Beta</span>.
           </>
         ) : (
           <>
-            Your membership will expire on <span className="font-semibold text-tertiary-orange">{formattedDate || '--/--/----'}</span>. To continue enjoying exclusive benefits, please renew manually.
+            Your membership active status is managed annually. To continue enjoying exclusive benefits, please renew manually.
+            {formattedDate && (
+              <span className="block mt-2 font-semibold text-tertiary-orange">
+                Expires on: {formattedDate}
+              </span>
+            )}
           </>
         )}
       </p>
 
-      {/* Renew Button (Disabled & Grayed out in Beta mode) */}
+      {/* Renew Button */}
       <div className="mt-4 flex w-full justify-center">
         <button
           type="button"
-          disabled={isBeta}
-          onClick={isBeta ? undefined : onRenewClick}
-          className={`w-full rounded-full px-6 py-5 text-center font-semibold text-3xl transition-all ${
-            isBeta
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 pointer-events-none"
-              : "bg-primary-purple text-white hover:bg-purple-700"
-          }`}
+          onClick={onRenewClick}
+          className="w-full rounded-full px-6 py-5 text-center font-semibold text-3xl transition-all cursor-pointer bg-primary-purple text-white hover:bg-purple-700 shadow-md active:scale-[0.98]"
         >
           Renew Membership
         </button>
