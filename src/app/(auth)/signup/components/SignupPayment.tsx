@@ -23,21 +23,9 @@ export default function SignupPayment() {
         stepName="Add your payment method"
       />
 
+      {/* Payment Form Area */}
       <div className="my-6 space-y-4 text-white">
-        <p className="text-lg md:text-xl 2xl:text-2xl 4xl:text-3xl font-medium">
-          We are not accepting payment during our Beta!
-        </p>
-        <p className="text-lg md:text-xl 2xl:text-2xl 4xl:text-3xl font-medium">
-          If you want to support us by donating view our{" "}
-          <Link
-            href="https://www.paypal.com/donate?hosted_button_id=3HAXBG4AGR83Y"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline font-semibold"
-          >
-            Donation Page.
-          </Link>
-        </p>
+        {/* Render payment processing / card entry components here */}
       </div>
 
       <div className="pt-2 text-center">
@@ -46,9 +34,6 @@ export default function SignupPayment() {
           text="Continue to Summary"
           onClick={handleNextStep}
         />
-        <p className="text-white/90 text-sm font-medium mt-3 leading-relaxed">
-          Beta Scholarship is FREE till Nov 27, 2026. Please click the button to complete your signup
-        </p>
       </div>
     </section>
   );

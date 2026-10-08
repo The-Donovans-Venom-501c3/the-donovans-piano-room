@@ -62,14 +62,10 @@ export default function AuthorizedLayout({
     return <>{children}</>;
   }
 
-  // Show loading indicator only on initial load without state
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-[#521C75] text-white">
-        <p className="text-xl font-bold">Verifying Session...</p>
-      </div>
-    );
-  }
-
-  return null;
+  // Show loading indicator during initial verification or pending redirect
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#521C75] text-white">
+      <p className="text-xl font-bold">Verifying Session...</p>
+    </div>
+  );
 }

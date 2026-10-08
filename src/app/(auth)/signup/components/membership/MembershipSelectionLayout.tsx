@@ -13,21 +13,24 @@ import MembershipIncludes from "./MembershipIncludes";
 
 interface MembershipSelectionLayoutProps {
   isBeta?: boolean;
+  appliedPromoCode?: string;
 }
 
 export default function MembershipSelectionLayout({
-  isBeta = false, // Changed default to false
+  isBeta = false,
+  appliedPromoCode = "",
 }: MembershipSelectionLayoutProps) {
   const [membershipChoice, setMembershipChoice] = useAtom(membershipChoiceAtom);
   const isCouponVerified = useAtomValue(couponVerifiedAtom);
   const setSignupStep = useSetAtom(signupStepAtom);
 
   const isScholarship = membershipChoice === membershipTypes["scholarship"];
+  const isBetaUnlocked = !isBeta || appliedPromoCode === "TDPRBETA" || isCouponVerified;
 
-  // Enable button for any selected plan when isBeta is false
-  const isButtonDisabled = isBeta 
-    ? (isScholarship ? !isCouponVerified : true)
-    : !membershipChoice;
+  // Enable button if beta condition is passed or if user selected a valid option
+  const isButtonDisabled = isBetaUnlocked 
+    ? (isScholarship ? !isCouponVerified : !membershipChoice)
+    : true;
 
   const goToPayment = (e: FormEvent) => {
     e.preventDefault();
@@ -51,8 +54,7 @@ export default function MembershipSelectionLayout({
               navLink="/"
               navName="Account"
             />
-            {/* Show Beta warning text only when in Beta mode */}
-            {isBeta && (
+            {isBeta && !isBetaUnlocked && (
               <p className="text-[#FACC15] font-semibold text-sm sm:text-base mt-2">
                 For Beta version, choose Scholarship and apply code: TDPRBETA
               </p>
@@ -94,7 +96,7 @@ export default function MembershipSelectionLayout({
                       24-Hour membership
                     </p>
                     <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
-                      $1.99 now <span className="font-normal text-gray-500">($726.35/year, Billed daily)</span>
+                      \$1.99 now <span className="font-normal text-gray-500">(\$726.35/year, Billed daily)</span>
                     </p>
                   </div>
                 </div>
@@ -132,7 +134,7 @@ export default function MembershipSelectionLayout({
                       Monthly membership
                     </p>
                     <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
-                      $29.99/month <span className="font-normal text-gray-500">($359.88/year, Billed monthly)</span>
+                      \$29.99/month <span className="font-normal text-gray-500">(\$359.88/year, Billed monthly)</span>
                     </p>
                   </div>
                 </div>
@@ -170,7 +172,7 @@ export default function MembershipSelectionLayout({
                       Yearly membership
                     </p>
                     <p className="text-gray-600 font-semibold text-xs sm:text-sm mt-0.5">
-                      $239.88/year <span className="font-normal text-gray-500">($19.99/mo, Billed yearly)</span>
+                      \$239.88/year <span className="font-normal text-gray-500">(\$19.99/mo, Billed yearly)</span>
                     </p>
                   </div>
                 </div>
@@ -256,36 +258,19 @@ export default function MembershipSelectionLayout({
 
             {/* CTA Button Dynamic Rendering */}
             <div className="w-full pt-2 text-center">
-              {isBeta && membershipChoice && !isScholarship ? (
-                <button
-                  type="button"
-                  disabled
-                  className="w-full py-4 px-5 rounded-full bg-[#BBB5C6] text-gray-800 font-extrabold text-base cursor-not-allowed text-center transition-all shadow-md"
-                >
-                  Available at a Later Date
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isButtonDisabled}
-                  className={`w-full py-4 px-5 rounded-full font-extrabold text-base text-center transition-all shadow-md ${
-                    !isButtonDisabled
-                      ? "bg-[#FACC15] text-black hover:bg-[#eab308] cursor-pointer"
-                      : "bg-[#BBB5C6] text-gray-700 cursor-not-allowed"
-                  }`}
-                >
-                  {isScholarship && !isCouponVerified 
-                    ? "Enter Scholarship Code" 
-                    : "Continue to payment method"}
-                </button>
-              )}
-
-              {/* Show Beta disclaimer only when in Beta mode */}
-              {isBeta && (!isButtonDisabled || isScholarship) && (
-                <p className="text-[#FACC15] text-sm sm:text-base font-bold mt-3 leading-snug">
-                  Beta Scholarship is FREE till Nov 27, 2026. Please click the button to complete your signup
-                </p>
-              )}
+              <button
+                type="submit"
+                disabled={isButtonDisabled}
+                className={`w-full py-4 px-5 rounded-full font-extrabold text-base text-center transition-all shadow-md ${
+                  !isButtonDisabled
+                    ? "bg-[#FACC15] text-black hover:bg-[#eab308] cursor-pointer"
+                    : "bg-[#BBB5C6] text-gray-700 cursor-not-allowed"
+                }`}
+              >
+                {isScholarship && !isCouponVerified 
+                  ? "Enter Scholarship Code" 
+                  : "Continue to payment method"}
+              </button>
             </div>
           </form>
         </div>
