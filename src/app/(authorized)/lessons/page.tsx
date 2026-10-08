@@ -6,6 +6,7 @@ import { nav4leftLinks } from "@/utils/stores";
 import EbooksComponent from "./components/EbooksComponent";
 import VideosComponent from "./components/VideosComponent";
 import LiveSessionsComponent from "./components/LiveSessionsComponent";
+import AudiobooksComponent from "./components/AudiobooksComponent";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { lessons, type Lesson } from "./components/Lesson";
 import VideoDetail from "./components/VideoDetailPage";
@@ -103,11 +104,7 @@ function LessonsPageContent() {
         return <LiveSessionsComponent searchQuery={searchQuery} />;
 
       case "audiobooks":
-        return (
-          <div className="p-6 text-[#3F3B3C] text-lg font-medium text-center py-12">
-            Audiobooks coming soon
-          </div>
-        );
+        return <AudiobooksComponent searchQuery={searchQuery} />;
 
       case "ear-training":
         return (

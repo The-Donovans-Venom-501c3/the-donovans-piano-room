@@ -39,3 +39,6 @@ next-env.d.ts
 # drizzle orm
 /drizzle
 tdpr-backend/
+
+# audiobook mp3s are too large for GitHub (>100MB); local copies only until external hosting is set up
+/public/audio/audiobooks/
