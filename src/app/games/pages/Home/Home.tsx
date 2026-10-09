@@ -16,7 +16,9 @@ import {
 // Imports from types and utils using correct relative paths
 import type { GameType, Level, Question } from "../../types";
 import { getQuestions } from "../../utils/questions";
+
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
+import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
 
 import "./Home.scss";
 
@@ -89,7 +91,7 @@ export default function Home() {
   const [selectedGameTitle, setSelectedGameTitle] = useState("Note Identification Game");
   const [selectedGameKey, setSelectedGameKey] = useState<GameType>("note");
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [, setSelectedLevel] = useState<DifficultyLevel | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<DifficultyLevel | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "report">("dashboard");
   const setLoadingState = useSetAtom(loadingStateAtom);
   const setQuizState = useSetAtom(quizStateAtom);
@@ -668,9 +670,18 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* Display number pad for Music x Math, JSON Multiple Choice Options if present, else fallback to full keyboard */}
+                    {
+                      /*
+                        Display number pad for Music x Math,
+                        note buttons for Note Identification,
+                        JSON Multiple Choice Options if present,
+                        else fallback to full keyboard
+                      */
+                    }
                     {selectedGameKey === "math" ? (
                       <MathOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : selectedGameKey === "note" ? (
+                      <NoteOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
