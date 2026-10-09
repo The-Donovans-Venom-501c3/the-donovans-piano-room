@@ -673,7 +673,7 @@ export default function Home() {
                     {
                       /*
                         Use each game's Options components if present,
-                        JSON Multiple Choice Options if present,
+                        else use JSON Multiple Choice Options if present,
                         else fallback to full keyboard
                       */
                     }
