@@ -18,6 +18,7 @@ import type { GameType, Level, Question } from "../../types";
 import { getQuestions } from "../../utils/questions";
 
 import ChordOptions from "../../components/QuizSection/Options/ChordOptions/ChordOptions";
+import IntervalOptions from "../../components/QuizSection/Options/IntervalOptions/IntervalOptions";
 import KeyOptions from "../../components/QuizSection/Options/KeyOptions/KeyOptions";
 import LedgerOptions from "../../components/QuizSection/Options/LedgerOptions/LedgerOptions";
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
@@ -682,6 +683,7 @@ export default function Home() {
                         key buttons for Key Signature Identification,
                         note buttons for Ledger Line Addition,
                         note and scale type buttons for Scale Identification,
+                        interval buttons for Interval Identification,
                         JSON Multiple Choice Options if present,
                         else fallback to full keyboard
                       */
@@ -698,6 +700,8 @@ export default function Home() {
                       <LedgerOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : selectedGameKey === "scale" ? (
                       <ScaleOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                    ) : selectedGameKey === "interval" ? (
+                      <IntervalOptions handleOptionClick={handleAnswerSubmit} />
                     ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
