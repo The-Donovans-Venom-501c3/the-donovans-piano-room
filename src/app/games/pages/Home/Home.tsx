@@ -16,6 +16,7 @@ import {
 // Imports from types and utils using correct relative paths
 import type { GameType, Level, Question } from "../../types";
 import { getQuestions } from "../../utils/questions";
+import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
 
 import "./Home.scss";
 
@@ -208,11 +209,17 @@ export default function Home() {
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
 
+  useEffect(() => {
+    console.log("currentQuestion", questionIndex, currentQuestion);
+  }, [questionIndex, currentQuestion]);
+
   const handleAnswerSubmit = (selectedOption: string) => {
     if (answerStatus !== null || !currentQuestion) return;
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
+
+    console.log('selected option', selectedOption, 'expected answer', expectedAnswer)
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
@@ -661,8 +668,10 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* Display JSON Multiple Choice Options if present, else fallback to full keyboard */}
-                    {currentQuestion?.options && currentQuestion.options.length > 0 ? (
+                    {/* Display number pad for Music x Math, JSON Multiple Choice Options if present, else fallback to full keyboard */}
+                    {selectedGameKey === "math" ? (
+                      <MathOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
                         style={{
