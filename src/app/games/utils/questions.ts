@@ -6,6 +6,7 @@ import majorMinorData from "../data/majorMinorIdentification.json";
 import readingData from "../data/musicIsReading.json";
 import noteData from "../data/noteIdentification.json";
 import scaleData from "../data/scaleIdentification.json";
+import mathData from "../data/Musicxmath.json";
 
 import type { GameType, Level, Question } from "../types";
 
@@ -22,6 +23,7 @@ export const normalizeGameKey = (rawGame: string): GameType => {
   if (clean.includes("ledger")) return "ledger";
   if (clean.includes("interval")) return "interval";
   if (clean.includes("reading")) return "reading";
+  if (clean.includes("math")) return "math";
 
   return (rawGame as GameType) || "reading";
 };
@@ -61,6 +63,7 @@ const gameDataMap: Record<GameType, RawGameData> = {
   reading: readingData as unknown as RawGameData,
   note: noteData as unknown as RawGameData,
   scale: scaleData as unknown as RawGameData,
+  math: mathData as unknown as RawGameData,
 };
 
 function shuffleArray<T>(array: T[]): T[] {

@@ -37,8 +37,7 @@ const OPTIONS_REGISTRY: Record<string, (props: OptionRendererProps) => JSX.Eleme
   chord: ({ handleClick, level }) => <ChordOptions handleOptionClick={handleClick} level={level} />,
   ledger: ({ handleClick, level }) => <LedgerOptions handleOptionClick={handleClick} level={level} />,
   interval: ({ handleClick }) => <IntervalOptions handleOptionClick={handleClick} />,
-  musicxmath: ({ handleClick }) => <MusicxmathOptions handleOptionClick={handleClick} />,
-  "music-x-math": ({ handleClick }) => <MusicxmathOptions handleOptionClick={handleClick} />,
+  math: ({ handleClick }) => <MusicxmathOptions handleOptionClick={handleClick} />,
   reading: ({ displayText, currQuestion }) => (
     <ReadingOptions displayText={displayText} currQuestion={currQuestion} />
   ),

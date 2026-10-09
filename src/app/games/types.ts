@@ -6,7 +6,8 @@ export type GameType =
   | "chord"
   | "ledger"
   | "interval"
-  | "reading";
+  | "reading"
+  | "math";
 
 export type Level = "easy" | "medium" | "hard";
 
