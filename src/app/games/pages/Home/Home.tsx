@@ -22,6 +22,7 @@ import KeyOptions from "../../components/QuizSection/Options/KeyOptions/KeyOptio
 import LedgerOptions from "../../components/QuizSection/Options/LedgerOptions/LedgerOptions";
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
 import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
+import ScaleOptions from "../../components/QuizSection/Options/ScaleOptions/ScaleOptions";
 
 import "./Home.scss";
 
@@ -680,6 +681,7 @@ export default function Home() {
                         chord buttons for Chord Identification,
                         key buttons for Key Signature Identification,
                         note buttons for Ledger Line Addition,
+                        note and scale type buttons for Scale Identification,
                         JSON Multiple Choice Options if present,
                         else fallback to full keyboard
                       */
@@ -694,6 +696,8 @@ export default function Home() {
                       <KeyOptions handleOptionClick={handleAnswerSubmit} />
                     ) : selectedGameKey === "ledger" ? (
                       <LedgerOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                    ) : selectedGameKey === "scale" ? (
+                      <ScaleOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
