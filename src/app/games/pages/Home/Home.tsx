@@ -21,6 +21,7 @@ import ChordOptions from "../../components/QuizSection/Options/ChordOptions/Chor
 import IntervalOptions from "../../components/QuizSection/Options/IntervalOptions/IntervalOptions";
 import KeyOptions from "../../components/QuizSection/Options/KeyOptions/KeyOptions";
 import LedgerOptions from "../../components/QuizSection/Options/LedgerOptions/LedgerOptions";
+import MajorMinorOptions from "../../components/QuizSection/Options/MajorMinorOptions/MajorMinorOptions";
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
 import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
 import ScaleOptions from "../../components/QuizSection/Options/ScaleOptions/ScaleOptions";
@@ -681,6 +682,7 @@ export default function Home() {
                         note buttons for Note Identification,
                         chord buttons for Chord Identification,
                         key buttons for Key Signature Identification,
+                        scale type buttons for Major-Minor Identification,
                         note buttons for Ledger Line Addition,
                         note and scale type buttons for Scale Identification,
                         interval buttons for Interval Identification,
@@ -696,6 +698,8 @@ export default function Home() {
                       <ChordOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : selectedGameKey === "key" ? (
                       <KeyOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : selectedGameKey === "major-minor" ? (
+                      <MajorMinorOptions handleOptionClick={handleAnswerSubmit} />
                     ) : selectedGameKey === "ledger" ? (
                       <LedgerOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : selectedGameKey === "scale" ? (
