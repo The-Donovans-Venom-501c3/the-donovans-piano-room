@@ -385,11 +385,11 @@ export default function Home() {
                 <Button
                   icon={VirtualInstrument}
                   hoverIcon={VirtualInstrument}
-                  title="Virtual instrument"
-                  tips="Play virtual instruments"
+                  title="Music x Math"
+                  tips="Count beats, notes, and rests"
                   hoverColor="#ffffff"
                   hoverBorderColor="#ffffff"
-                  onClick={() => handleSelectGame("reading", "Virtual Instrument Game")}
+                  onClick={() => handleSelectGame("math", "Music x Math Game")}
                 />
                 <Button
                   icon={ScaleIdentification}
@@ -408,6 +408,15 @@ export default function Home() {
                   hoverColor="#ffffff"
                   hoverBorderColor="#ffffff"
                   onClick={() => handleSelectGame("interval", "Interval Identification Game")}
+                />
+                <Button
+                  icon={VirtualInstrument}
+                  hoverIcon={VirtualInstrument}
+                  title="Music is Reading"
+                  tips="Find the missing letters"
+                  hoverColor="#ffffff"
+                  hoverBorderColor="#ffffff"
+                  onClick={() => handleSelectGame("reading", "Music is Reading Game")}
                 />
               </div>
             </div>
