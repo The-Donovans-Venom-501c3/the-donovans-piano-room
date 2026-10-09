@@ -19,6 +19,7 @@ import { getQuestions } from "../../utils/questions";
 
 import ChordOptions from "../../components/QuizSection/Options/ChordOptions/ChordOptions";
 import KeyOptions from "../../components/QuizSection/Options/KeyOptions/KeyOptions";
+import LedgerOptions from "../../components/QuizSection/Options/LedgerOptions/LedgerOptions";
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
 import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
 
@@ -678,6 +679,7 @@ export default function Home() {
                         note buttons for Note Identification,
                         chord buttons for Chord Identification,
                         key buttons for Key Signature Identification,
+                        note buttons for Ledger Line Addition,
                         JSON Multiple Choice Options if present,
                         else fallback to full keyboard
                       */
@@ -690,6 +692,8 @@ export default function Home() {
                       <ChordOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : selectedGameKey === "key" ? (
                       <KeyOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : selectedGameKey === "ledger" ? (
+                      <LedgerOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
