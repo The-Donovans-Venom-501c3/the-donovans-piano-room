@@ -17,6 +17,7 @@ import {
 import type { GameType, Level, Question } from "../../types";
 import { getQuestions } from "../../utils/questions";
 
+import ChordOptions from "../../components/QuizSection/Options/ChordOptions/ChordOptions";
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
 import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
 
@@ -674,6 +675,7 @@ export default function Home() {
                       /*
                         Display number pad for Music x Math,
                         note buttons for Note Identification,
+                        chord buttons for Chord Identification,
                         JSON Multiple Choice Options if present,
                         else fallback to full keyboard
                       */
@@ -682,6 +684,8 @@ export default function Home() {
                       <MathOptions handleOptionClick={handleAnswerSubmit} />
                     ) : selectedGameKey === "note" ? (
                       <NoteOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                    ) : selectedGameKey === "chord" ? (
+                      <ChordOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
                     ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
