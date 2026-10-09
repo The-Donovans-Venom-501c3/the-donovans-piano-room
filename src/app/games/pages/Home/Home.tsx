@@ -217,17 +217,11 @@ export default function Home() {
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
 
-  useEffect(() => {
-    console.log("currentQuestion", questionIndex, currentQuestion);
-  }, [questionIndex, currentQuestion]);
-
   const handleAnswerSubmit = (selectedOption: string) => {
     if (answerStatus !== null || !currentQuestion) return;
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
-
-    console.log('selected option', selectedOption, 'expected answer', expectedAnswer)
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
@@ -678,14 +672,7 @@ export default function Home() {
 
                     {
                       /*
-                        Display number pad for Music x Math,
-                        note buttons for Note Identification,
-                        chord buttons for Chord Identification,
-                        key buttons for Key Signature Identification,
-                        scale type buttons for Major-Minor Identification,
-                        note buttons for Ledger Line Addition,
-                        note and scale type buttons for Scale Identification,
-                        interval buttons for Interval Identification,
+                        Use each game's Options components if present,
                         JSON Multiple Choice Options if present,
                         else fallback to full keyboard
                       */
