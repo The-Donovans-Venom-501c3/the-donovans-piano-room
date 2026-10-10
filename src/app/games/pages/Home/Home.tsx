@@ -774,7 +774,7 @@ export default function Home() {
                       ‹
                     </button>
                     <span className="page-text">
-                      &lt; {questionIndex} of {questions.length || 8} &gt;
+                      {questionIndex} of {questions.length || 8}
                     </span>
                     <button
                       className="nav-arrow"
