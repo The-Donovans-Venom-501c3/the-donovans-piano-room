@@ -12,9 +12,10 @@ import {
   questionAtom,
   levelStateAtom,
 } from "@/store/game-atoms";
+import { highScoresAtom } from "@/utils/stores";
 
 // Imports from types and utils using correct relative paths
-import type { GameType, Level, Question } from "../../types";
+import type { GameType, Level, Question, HighScoreKey } from "../../types";
 import { getQuestions } from "../../utils/questions";
 
 import "./Home.scss";
@@ -96,6 +97,12 @@ export default function Home() {
   const [lives, setLives] = useAtom(livesAtom);
   const [questionIndex, setQuestionIndex] = useAtom(questionAtom);
 
+  const [highScores, setHighScores] = useAtom(highScoresAtom);
+  const [isNewHighScore, setIsNewHighScore] = useState<boolean>(false);
+  useEffect(() => {
+    console.log("highScores", highScores);
+  }, [highScores]);
+
   // Gameplay Control States
   const [volume, setVolume] = useState<number>(80);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -175,6 +182,25 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
 
+  // Save a high score when a game finishes
+  useEffect(() => {
+    if (flowStage !== "game_finished" || !selectedLevel) return;
+
+    const key: HighScoreKey = `${selectedGameKey}:${selectedLevel}`;
+    const prev = highScores[key];
+    const beatsPrevious =
+      !prev || score > prev.score || (score === prev.score && timerSeconds < prev.timeSeconds);
+
+    setIsNewHighScore(beatsPrevious);
+    if (beatsPrevious) {
+      setHighScores((all) => ({
+        ...all,
+        [key]: { score, timeSeconds: timerSeconds, date: new Date().toISOString() },
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowStage]);
+
   const handleSelectGame = (gameKey: GameType, title: string) => {
     setGameState(gameKey as unknown as Parameters<typeof setGameState>[0]);
     setSelectedGameTitle(title);
@@ -208,11 +234,17 @@ export default function Home() {
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
 
+  useEffect(() => {
+    console.log("currentQuestion", questionIndex, currentQuestion);
+  }, [questionIndex, currentQuestion]);
+
   const handleAnswerSubmit = (selectedOption: string) => {
     if (answerStatus !== null || !currentQuestion) return;
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
+
+    console.log('selected option', selectedOption, 'expected answer', expectedAnswer)
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
