@@ -372,29 +372,27 @@
     border-radius: 36px;
     padding: 2rem 2.25rem;
     box-sizing: border-box;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #1C1A1A;
+    line-height: 2.8rem;
     .speech-text {
-      font-size: 1.1rem;
-      color: #3e2723;
-      line-height: 1.55;
       margin: 0 0 1rem 0;
-      font-weight: 500;
     }
     .speech-action {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #2b1236;
+      font-weight: 600;
       margin: 0;
     }
     &::after {
       content: '';
       position: absolute;
-      bottom: -18px;
-      left: 70px;
-      width: 0;
-      height: 0;
-      border-left: 18px solid transparent;
-      border-right: 18px solid transparent;
-      border-top: 18px solid #f8dcb0;
+      bottom: -37px;
+      left: 48%;
+      width: 56px;
+      height: 38px;
+      background: #f8dcb0;
+      // 32px-wide base along the bubble, tip leaning down and to the left
+      clip-path: polygon(calc(100% - 32px) 0, 100% 0, 0 100%);
     }
   }
   .welcome-cat-svg {

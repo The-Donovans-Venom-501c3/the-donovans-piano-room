@@ -49,7 +49,7 @@ const yellowMascot = "/games/Character_Loading.svg";
 const purpleSpotlightBeam = "/games/HomePageLight.svg";
 const musicStand = "/games/Music_stand.svg";
 const musicStandDeskview = "/games/Music_Stand_Deskview.png";
-const welcomeCat = "/games/sadCat.svg";
+const welcomeCat = "/games/Welcome_Character.svg";
 const cryingCat = "/games/cryingCat.svg";
 const successCharacter = "/games/Affirmation_Success_Character.svg";
 const blankBanner = "/games/BlankBanner.png";
@@ -281,6 +281,10 @@ export default function Home() {
 
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
+
+  useEffect(() => {
+    console.log("currentQuestion", questionIndex, currentQuestion);
+  }, [questionIndex, currentQuestion]);
 
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
