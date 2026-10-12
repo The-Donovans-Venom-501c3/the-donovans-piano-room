@@ -496,17 +496,19 @@ export default function Home() {
                   {/* Easy Card */}
                   <div className="difficulty-card easy" onClick={() => handleSelectLevel("easy")}>
                     <div className="card-left">
-                      <span className="level-title">Easy</span>
+                      <b className="level-title">Easy</b>
                       {easyRecord && (
-                        <span className="high-score-tag">Your Highest Score: {easyRecord.score}</span>
+                        <p className="high-score-tag">
+                          <span className="high-score-label">Your Highest Score:</span>
+                          <b className="high-score">{easyRecord.score}</b>
+                        </p>
                       )}
                     </div>
-                    <div className="card-status-icon">
-                      <img
-                        src={isMediumUnlocked ? playedLevelIcon : goldPadlockIcon}
-                        alt={isMediumUnlocked ? "Completed" : "Unlocked"}
-                      />
-                    </div>
+                    <img
+                      className="card-status-icon"
+                      src={isMediumUnlocked ? playedLevelIcon : goldPadlockIcon}
+                      alt={isMediumUnlocked ? "Completed" : "Unlocked"}
+                    />
                   </div>
                   {/* Medium Card */}
                   <div
@@ -516,26 +518,29 @@ export default function Home() {
                     title={isMediumUnlocked ? undefined : "Complete Easy to unlock"}
                   >
                     <div className="card-left">
-                      <span className="level-title">Medium</span>
+                      <b className="level-title">Medium</b>
                       {mediumRecord && (
-                        <span className="high-score-tag">Your Highest Score: {mediumRecord.score}</span>
+                        <p className="high-score-tag">
+                          <span className="high-score-label">Your Highest Score:</span>
+                          <b className="high-score">{mediumRecord.score}</b>
+                        </p>
                       )}
                     </div>
-                    <div className="card-status-icon">
-                      <img
-                        src={isMediumUnlocked ? (isHardUnlocked ? playedLevelIcon : goldPadlockIcon) : greyPadlockIcon}
-                        alt={isMediumUnlocked ? (isHardUnlocked ? "Completed" : "Unlocked") : "Locked"}
-                      />
-                    </div>
+                    <img
+                      className="card-status-icon"
+                      src={isMediumUnlocked ? (isHardUnlocked ? playedLevelIcon : goldPadlockIcon) : greyPadlockIcon}
+                      alt={isMediumUnlocked ? (isHardUnlocked ? "Completed" : "Unlocked") : "Locked"}
+                    />
                   </div>
                   {/* Hard Card */}
                   <div className="difficulty-card hard locked">
                     <div className="card-left">
-                      <span className="level-title">Hard</span>
+                      <b className="level-title">Hard</b>
                     </div>
-                    <div className="card-status-icon">
-                      <img src={greyPadlockIcon} alt="Grey Padlock" />
-                    </div>
+                    <img
+                      className="card-status-icon"
+                      src={greyPadlockIcon} alt="Grey Padlock"
+                    />
                   </div>
                 </div>
               )}
