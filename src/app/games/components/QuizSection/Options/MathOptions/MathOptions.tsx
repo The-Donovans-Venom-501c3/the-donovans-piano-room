@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type { OptionClickHandler } from "../../../../types";
 
-export default function MusicxmathOptions({
+export default function MathOptions({
   handleOptionClick,
 }: {
   handleOptionClick: OptionClickHandler;
@@ -28,7 +28,7 @@ export default function MusicxmathOptions({
   };
 
   return (
-    <div className="musicxmath-options-container" style={{ marginTop: 20 }}>
+    <div className="math-options-container" style={{ marginTop: 20 }}>
       {/* Display box showing current numeric input */}
       <div className="small-btn-wrapper" style={{ marginBottom: 15 }}>
         <input
