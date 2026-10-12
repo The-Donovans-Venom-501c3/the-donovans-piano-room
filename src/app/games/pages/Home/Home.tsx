@@ -136,7 +136,6 @@ export default function Home() {
   const [questionIndex, setQuestionIndex] = useAtom(questionAtom);
 
   const [highScores, setHighScores] = useAtom(highScoresAtom);
-  const [isNewHighScore, setIsNewHighScore] = useState<boolean>(false);
   const [completedLevels, setCompletedLevels] = useAtom(completedLevelsAtom);
 
   // Gameplay Control States
@@ -227,7 +226,6 @@ export default function Home() {
     const beatsPrevious =
       !prev || score > prev.score || (score === prev.score && timerSeconds < prev.timeSeconds);
 
-    setIsNewHighScore(beatsPrevious);
     if (beatsPrevious) {
       setHighScores((all) => ({
         ...all,
