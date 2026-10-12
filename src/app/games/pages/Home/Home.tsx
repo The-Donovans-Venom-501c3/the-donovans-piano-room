@@ -17,6 +17,15 @@ import {
 import type { GameType, Level, Question } from "../../types";
 import { getQuestions } from "../../utils/questions";
 
+import ChordOptions from "../../components/QuizSection/Options/ChordOptions/ChordOptions";
+import IntervalOptions from "../../components/QuizSection/Options/IntervalOptions/IntervalOptions";
+import KeyOptions from "../../components/QuizSection/Options/KeyOptions/KeyOptions";
+import LedgerOptions from "../../components/QuizSection/Options/LedgerOptions/LedgerOptions";
+import MajorMinorOptions from "../../components/QuizSection/Options/MajorMinorOptions/MajorMinorOptions";
+import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
+import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
+import ScaleOptions from "../../components/QuizSection/Options/ScaleOptions/ScaleOptions";
+
 import "./Home.scss";
 
 // Correct PNG paths from public/games folder
@@ -88,7 +97,7 @@ export default function Home() {
   const [selectedGameTitle, setSelectedGameTitle] = useState("Note Identification Game");
   const [selectedGameKey, setSelectedGameKey] = useState<GameType>("note");
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [, setSelectedLevel] = useState<DifficultyLevel | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<DifficultyLevel | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "report">("dashboard");
   const setLoadingState = useSetAtom(loadingStateAtom);
   const setQuizState = useSetAtom(quizStateAtom);
@@ -661,8 +670,30 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* Display JSON Multiple Choice Options if present, else fallback to full keyboard */}
-                    {currentQuestion?.options && currentQuestion.options.length > 0 ? (
+                    {
+                      /*
+                        Use each game's Options components if present,
+                        else use JSON Multiple Choice Options if present,
+                        else fallback to full keyboard
+                      */
+                    }
+                    {selectedGameKey === "math" ? (
+                      <MathOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : selectedGameKey === "note" ? (
+                      <NoteOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                    ) : selectedGameKey === "chord" ? (
+                      <ChordOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                    ) : selectedGameKey === "key" ? (
+                      <KeyOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : selectedGameKey === "major-minor" ? (
+                      <MajorMinorOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : selectedGameKey === "ledger" ? (
+                      <LedgerOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                    ) : selectedGameKey === "scale" ? (
+                      <ScaleOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                    ) : selectedGameKey === "interval" ? (
+                      <IntervalOptions handleOptionClick={handleAnswerSubmit} />
+                    ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
                         style={{
