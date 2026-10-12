@@ -89,7 +89,7 @@ export default function Home() {
   const [selectedGameTitle, setSelectedGameTitle] = useState("Note Identification Game");
   const [selectedGameKey, setSelectedGameKey] = useState<GameType>("note");
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [, setSelectedLevel] = useState<DifficultyLevel | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<DifficultyLevel | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "report">("dashboard");
   const setLoadingState = useSetAtom(loadingStateAtom);
   const setQuizState = useSetAtom(quizStateAtom);
