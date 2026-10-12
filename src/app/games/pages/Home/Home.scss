@@ -448,6 +448,9 @@
         }
       }
     }
+    &.locked {
+      cursor: not-allowed;
+    }
     &.easy {
       background: #E5F3E5;
       border: 3px solid #A5D1A4;
@@ -469,8 +472,6 @@
       }
     }
     &.hard {
-      background: #F0EEEE;
-      cursor: not-allowed;
     }
   }
 }
