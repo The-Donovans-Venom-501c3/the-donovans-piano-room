@@ -274,9 +274,6 @@ export default function Home() {
 
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
-  useEffect(() => {
-    console.log("currentQuestion", questionIndex, currentQuestion);
-  }, [questionIndex, currentQuestion]);
 
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
@@ -291,8 +288,6 @@ export default function Home() {
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
-
-    console.log('selected option', selectedOption, 'expected answer', expectedAnswer)
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
