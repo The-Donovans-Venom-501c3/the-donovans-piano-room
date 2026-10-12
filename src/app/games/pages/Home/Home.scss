@@ -418,7 +418,6 @@
     min-height: 113px;
     padding: 1.5rem 2rem;
     border-radius: 17px;
-    cursor: pointer;
     box-sizing: border-box;
     .card-left {
       display: flex;
@@ -449,6 +448,7 @@
     }
     &:not(.locked) {
       background: #FAF5C7;
+      cursor: pointer;
       border: 3px solid #F0D454;
       box-shadow: 0px 7px 0px 0px #F0D454;
       &:hover {

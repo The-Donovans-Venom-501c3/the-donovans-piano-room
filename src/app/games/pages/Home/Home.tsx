@@ -280,9 +280,11 @@ export default function Home() {
 
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
+  const hardRecord = highScores[`${selectedGameKey}:hard`];
   // Medium unlocks once Easy is completed, and Hard unlocks once Easy and Medium are completed
   const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
   const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
+  const isHardCompleted = !!completedLevels[`${selectedGameKey}:hard`];
 
   const handleAnswerSubmit = (selectedOption: string) => {
     if (answerStatus !== null || !currentQuestion) return;
@@ -546,11 +548,12 @@ export default function Home() {
                     lockedHint="Complete Easy to unlock"
                     onSelect={handleSelectLevel}
                   />
-                  {/* Hard stays locked until its levels are ready */}
                   <LevelCard
                     level="hard"
-                    unlocked={false}
-                    completed={false}
+                    record={hardRecord}
+                    unlocked={isHardUnlocked}
+                    completed={isHardCompleted}
+                    lockedHint="Complete Medium to unlock"
                     onSelect={handleSelectLevel}
                   />
                 </div>
