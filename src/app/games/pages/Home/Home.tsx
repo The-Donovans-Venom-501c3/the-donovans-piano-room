@@ -250,9 +250,9 @@ export default function Home() {
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
 
-  // Level select: records for the selected game, and Medium unlocks once Easy is completed
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
+  // Medium unlocks once Easy is completed, and Hard unlocks once Easy and Medium are completed
   const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
   const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
 
@@ -507,23 +507,43 @@ export default function Home() {
               )}
               {flowStage === "levels" && (
                 <div className="difficulty-cards-container">
+                  {/* Easy Card */}
                   <div className="difficulty-card easy" onClick={() => handleSelectLevel("easy")}>
                     <div className="card-left">
                       <span className="level-title">Easy</span>
-                      <span className="high-score-tag">Your Highest Score: 100</span>
+                      {easyRecord && (
+                        <span className="high-score-tag">Your Highest Score: {easyRecord.score}</span>
+                      )}
                     </div>
-                    <div className="card-status-icon">
-                      <img src={playedLevelIcon} alt="Played Level" />
-                    </div>
+                    {isMediumUnlocked && (
+                      <div className="card-status-icon">
+                        <img src={playedLevelIcon} alt="Completed" />
+                      </div>
+                    )}
                   </div>
-                  <div className="difficulty-card medium" onClick={() => handleSelectLevel("medium")}>
+                  {/* Medium Card */}
+                  <div
+                    className={`difficulty-card medium ${isMediumUnlocked ? "" : "locked"}`}
+                    onClick={() => handleSelectLevel("medium")}
+                    aria-disabled={!isMediumUnlocked}
+                    title={isMediumUnlocked ? undefined : "Complete Easy to unlock"}
+                  >
                     <div className="card-left">
                       <span className="level-title">Medium</span>
+                      {mediumRecord && (
+                        <span className="high-score-tag">Your Highest Score: {mediumRecord.score}</span>
+                      )}
                     </div>
-                    <div className="card-status-icon">
-                      <img src={goldPadlockIcon} alt="Gold Padlock" />
-                    </div>
+                    {(!isMediumUnlocked || isHardUnlocked) && (
+                      <div className="card-status-icon">
+                        <img
+                          src={isMediumUnlocked ? playedLevelIcon : greyPadlockIcon}
+                          alt={isMediumUnlocked ? "Completed" : "Locked"}
+                        />
+                      </div>
+                    )}
                   </div>
+                  {/* Hard Card */}
                   <div className="difficulty-card hard locked">
                     <div className="card-left">
                       <span className="level-title">Hard</span>
