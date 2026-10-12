@@ -100,7 +100,7 @@ function LevelCard({ level, record, unlocked, completed, lockedHint, onSelect }:
 
   return (
     <div
-      className={`difficulty-card ${level} ${unlocked ? "" : "locked"}`}
+      className={`difficulty-card ${level} ${unlocked ? "" : "locked"} ${completed ? "completed" : ""}`}
       onClick={unlocked ? () => onSelect(level) : undefined}
       aria-disabled={!unlocked}
       title={unlocked ? undefined : lockedHint}

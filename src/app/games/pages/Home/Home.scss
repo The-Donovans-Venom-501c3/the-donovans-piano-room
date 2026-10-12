@@ -420,7 +420,6 @@
     border-radius: 17px;
     cursor: pointer;
     box-sizing: border-box;
-    background: #F0EEEE;
     .card-left {
       display: flex;
       flex-direction: column;
@@ -435,7 +434,7 @@
         align-items: baseline;
         column-gap: 0.3rem;
         margin-top: 0.435rem;
-        color: #76B474;
+        color: #564E4E;
         .high-score-label {
           font-size: 1.596rem;
           font-weight: 600;
@@ -448,20 +447,7 @@
         }
       }
     }
-    &.locked {
-      cursor: not-allowed;
-    }
-    &.easy {
-      background: #E5F3E5;
-      border: 3px solid #A5D1A4;
-      box-shadow: 0px 7px 0px 0px #A5D1A4;
-      &:hover {
-        background-color: #d2e5ce;
-        border-color: #84b27a;
-        box-shadow: 0px 7px 0px 0px #84b27a;
-      }
-    }
-    &.medium:not(.locked) {
+    &:not(.locked) {
       background: #FAF5C7;
       border: 3px solid #F0D454;
       box-shadow: 0px 7px 0px 0px #F0D454;
@@ -471,7 +457,22 @@
         box-shadow: 0px 7px 0px 0px #e2bd44;
       }
     }
-    &.hard {
+    &.locked {
+      background: #F0EEEE;
+      cursor: not-allowed;
+    }
+    &.completed {
+      background: #E5F3E5;
+      border: 3px solid #A5D1A4;
+      box-shadow: 0px 7px 0px 0px #A5D1A4;
+      &:hover {
+        background-color: #d2e5ce;
+        border-color: #84b27a;
+        box-shadow: 0px 7px 0px 0px #84b27a;
+      }
+      .high-score-tag {
+        color: #76B474;
+      }
     }
   }
 }
