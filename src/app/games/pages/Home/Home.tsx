@@ -100,10 +100,6 @@ export default function Home() {
   const [highScores, setHighScores] = useAtom(highScoresAtom);
   const [isNewHighScore, setIsNewHighScore] = useState<boolean>(false);
   const [completedLevels, setCompletedLevels] = useAtom(completedLevelsAtom);
-  useEffect(() => {
-    console.log("highScores", highScores);
-    console.log('completedLevels', completedLevels)
-  }, [highScores, completedLevels]);
 
   // Gameplay Control States
   const [volume, setVolume] = useState<number>(80);
@@ -240,16 +236,15 @@ export default function Home() {
 
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
+  useEffect(() => {
+    console.log("currentQuestion", questionIndex, currentQuestion);
+  }, [questionIndex, currentQuestion]);
 
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
   // Medium unlocks once Easy is completed, and Hard unlocks once Easy and Medium are completed
   const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
   const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
-
-  useEffect(() => {
-    console.log("currentQuestion", questionIndex, currentQuestion);
-  }, [questionIndex, currentQuestion]);
 
   const handleAnswerSubmit = (selectedOption: string) => {
     if (answerStatus !== null || !currentQuestion) return;
@@ -506,11 +501,12 @@ export default function Home() {
                         <span className="high-score-tag">Your Highest Score: {easyRecord.score}</span>
                       )}
                     </div>
-                    {isMediumUnlocked && (
-                      <div className="card-status-icon">
-                        <img src={playedLevelIcon} alt="Completed" />
-                      </div>
-                    )}
+                    <div className="card-status-icon">
+                      <img
+                        src={isMediumUnlocked ? playedLevelIcon : goldPadlockIcon}
+                        alt={isMediumUnlocked ? "Completed" : "Unlocked"}
+                      />
+                    </div>
                   </div>
                   {/* Medium Card */}
                   <div
@@ -525,14 +521,12 @@ export default function Home() {
                         <span className="high-score-tag">Your Highest Score: {mediumRecord.score}</span>
                       )}
                     </div>
-                    {(!isMediumUnlocked || isHardUnlocked) && (
-                      <div className="card-status-icon">
-                        <img
-                          src={isMediumUnlocked ? playedLevelIcon : greyPadlockIcon}
-                          alt={isMediumUnlocked ? "Completed" : "Locked"}
-                        />
-                      </div>
-                    )}
+                    <div className="card-status-icon">
+                      <img
+                        src={isMediumUnlocked ? (isHardUnlocked ? playedLevelIcon : goldPadlockIcon) : greyPadlockIcon}
+                        alt={isMediumUnlocked ? (isHardUnlocked ? "Completed" : "Unlocked") : "Locked"}
+                      />
+                    </div>
                   </div>
                   {/* Hard Card */}
                   <div className="difficulty-card hard locked">
