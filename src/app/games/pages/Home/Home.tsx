@@ -12,9 +12,10 @@ import {
   questionAtom,
   levelStateAtom,
 } from "@/store/game-atoms";
+import { completedLevelsAtom, highScoresAtom } from "@/utils/stores";
 
 // Imports from types and utils using correct relative paths
-import type { GameType, Level, Question } from "../../types";
+import type { GameType, HighScore, Level, Question, LevelKey } from "../../types";
 import { getQuestions } from "../../utils/questions";
 
 import ChordOptions from "../../components/QuizSection/Options/ChordOptions/ChordOptions";
@@ -89,6 +90,44 @@ const FULL_NOTE_ROWS: string[][] = [
   ["Cb", "Db", "Eb", "Fb", "Gb", "Ab", "Bb"],
 ];
 
+type LevelCardProps = {
+  level: DifficultyLevel;
+  record?: HighScore;
+  unlocked: boolean;
+  completed: boolean;
+  lockedHint?: string;
+  onSelect: (level: DifficultyLevel) => void;
+};
+
+function LevelCard({ level, record, unlocked, completed, lockedHint, onSelect }: LevelCardProps) {
+  const title = level.charAt(0).toUpperCase() + level.slice(1);
+  const icon = completed
+    ? { src: playedLevelIcon, alt: "Completed" }
+    : unlocked
+      ? { src: goldPadlockIcon, alt: "Unlocked" }
+      : { src: greyPadlockIcon, alt: "Locked" };
+
+  return (
+    <div
+      className={`difficulty-card ${level} ${unlocked ? "" : "locked"} ${completed ? "completed" : ""}`}
+      onClick={unlocked ? () => onSelect(level) : undefined}
+      aria-disabled={!unlocked}
+      title={unlocked ? undefined : lockedHint}
+    >
+      <div className="card-left">
+        <b className="level-title">{title}</b>
+        {record && (
+          <p className="high-score-tag">
+            <span className="high-score-label">Your Highest Score:</span>
+            <b className="high-score">{record.score}</b>
+          </p>
+        )}
+      </div>
+      <img className="card-status-icon" src={icon.src} alt={icon.alt} />
+    </div>
+  );
+}
+
 export default function Home() {
   const setAppState = useSetAtom(appStateAtom);
   const setGameState = useSetAtom(gameStateAtom);
@@ -104,6 +143,9 @@ export default function Home() {
   const [score, setScore] = useAtom(scoreAtom);
   const [lives, setLives] = useAtom(livesAtom);
   const [questionIndex, setQuestionIndex] = useAtom(questionAtom);
+
+  const [highScores, setHighScores] = useAtom(highScoresAtom);
+  const [completedLevels, setCompletedLevels] = useAtom(completedLevelsAtom);
 
   // Gameplay Control States
   const [volume, setVolume] = useState<number>(80);
@@ -184,6 +226,28 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
 
+  // Save a high score when a game finishes
+  useEffect(() => {
+    if (flowStage !== "game_finished" || !selectedLevel) return;
+
+    const key: LevelKey = `${selectedGameKey}:${selectedLevel}`;
+    const prev = highScores[key];
+    const beatsPrevious =
+      !prev || score > prev.score || (score === prev.score && timerSeconds < prev.timeSeconds);
+
+    if (beatsPrevious) {
+      setHighScores((all) => ({
+        ...all,
+        [key]: { score, timeSeconds: timerSeconds, date: new Date().toISOString() },
+      }));
+    }
+    // Finishing with lives left completes the level; a later game over never undoes it
+    if (lives > 0) {
+      setCompletedLevels((all) => ({ ...all, [key]: true }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowStage]);
+
   const handleSelectGame = (gameKey: GameType, title: string) => {
     setGameState(gameKey as unknown as Parameters<typeof setGameState>[0]);
     setSelectedGameTitle(title);
@@ -194,7 +258,8 @@ export default function Home() {
   };
 
   const handleSelectLevel = (level: DifficultyLevel) => {
-    if (level === "hard") return;
+    if (level === "hard" && !isHardUnlocked) return;
+    if (level === "medium" && !isMediumUnlocked) return;
 
     // Load dynamic questions from questions.ts utility
     const loadedQuestions = getQuestions(selectedGameKey, level as Level) || [];
@@ -216,6 +281,14 @@ export default function Home() {
 
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
+
+  const easyRecord = highScores[`${selectedGameKey}:easy`];
+  const mediumRecord = highScores[`${selectedGameKey}:medium`];
+  const hardRecord = highScores[`${selectedGameKey}:hard`];
+  // Medium unlocks once Easy is completed, and Hard unlocks once Easy and Medium are completed
+  const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
+  const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
+  const isHardCompleted = !!completedLevels[`${selectedGameKey}:hard`];
 
   const handleAnswerSubmit = (selectedOption: string) => {
     if (answerStatus !== null || !currentQuestion) return;
@@ -462,31 +535,29 @@ export default function Home() {
               )}
               {flowStage === "levels" && (
                 <div className="difficulty-cards-container">
-                  <div className="difficulty-card easy" onClick={() => handleSelectLevel("easy")}>
-                    <div className="card-left">
-                      <span className="level-title">Easy</span>
-                      <span className="high-score-tag">Your Highest Score: 100</span>
-                    </div>
-                    <div className="card-status-icon">
-                      <img src={playedLevelIcon} alt="Played Level" />
-                    </div>
-                  </div>
-                  <div className="difficulty-card medium" onClick={() => handleSelectLevel("medium")}>
-                    <div className="card-left">
-                      <span className="level-title">Medium</span>
-                    </div>
-                    <div className="card-status-icon">
-                      <img src={goldPadlockIcon} alt="Gold Padlock" />
-                    </div>
-                  </div>
-                  <div className="difficulty-card hard locked">
-                    <div className="card-left">
-                      <span className="level-title">Hard</span>
-                    </div>
-                    <div className="card-status-icon">
-                      <img src={greyPadlockIcon} alt="Grey Padlock" />
-                    </div>
-                  </div>
+                  <LevelCard
+                    level="easy"
+                    record={easyRecord}
+                    unlocked
+                    completed={isMediumUnlocked}
+                    onSelect={handleSelectLevel}
+                  />
+                  <LevelCard
+                    level="medium"
+                    record={mediumRecord}
+                    unlocked={isMediumUnlocked}
+                    completed={isHardUnlocked}
+                    lockedHint="Complete Easy to unlock"
+                    onSelect={handleSelectLevel}
+                  />
+                  <LevelCard
+                    level="hard"
+                    record={hardRecord}
+                    unlocked={isHardUnlocked}
+                    completed={isHardCompleted}
+                    lockedHint="Complete Medium to unlock"
+                    onSelect={handleSelectLevel}
+                  />
                 </div>
               )}
             </div>

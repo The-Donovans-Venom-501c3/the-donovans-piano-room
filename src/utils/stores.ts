@@ -2,6 +2,7 @@ import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { profileInterface } from "@/interfaces/profileInterface";
 import { notification } from "@/interfaces/notificationInterface";
+import type { CompletedLevels, HighScores } from "@/app/games/types";
 
 ///////////////
 ////SIGN UP////
@@ -127,5 +128,23 @@ export const notificationsAtom = atomWithStorage<notification[]>(
     "user_notifications_list_v3",
     [],
     safeLocalStorage,
+    { getOnInit: true }
+);
+
+//************//
+//** GAMES **//
+//**********//
+
+export const highScoresAtom = atomWithStorage<HighScores>(
+    "tdpr_high_scores",
+    {},
+    createJSONStorage<HighScores>(getLocalStorage),
+    { getOnInit: true }
+);
+
+export const completedLevelsAtom = atomWithStorage<CompletedLevels>(
+    "tdpr_completed_levels",
+    {},
+    createJSONStorage<CompletedLevels>(getLocalStorage),
     { getOnInit: true }
 );

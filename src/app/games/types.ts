@@ -24,3 +24,16 @@ export interface Question {
 }
 
 export type OptionClickHandler = (option: string) => void;
+
+export type HighScore = {
+  score: number;
+  timeSeconds: number; // How long the run took. Tiebreaker: since the score caps at 100, two perfect runs are separated by speed.
+  date: string;
+};
+
+export type LevelKey = `${GameType}:${Level}`;
+
+export type HighScores = Partial<Record<LevelKey, HighScore>>;
+
+// true once the level has been finished without running out of lives
+export type CompletedLevels = Partial<Record<LevelKey, true>>;
