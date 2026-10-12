@@ -15,7 +15,7 @@ import {
 import { completedLevelsAtom, highScoresAtom } from "@/utils/stores";
 
 // Imports from types and utils using correct relative paths
-import type { GameType, Level, Question, LevelKey } from "../../types";
+import type { GameType, HighScore, Level, Question, LevelKey } from "../../types";
 import { getQuestions } from "../../utils/questions";
 
 import "./Home.scss";
@@ -80,6 +80,44 @@ const FULL_NOTE_ROWS: string[][] = [
   ["C#", "D#", "E#", "F#", "G#", "A#", "B#"],
   ["Cb", "Db", "Eb", "Fb", "Gb", "Ab", "Bb"],
 ];
+
+type LevelCardProps = {
+  level: DifficultyLevel;
+  record?: HighScore;
+  unlocked: boolean;
+  completed: boolean;
+  lockedHint?: string;
+  onSelect: (level: DifficultyLevel) => void;
+};
+
+function LevelCard({ level, record, unlocked, completed, lockedHint, onSelect }: LevelCardProps) {
+  const title = level.charAt(0).toUpperCase() + level.slice(1);
+  const icon = completed
+    ? { src: playedLevelIcon, alt: "Completed" }
+    : unlocked
+      ? { src: goldPadlockIcon, alt: "Unlocked" }
+      : { src: greyPadlockIcon, alt: "Locked" };
+
+  return (
+    <div
+      className={`difficulty-card ${level} ${unlocked ? "" : "locked"}`}
+      onClick={unlocked ? () => onSelect(level) : undefined}
+      aria-disabled={!unlocked}
+      title={unlocked ? undefined : lockedHint}
+    >
+      <div className="card-left">
+        <b className="level-title">{title}</b>
+        {record && (
+          <p className="high-score-tag">
+            <span className="high-score-label">Your Highest Score:</span>
+            <b className="high-score">{record.score}</b>
+          </p>
+        )}
+      </div>
+      <img className="card-status-icon" src={icon.src} alt={icon.alt} />
+    </div>
+  );
+}
 
 export default function Home() {
   const setAppState = useSetAtom(appStateAtom);
@@ -493,55 +531,28 @@ export default function Home() {
               )}
               {flowStage === "levels" && (
                 <div className="difficulty-cards-container">
-                  {/* Easy Card */}
-                  <div className="difficulty-card easy" onClick={() => handleSelectLevel("easy")}>
-                    <div className="card-left">
-                      <b className="level-title">Easy</b>
-                      {easyRecord && (
-                        <p className="high-score-tag">
-                          <span className="high-score-label">Your Highest Score:</span>
-                          <b className="high-score">{easyRecord.score}</b>
-                        </p>
-                      )}
-                    </div>
-                    <img
-                      className="card-status-icon"
-                      src={isMediumUnlocked ? playedLevelIcon : goldPadlockIcon}
-                      alt={isMediumUnlocked ? "Completed" : "Unlocked"}
-                    />
-                  </div>
-                  {/* Medium Card */}
-                  <div
-                    className={`difficulty-card medium ${isMediumUnlocked ? "" : "locked"}`}
-                    onClick={() => handleSelectLevel("medium")}
-                    aria-disabled={!isMediumUnlocked}
-                    title={isMediumUnlocked ? undefined : "Complete Easy to unlock"}
-                  >
-                    <div className="card-left">
-                      <b className="level-title">Medium</b>
-                      {mediumRecord && (
-                        <p className="high-score-tag">
-                          <span className="high-score-label">Your Highest Score:</span>
-                          <b className="high-score">{mediumRecord.score}</b>
-                        </p>
-                      )}
-                    </div>
-                    <img
-                      className="card-status-icon"
-                      src={isMediumUnlocked ? (isHardUnlocked ? playedLevelIcon : goldPadlockIcon) : greyPadlockIcon}
-                      alt={isMediumUnlocked ? (isHardUnlocked ? "Completed" : "Unlocked") : "Locked"}
-                    />
-                  </div>
-                  {/* Hard Card */}
-                  <div className="difficulty-card hard locked">
-                    <div className="card-left">
-                      <b className="level-title">Hard</b>
-                    </div>
-                    <img
-                      className="card-status-icon"
-                      src={greyPadlockIcon} alt="Grey Padlock"
-                    />
-                  </div>
+                  <LevelCard
+                    level="easy"
+                    record={easyRecord}
+                    unlocked
+                    completed={isMediumUnlocked}
+                    onSelect={handleSelectLevel}
+                  />
+                  <LevelCard
+                    level="medium"
+                    record={mediumRecord}
+                    unlocked={isMediumUnlocked}
+                    completed={isHardUnlocked}
+                    lockedHint="Complete Easy to unlock"
+                    onSelect={handleSelectLevel}
+                  />
+                  {/* Hard stays locked until its levels are ready */}
+                  <LevelCard
+                    level="hard"
+                    unlocked={false}
+                    completed={false}
+                    onSelect={handleSelectLevel}
+                  />
                 </div>
               )}
             </div>
