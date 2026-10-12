@@ -12,10 +12,10 @@ import {
   questionAtom,
   levelStateAtom,
 } from "@/store/game-atoms";
-import { highScoresAtom } from "@/utils/stores";
+import { completedLevelsAtom, highScoresAtom } from "@/utils/stores";
 
 // Imports from types and utils using correct relative paths
-import type { GameType, Level, Question, HighScoreKey } from "../../types";
+import type { GameType, Level, Question, LevelKey } from "../../types";
 import { getQuestions } from "../../utils/questions";
 
 import ChordOptions from "../../components/QuizSection/Options/ChordOptions/ChordOptions";
@@ -108,9 +108,11 @@ export default function Home() {
 
   const [highScores, setHighScores] = useAtom(highScoresAtom);
   const [isNewHighScore, setIsNewHighScore] = useState<boolean>(false);
+  const [completedLevels, setCompletedLevels] = useAtom(completedLevelsAtom);
   useEffect(() => {
     console.log("highScores", highScores);
-  }, [highScores]);
+    console.log('completedLevels', completedLevels)
+  }, [highScores, completedLevels]);
 
   // Gameplay Control States
   const [volume, setVolume] = useState<number>(80);
@@ -195,7 +197,7 @@ export default function Home() {
   useEffect(() => {
     if (flowStage !== "game_finished" || !selectedLevel) return;
 
-    const key: HighScoreKey = `${selectedGameKey}:${selectedLevel}`;
+    const key: LevelKey = `${selectedGameKey}:${selectedLevel}`;
     const prev = highScores[key];
     const beatsPrevious =
       !prev || score > prev.score || (score === prev.score && timerSeconds < prev.timeSeconds);
@@ -206,6 +208,10 @@ export default function Home() {
         ...all,
         [key]: { score, timeSeconds: timerSeconds, date: new Date().toISOString() },
       }));
+    }
+    // Finishing with lives left completes the level; a later game over never undoes it
+    if (lives > 0) {
+      setCompletedLevels((all) => ({ ...all, [key]: true }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStage]);
@@ -220,7 +226,8 @@ export default function Home() {
   };
 
   const handleSelectLevel = (level: DifficultyLevel) => {
-    if (level === "hard") return;
+    if (level === "hard" && !isHardUnlocked) return;
+    if (level === "medium" && !isMediumUnlocked) return;
 
     // Load dynamic questions from questions.ts utility
     const loadedQuestions = getQuestions(selectedGameKey, level as Level) || [];
@@ -242,6 +249,12 @@ export default function Home() {
 
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
+
+  // Level select: records for the selected game, and Medium unlocks once Easy is completed
+  const easyRecord = highScores[`${selectedGameKey}:easy`];
+  const mediumRecord = highScores[`${selectedGameKey}:medium`];
+  const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
+  const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
 
   useEffect(() => {
     console.log("currentQuestion", questionIndex, currentQuestion);
