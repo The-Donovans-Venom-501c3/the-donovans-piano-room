@@ -1063,6 +1063,11 @@
         background: transparent;
         border: none;
         cursor: pointer;
+        // Cancel the global `button:active` press style from QuizScreen.scss
+        &:active {
+          box-shadow: none;
+          transform: none;
+        }
         .action-icon {
           width: 42px;
           height: 42px;
@@ -1082,25 +1087,20 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      font-weight: 800;
-      color: #2b1236;
-      font-size: 1rem;
       .page-text {
-        font-size: 0.95rem;
-        letter-spacing: 0.02em;
+        font-size: 2rem;
+        letter-spacing: -1%;
+        font-weight: 500;
+        color: #1C1A1A;
       }
       .nav-arrow {
         background: none;
         border: none;
         cursor: pointer;
-        font-size: 1.3rem;
-        line-height: 1;
-        color: #2b1236;
         padding: 0 4px;
-        font-weight: 800;
-        transition: color 0.15s ease;
-        &:hover {
-          color: #8b5cf6;
+        &:active {
+          box-shadow: none;
+          transform: translateY(2px);
         }
         &:disabled {
           opacity: 0.3;

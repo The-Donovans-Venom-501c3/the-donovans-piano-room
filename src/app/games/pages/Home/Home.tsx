@@ -65,6 +65,8 @@ const restartIcon = "/games/Restart1.svg";
 const trebleClefIcon = "/games/MusicSymbol.png";
 const lifeIcon = "/games/gameLifeFilled.svg"
 const missingLifeIcon = "/games/gameLifeStroked.svg"
+const prevIcon = "/games/gamePaginationPrevIcon.svg"
+const nextIcon = "/games/gamePaginationNextIcon.svg"
 
 // Accessibility Options Images
 const fontSizeImg = "/games/Fontsize.png";
@@ -907,7 +909,7 @@ export default function Home() {
                       className="nav-arrow"
                       onClick={() => setQuestionIndex((prev) => Math.max(1, prev - 1))}
                     >
-                      ‹
+                      <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
                     </button>
                     <span className="page-text">
                       {questionIndex} of {questions.length || 8}
@@ -916,7 +918,7 @@ export default function Home() {
                       className="nav-arrow"
                       onClick={() => setQuestionIndex((prev) => Math.min(questions.length || 8, prev + 1))}
                     >
-                      ›
+                      <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                     </button>
                   </div>
                 </div>
