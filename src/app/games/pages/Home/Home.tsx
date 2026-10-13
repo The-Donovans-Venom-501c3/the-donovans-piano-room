@@ -687,12 +687,11 @@ export default function Home() {
                 <div className="game-screen-left">
                   {/* Dynamic SVG / Staff Question Display */}
                   {currentQuestion?.questionImage ? (
-                    <div className="question-image-container" style={{ textAlign: "center", margin: "1rem 0" }}>
+                    <div className="question-image-container">
                       <img
                         src={currentQuestion.questionImage}
                         alt="Question SVG"
                         className="question-svg-image"
-                        style={{ maxHeight: "180px", maxWidth: "100%", objectFit: "contain" }}
                       />
                     </div>
                   ) : (

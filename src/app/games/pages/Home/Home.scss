@@ -573,6 +573,9 @@
             font-size: 1.3rem;
             margin: 16px 0 20px 0;
           }
+          .question-image-container {
+            max-width: 820px;
+          }
           .keyboard-matrix-wrapper {
             max-width: 820px;
             .grid-note-btn {
@@ -830,6 +833,16 @@
       margin: 8px 0 12px 0;
       text-align: center;
       flex-shrink: 0;
+    }
+    .question-image-container {
+      width: 100%;
+      max-width: 680px; /* Match .keyboard-matrix-wrapper so the image spans the answer keys */
+      margin: 1rem auto;
+      .question-svg-image {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
     }
     .keyboard-matrix-wrapper {
       position: relative; /* REQUIRED: Positioning anchor for overlay */
