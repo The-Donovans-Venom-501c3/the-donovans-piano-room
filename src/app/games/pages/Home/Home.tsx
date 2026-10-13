@@ -51,6 +51,7 @@ const musicStand = "/games/Music_stand.svg";
 const musicStandDeskview = "/games/Music_Stand_Deskview.png";
 const welcomeCat = "/games/Welcome_Character.svg";
 const cryingCat = "/games/cryingCat.svg";
+const happyCat = "/games/happyCat.svg"
 const successCharacter = "/games/Affirmation_Success_Character.svg";
 const blankBanner = "/games/BlankBanner.png";
 const mainBanner = "/games/Banner.png";
@@ -732,7 +733,7 @@ export default function Home() {
                             TRY AGAIN
                           </button>
                         </div>
-                        <img src={welcomeCat} alt="Cat Mascot" className="mascot-img-callout" />
+                        <img src={happyCat} alt="Cat Mascot" className="mascot-img-callout" />
                       </div>
                     )}
                     {answerStatus === "correct" && (
