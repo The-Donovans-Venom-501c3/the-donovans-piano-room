@@ -14,7 +14,15 @@ const symbols = [
   },
 ];
 
-export default function NoteOptions({ handleOptionClick, level }: { handleOptionClick: OptionClickHandler; level: Level }) {
+export default function NoteOptions({
+  handleOptionClick,
+  level,
+  wrongOptions = [],
+}: {
+  handleOptionClick: OptionClickHandler;
+  level: Level;
+  wrongOptions?: string[];
+}) {
   return (
     <div className='small-btn-wrapper'>
       {symbols.map((symbol, index) =>
@@ -25,7 +33,8 @@ export default function NoteOptions({ handleOptionClick, level }: { handleOption
             <button
               key={idx}
               onClick={() => handleOptionClick(note + symbol.name)}
-              className='option-btn small-btn'
+              className={`option-btn small-btn ${wrongOptions.includes(note + symbol.name) ? 'wrong' : ''}`}
+              disabled={wrongOptions.includes(note + symbol.name)}
             >
               <span>{note}</span>
               {index != 0 ? <img src={index === 1 ? '/games/SharpSymbol.svg' : '/games/BimolSymbol.svg'} alt={symbol.name} /> : null}

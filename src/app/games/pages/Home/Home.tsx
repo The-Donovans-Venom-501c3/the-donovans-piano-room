@@ -152,6 +152,8 @@ export default function Home() {
   const [volume, setVolume] = useState<number>(80);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [answerStatus, setAnswerStatus] = useState<"correct" | "wrong" | null>(null);
+  // Wrong picks for the current question; they stay red until the right answer is chosen
+  const [wrongOptions, setWrongOptions] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -255,6 +257,7 @@ export default function Home() {
     setSelectedGameKey(gameKey);
     setSelectedAnswer(null);
     setAnswerStatus(null);
+    setWrongOptions([]);
     setFlowStage("banner");
   };
 
@@ -277,6 +280,7 @@ export default function Home() {
     setIsPaused(false);
     setSelectedAnswer(null);
     setAnswerStatus(null);
+    setWrongOptions([]);
     setFlowStage("loading_screen");
   };
 
@@ -290,6 +294,7 @@ export default function Home() {
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
   const hardRecord = highScores[`${selectedGameKey}:hard`];
+
   // Medium unlocks once Easy is completed, and Hard unlocks once Easy and Medium are completed
   const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
   const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
@@ -303,6 +308,7 @@ export default function Home() {
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
+      setWrongOptions([]);
       // fix: score per question is now dynamic (100 / total questions in this round)
       // instead of a hardcoded +25, so a perfect run always totals exactly 100
       // regardless of how many questions the level has (10, 20, 30, etc.)
@@ -319,6 +325,7 @@ export default function Home() {
       }, 1500);
     } else {
       setAnswerStatus("wrong");
+      setWrongOptions((prev) => [...prev, selectedOption]);
       const nextLives = Math.max(0, lives - 1);
       setLives(nextLives);
     }
@@ -361,6 +368,7 @@ export default function Home() {
     setTimerSeconds(0);
     setSelectedAnswer(null);
     setAnswerStatus(null);
+    setWrongOptions([]);
     setIsPaused(false);
     setFlowStage("active_game");
   };
@@ -753,21 +761,42 @@ export default function Home() {
                       */
                     }
                     {selectedGameKey === "math" ? (
-                      <MathOptions handleOptionClick={handleAnswerSubmit} />
+                      <MathOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : selectedGameKey === "note" ? (
-                      <NoteOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <NoteOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        wrongOptions={wrongOptions}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "chord" ? (
-                      <ChordOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <ChordOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "key" ? (
-                      <KeyOptions handleOptionClick={handleAnswerSubmit} />
+                      <KeyOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : selectedGameKey === "major-minor" ? (
-                      <MajorMinorOptions handleOptionClick={handleAnswerSubmit} />
+                      <MajorMinorOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : selectedGameKey === "ledger" ? (
-                      <LedgerOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <LedgerOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "scale" ? (
-                      <ScaleOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <ScaleOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "interval" ? (
-                      <IntervalOptions handleOptionClick={handleAnswerSubmit} />
+                      <IntervalOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
