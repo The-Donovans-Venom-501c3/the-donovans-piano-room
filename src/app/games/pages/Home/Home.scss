@@ -589,12 +589,6 @@
           width: 210px;
           padding-left: 28px;
           .game-stat {
-            .stat-value {
-              font-size: 1.65rem;
-            }
-            .stat-label {
-              font-size: 0.85rem;
-            }
             &.lives-block .lives-quaver-bar .single-quaver {
               font-size: 34px;
             }
@@ -1005,12 +999,11 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding-left: 20px;
-    border-left: 1.5px solid #ebdcf4;
     .stats-group {
       display: flex;
       flex-direction: column;
       gap: 24px;
+      padding-top: 35px;
     }
     .game-stat {
       display: flex;
@@ -1018,10 +1011,10 @@
       align-items: flex-start;
       gap: 6px;
       .stat-label {
-        font-size: 0.8rem;
-        font-weight: 800;
-        color: #4a154b;
-        letter-spacing: 0.08em;
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: 0%;
         text-transform: uppercase;
       }
       .stat-value-row {
@@ -1035,9 +1028,9 @@
         object-fit: contain;
       }
       .stat-value {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #2b1236;
+        font-size: 2.4rem;
+        font-weight: 600;
+        color: #6F219E;
         line-height: 1;
       }
       &.lives-block {

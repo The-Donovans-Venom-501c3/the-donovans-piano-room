@@ -854,16 +854,16 @@ export default function Home() {
                 <div className="game-screen-right">
                   <div className="stats-group">
                     {/* TIMER Section */}
-                    <div className="game-stat">
-                      <span className="stat-label">TIMER</span>
+                    <div className="game-stat timer-block">
+                      <span className="stat-label">Timer</span>
                       <div className="stat-value-row">
                         <img src={timerIcon} alt="Timer" className="stat-icon" />
                         <span className="stat-value">{formatTime(timerSeconds)}</span>
                       </div>
                     </div>
                     {/* SCORE Section */}
-                    <div className="game-stat">
-                      <span className="stat-label">SCORE</span>
+                    <div className="game-stat score-block">
+                      <span className="stat-label">Score</span>
                       <div className="stat-value-row">
                         <img src={scoreIcon} alt="Score" className="stat-icon" />
                         <span className="stat-value">{score}/100</span>
@@ -871,7 +871,7 @@ export default function Home() {
                     </div>
                     {/* LIVES Section */}
                     <div className="game-stat lives-block">
-                      <span className="stat-label">LIVES ({lives}/3)</span>
+                      <span className="stat-label">Lives ({lives}/3)</span>
                       <div className="lives-quaver-bar">
                         {[0, 1, 2].map((index) => {
                           const isActive = index < lives;
@@ -891,13 +891,13 @@ export default function Home() {
                       <div className="circle-bg orange">
                         <img src={pauseIcon} alt="Pause" />
                       </div>
-                      <span className="action-label">{isPaused ? "RESUME" : "PAUSE"}</span>
+                      <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
                     </button>
                     <button className="action-circle-btn" onClick={triggerRestartGame}>
                       <div className="circle-bg orange">
                         <img src={restartIcon} alt="Restart" />
                       </div>
-                      <span className="action-label">RESTART</span>
+                      <span className="action-label">Restart</span>
                     </button>
                   </div>
 
