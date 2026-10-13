@@ -768,6 +768,7 @@ export default function Home() {
                       <NoteOptions
                         handleOptionClick={handleAnswerSubmit}
                         wrongOptions={wrongOptions}
+                        correctOption={answerStatus === "correct" ? selectedAnswer : null}
                         level={selectedLevel ?? "easy"}
                       />
                     ) : selectedGameKey === "chord" ? (

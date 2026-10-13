@@ -18,10 +18,13 @@ export default function NoteOptions({
   handleOptionClick,
   level,
   wrongOptions = [],
+  correctOption = null,
 }: {
   handleOptionClick: OptionClickHandler;
   level: Level;
   wrongOptions?: string[];
+  // Set from a correct pick until the next question loads
+  correctOption?: string | null;
 }) {
   return (
     <div className='small-btn-wrapper'>
@@ -33,7 +36,9 @@ export default function NoteOptions({
             <button
               key={idx}
               onClick={() => handleOptionClick(note + symbol.name)}
-              className={`option-btn small-btn ${wrongOptions.includes(note + symbol.name) ? 'wrong' : ''}`}
+              className={`option-btn small-btn ${
+                wrongOptions.includes(note + symbol.name) ? 'wrong' : note + symbol.name === correctOption ? 'correct' : ''
+              }`}
               disabled={wrongOptions.includes(note + symbol.name)}
             >
               <span>{note}</span>
