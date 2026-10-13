@@ -588,11 +588,6 @@
         .game-screen-right {
           width: 210px;
           padding-left: 28px;
-          .game-stat {
-            &.lives-block .lives-quaver-bar .single-quaver {
-              font-size: 34px;
-            }
-          }
           .game-action-buttons .action-circle-btn .circle-bg {
             width: 64px;
             height: 64px;
@@ -1006,50 +1001,54 @@
       padding-top: 35px;
     }
     .game-stat {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 6px;
+      $stat-icon-width: 26px;
+      display: grid;
+      grid-template-areas:
+          "stat-icon stat-value"
+          "stat-label stat-label";
+      grid-template-columns: $stat-icon-width auto;
+      gap: 8px 5px;
+      justify-content: center;
       .stat-label {
+        grid-area: stat-label;
+        justify-self: center;
         font-size: 1.8rem;
         font-weight: 600;
         color: #000;
         letter-spacing: 0%;
         text-transform: uppercase;
       }
-      .stat-value-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
       .stat-icon {
-        width: 26px;
+        grid-area: stat-icon;
+        width: $stat-icon-width;
         height: 26px;
         object-fit: contain;
       }
       .stat-value {
+        grid-area: stat-value;
         font-size: 2.4rem;
         font-weight: 600;
         color: #6F219E;
         line-height: 1;
       }
       &.lives-block {
+        grid-template-areas:
+          "lives-bar"
+          "stat-label";
+        grid-template-columns: auto;
+        .stat-label {
+          display: flex;
+          align-items: center;
+          .life-count {
+            font-size: 1.6rem;
+            color: #6F219E;
+          }
+        }
         .lives-quaver-bar {
+          grid-area: lives-bar;
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-top: 4px;
-          .single-quaver {
-            font-size: 30px;
-            line-height: 1;
-            color: #ea580c;
-            font-weight: 700;
-            margin: 0 4px;
-            transition: opacity 0.2s ease;
-            &.lost {
-              opacity: 0.25;
-            }
-          }
         }
       }
     }

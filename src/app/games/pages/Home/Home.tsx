@@ -63,6 +63,8 @@ const scoreIcon = "/games/Score.svg";
 const pauseIcon = "/games/Pause1.svg";
 const restartIcon = "/games/Restart1.svg";
 const trebleClefIcon = "/games/MusicSymbol.png";
+const lifeIcon = "/games/gameLifeFilled.svg"
+const missingLifeIcon = "/games/gameLifeStroked.svg"
 
 // Accessibility Options Images
 const fontSizeImg = "/games/Fontsize.png";
@@ -856,29 +858,31 @@ export default function Home() {
                     {/* TIMER Section */}
                     <div className="game-stat timer-block">
                       <span className="stat-label">Timer</span>
-                      <div className="stat-value-row">
-                        <img src={timerIcon} alt="Timer" className="stat-icon" />
-                        <span className="stat-value">{formatTime(timerSeconds)}</span>
-                      </div>
+                      <img src={timerIcon} alt="Timer" className="stat-icon" />
+                      <span className="stat-value">{formatTime(timerSeconds)}</span>
                     </div>
                     {/* SCORE Section */}
                     <div className="game-stat score-block">
                       <span className="stat-label">Score</span>
-                      <div className="stat-value-row">
-                        <img src={scoreIcon} alt="Score" className="stat-icon" />
-                        <span className="stat-value">{score}/100</span>
-                      </div>
+                      <img src={scoreIcon} alt="Score" className="stat-icon" />
+                      <span className="stat-value">{score}/100</span>
                     </div>
                     {/* LIVES Section */}
                     <div className="game-stat lives-block">
-                      <span className="stat-label">Lives ({lives}/3)</span>
+                      <span className="stat-label">
+                        Lives
+                        <span className="life-count">({lives}/3)</span>
+                      </span>
                       <div className="lives-quaver-bar">
                         {[0, 1, 2].map((index) => {
                           const isActive = index < lives;
                           return (
-                            <span key={index} className={`single-quaver ${isActive ? "active" : "lost"}`}>
-                              ♪
-                            </span>
+                            <img
+                              key={index}
+                              src={isActive ? lifeIcon : missingLifeIcon}
+                              alt={isActive ? "Life Icon" : "Missing Life Icon"}
+                              className={`life-icon ${isActive ? "active" : "lost"}`}
+                            />
                           );
                         })}
                       </div>
