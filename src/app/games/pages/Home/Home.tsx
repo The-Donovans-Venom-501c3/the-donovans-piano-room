@@ -892,15 +892,11 @@ export default function Home() {
                   {/* PAUSE / RESTART Controls */}
                   <div className="game-action-buttons">
                     <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
-                      <div className="circle-bg orange">
-                        <img src={pauseIcon} alt="Pause" />
-                      </div>
+                      <img src={pauseIcon} alt="Pause" className="action-icon" />
                       <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
                     </button>
                     <button className="action-circle-btn" onClick={triggerRestartGame}>
-                      <div className="circle-bg orange">
-                        <img src={restartIcon} alt="Restart" />
-                      </div>
+                      <img src={restartIcon} alt="Restart" className="action-icon" />
                       <span className="action-label">Restart</span>
                     </button>
                   </div>

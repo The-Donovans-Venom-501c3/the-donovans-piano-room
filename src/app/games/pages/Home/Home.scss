@@ -588,10 +588,6 @@
         .game-screen-right {
           width: 210px;
           padding-left: 28px;
-          .game-action-buttons .action-circle-btn .circle-bg {
-            width: 64px;
-            height: 64px;
-          }
         }
       }
     }
@@ -1055,6 +1051,7 @@
     .game-action-buttons {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 20px;
       margin-top: 44px;
       margin-bottom: 16px;
@@ -1066,33 +1063,17 @@
         background: transparent;
         border: none;
         cursor: pointer;
-        .circle-bg {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 58px;
-          height: 58px;
-          border-radius: 50%;
-          transition: background 0.2s ease, transform 0.15s ease;
-          img {
-            width: 28px;
-            height: 28px;
-            object-fit: contain;
-          }
-          &.orange {
-            background: transparent;
-          }
+        .action-icon {
+          width: 42px;
+          height: 42px;
+          object-fit: contain;
         }
         .action-label {
-          font-size: 0.88rem;
-          font-weight: 800;
-          color: #4a154b;
-          letter-spacing: 0.05em;
+          font-size: 1.6rem;
+          font-weight: 600;
+          color: #000;
+          letter-spacing: 0%;
           text-transform: uppercase;
-        }
-        &:hover .circle-bg.orange {
-          background: #f3e8ff;
-          transform: scale(1.05);
         }
       }
     }
