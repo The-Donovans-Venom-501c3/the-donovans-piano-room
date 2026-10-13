@@ -827,17 +827,17 @@
       }
     }
     .question-prompt {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #2b1236;
-      margin: 8px 0 12px 0;
+      font-size: 1.944rem;
+      font-weight: 400;
+      letter-spacing: -1%;
+      color: #1D1D1D;
       text-align: center;
       flex-shrink: 0;
     }
     .question-image-container {
       width: 100%;
       max-width: 680px; /* Match .keyboard-matrix-wrapper so the image spans the answer keys */
-      margin: 1rem auto;
+      margin: 0 auto;
       .question-svg-image {
         display: block;
         width: 100%;
