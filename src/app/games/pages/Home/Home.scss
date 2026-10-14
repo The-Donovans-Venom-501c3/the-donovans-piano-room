@@ -648,6 +648,25 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       border-radius: 28px;
       padding: 28px 36px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
+      .game-top-bar {
+        .right-controls {
+          $right-ctrls-height: 46px;
+          .icon-circle-btn img {
+            width: $right-ctrls-height;
+            height: $right-ctrls-height;
+          }
+          .pill-btn {
+            height: $right-ctrls-height;
+            border-radius: $right-ctrls-height;
+            border-width: 3px;
+            font-size: 2.739rem;
+            .control-btn-icon {
+              width: 23px;
+              height: 23px;
+            }
+          }
+        }
+      }
       .game-screen-body {
         gap: 32px;
         .game-screen-left {
@@ -665,6 +684,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
             }
           }
           .question-prompt {
+            font-size: 3.078rem;
             margin: 16px 0 20px 0;
           }
           .question-image-container {
@@ -677,11 +697,55 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
               font-size: 16px;
               border-radius: 10px;
             }
+            // Answer buttons from the game Options components (styled in Options.scss)
+            .option-btn {
+              font-size: 3.277rem;
+            }
           }
         }
         .game-screen-right {
-          width: 210px;
+          width: 240px;
           padding-left: 28px;
+          .game-stat {
+            $stat-icon-width: 39px;
+            grid-template-columns: $stat-icon-width auto;
+            &.lives-block {
+              grid-template-columns: auto;
+              .stat-label .life-count {
+                font-size: 2.266rem;
+              }
+            }
+            .stat-label {
+              font-size: 2.55rem;
+            }
+            .stat-icon {
+              width: $stat-icon-width;
+              height: $stat-icon-width;
+            }
+            .stat-value {
+              font-size: 3.4rem;
+            }
+            .life-icon {
+              width: 43px;
+            }
+          }
+          .game-action-buttons .action-circle-btn {
+            .action-icon {
+              width: 57px;
+              height: 57px;
+            }
+            .action-label {
+              font-size: 2.185rem;
+            }
+          }
+          .question-pagination {
+            .nav-icon {
+              height: 23px;
+            }
+            .page-text {
+              font-size: 2.4rem;
+            }
+          }
         }
       }
     }
@@ -780,7 +844,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       gap: 12px;
       height: $right-ctrls-height;
       padding: 2px 16px;
-      border-radius: 30px;
+      border-radius: $right-ctrls-height;
       font-family: $roboto-font;
       font-size: 1.8rem;
       font-weight: 500;
@@ -999,7 +1063,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       .stat-icon {
         grid-area: stat-icon;
         width: $stat-icon-width;
-        height: 26px;
+        height: $stat-icon-width;
         object-fit: contain;
       }
       .stat-value {
