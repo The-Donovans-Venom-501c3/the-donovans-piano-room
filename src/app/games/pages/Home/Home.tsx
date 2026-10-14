@@ -58,6 +58,10 @@ const mainBanner = "/games/Banner.png";
 
 // Gameplay Control SVGs
 const accessibilityIcon = "/games/Accessibility.svg";
+const volumeIcon = "/games/gameVolume.svg"
+const expandIcon = "/games/gameExpand.svg"
+const minimizeIcon = "/games/gameMinimize.svg"
+const redCloseIcon = "/games/gameRedClose.svg"
 const timerIcon = "/games/Timer.svg";
 const scoreIcon = "/games/Score.svg";
 const pauseIcon = "/games/Pause1.svg";
@@ -658,22 +662,7 @@ export default function Home() {
               {/* Top Controls */}
               <div className="game-top-bar">
                 <div className="volume-control">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="volume-icon">
-                    <path
-                      d="M11 5L6 9H2V15H6L11 19V5Z"
-                      stroke="#8B5CF6"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"
-                      stroke="#8B5CF6"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <img src={volumeIcon} alt="Volume" className="volume-icon" />
                   <input
                     type="range"
                     min="0"
@@ -693,27 +682,17 @@ export default function Home() {
                   </button>
                   {isExpanded ? (
                     <button className="pill-btn minimize-btn" onClick={() => setIsExpanded(false)}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="control-btn-icon">
-                        <polyline points="4 14 10 14 10 20" />
-                        <polyline points="20 10 14 10 14 4" />
-                        <line x1="14" y1="10" x2="21" y2="3" />
-                        <line x1="3" y1="21" x2="10" y2="14" />
-                      </svg>
+                      <img src={minimizeIcon} alt="" className="control-btn-icon" />
                       <span>Minimize</span>
                     </button>
                   ) : (
                     <button className="pill-btn expand-btn" onClick={() => setIsExpanded(true)}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="control-btn-icon">
-                        <polyline points="15 3 21 3 21 9" />
-                        <polyline points="9 21 3 21 3 15" />
-                        <line x1="21" y1="3" x2="14" y2="10" />
-                        <line x1="3" y1="21" x2="10" y2="14" />
-                      </svg>
+                      <img src={expandIcon} alt="" className="control-btn-icon" />
                       <span>Expand</span>
                     </button>
                   )}
                   <button className="pill-btn close-btn" onClick={triggerExitGame} title="Close">
-                    <span className="close-x">✕</span>
+                    <img src={redCloseIcon} alt="" className="control-btn-icon" />
                     <span>Close</span>
                   </button>
                 </div>
