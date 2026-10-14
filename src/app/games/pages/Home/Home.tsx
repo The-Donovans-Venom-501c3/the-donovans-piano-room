@@ -296,10 +296,11 @@ export default function Home() {
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
 
-  useEffect(() => {
-    console.log('questions.length', questions.length)
-    console.log("currentQuestion", questionIndex, currentQuestion);
-  }, [questionIndex, currentQuestion]);
+  // TODO: remove once game testing is complete!
+  // useEffect(() => {
+  //   console.log('questions.length', questions.length)
+  //   console.log("currentQuestion", questionIndex, currentQuestion);
+  // }, [questionIndex, currentQuestion]);
 
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
