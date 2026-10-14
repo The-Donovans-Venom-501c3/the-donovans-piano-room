@@ -632,6 +632,28 @@ export default function Home() {
           )}
           <div className="deskview-overlay-content">
             <div className="game-screen-card">
+              {/* Answer Callout Overlays (pinned to the card's bottom-left corner) */}
+              {answerStatus === "wrong" && (
+                <div className="callout-overlay wrong-overlay">
+                  <div className="yellow-popover-card">
+                    <p className="popover-title">Oops, that&apos;s not the right answer.</p>
+                    <p className="popover-sub">Sorry, we need to take one of your lives.</p>
+                    <button className="try-again-btn" onClick={handleTryAgain}>
+                      TRY AGAIN
+                    </button>
+                  </div>
+                  <img src={happyCat} alt="Cat Mascot" className="mascot-img-callout" />
+                </div>
+              )}
+              {answerStatus === "correct" && (
+                <div className="callout-overlay correct-overlay">
+                  <div className="green-popover-card">
+                    <p className="popover-title">Correct answer, good job!</p>
+                  </div>
+                  <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />
+                </div>
+              )}
+
               {/* Top Controls */}
               <div className="game-top-bar">
                 <div className="volume-control">
@@ -735,29 +757,8 @@ export default function Home() {
                     {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
                   </p>
 
-                  {/* Options Matrix & Callout Overlays */}
+                  {/* Options Matrix */}
                   <div className="keyboard-matrix-wrapper">
-                    {answerStatus === "wrong" && (
-                      <div className="callout-overlay wrong-overlay">
-                        <div className="yellow-popover-card">
-                          <p className="popover-title">Oops, that&apos;s not the right answer.</p>
-                          <p className="popover-sub">Sorry, we need to take one of your lives.</p>
-                          <button className="try-again-btn" onClick={handleTryAgain}>
-                            TRY AGAIN
-                          </button>
-                        </div>
-                        <img src={happyCat} alt="Cat Mascot" className="mascot-img-callout" />
-                      </div>
-                    )}
-                    {answerStatus === "correct" && (
-                      <div className="callout-overlay correct-overlay">
-                        <div className="green-popover-card">
-                          <p className="popover-title">Correct answer, good job!</p>
-                        </div>
-                        <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />
-                      </div>
-                    )}
-
                     {
                       /*
                         Use each game's Options components if present,
