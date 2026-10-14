@@ -292,6 +292,7 @@ export default function Home() {
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
 
   useEffect(() => {
+    console.log('questions.length', questions.length)
     console.log("currentQuestion", questionIndex, currentQuestion);
   }, [questionIndex, currentQuestion]);
 
@@ -908,6 +909,7 @@ export default function Home() {
                     <button
                       className="nav-arrow"
                       onClick={() => setQuestionIndex((prev) => Math.max(1, prev - 1))}
+                      disabled={questionIndex <= 1}
                     >
                       <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
                     </button>
@@ -917,6 +919,7 @@ export default function Home() {
                     <button
                       className="nav-arrow"
                       onClick={() => setQuestionIndex((prev) => Math.min(questions.length || 8, prev + 1))}
+                      disabled={questionIndex >= (questions.length || 8)}
                     >
                       <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                     </button>
