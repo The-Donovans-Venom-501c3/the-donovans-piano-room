@@ -61,6 +61,7 @@ const accessibilityIcon = "/games/Accessibility.svg";
 const timerIcon = "/games/Timer.svg";
 const scoreIcon = "/games/Score.svg";
 const pauseIcon = "/games/Pause1.svg";
+const resumeIcon = "/games/Resume.svg";
 const restartIcon = "/games/Restart1.svg";
 const trebleClefIcon = "/games/MusicSymbol.png";
 const lifeIcon = "/games/gameLifeFilled.svg"
@@ -896,7 +897,11 @@ export default function Home() {
                   {/* PAUSE / RESTART Controls */}
                   <div className="game-action-buttons">
                     <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
-                      <img src={pauseIcon} alt="Pause" className="action-icon" />
+                      <img
+                        src={isPaused ? resumeIcon : pauseIcon}
+                        alt={isPaused ? "Resume" : "Pause"}
+                        className="action-icon"
+                      />
                       <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
                     </button>
                     <button className="action-circle-btn" onClick={triggerRestartGame}>
