@@ -30,7 +30,7 @@ export default function NoteOptions({
     <div className='small-btn-wrapper'>
       {symbols.map((symbol, index) =>
         notes.map((note, idx) =>
-          (level == 'easy' && index > 0) || (level == 'medium' && index > 1) ? (
+          (level === 'easy' && index > 0) || (level === 'medium' && index > 1) ? (
             <div key={note} className='option-blank'></div>
           ) : (
             <button
@@ -42,7 +42,7 @@ export default function NoteOptions({
               disabled={wrongOptions.includes(note + symbol.name)}
             >
               <span>{note}</span>
-              {index != 0 ? <img src={index === 1 ? '/games/SharpSymbol.svg' : '/games/BimolSymbol.svg'} alt={symbol.name} /> : null}
+              {index !== 0 ? (index === 1 ? '\u266F' : '\u266D') : null}
             </button>
           )
         )
