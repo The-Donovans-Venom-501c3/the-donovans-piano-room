@@ -635,7 +635,7 @@ export default function Home() {
               {/* Answer Callout Overlays (pinned to the card's bottom-left corner) */}
               {answerStatus === "wrong" && (
                 <div className="callout-overlay wrong-overlay">
-                  <div className="yellow-popover-card">
+                  <div className="popover-card">
                     <p className="popover-title">Oops, that&apos;s not the right answer.</p>
                     <p className="popover-sub">Sorry, we need to take one of your lives.</p>
                     <button className="try-again-btn" onClick={handleTryAgain}>
@@ -647,7 +647,7 @@ export default function Home() {
               )}
               {answerStatus === "correct" && (
                 <div className="callout-overlay correct-overlay">
-                  <div className="green-popover-card">
+                  <div className="popover-card">
                     <p className="popover-title">Correct answer, good job!</p>
                   </div>
                   <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />

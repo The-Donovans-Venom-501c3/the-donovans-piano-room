@@ -531,109 +531,88 @@
       left: 0;
       z-index: 30;
       display: flex;
+      // Speech bubble stacked above the mascot's head, sitting almost on top of it
+      flex-direction: column;
       align-items: flex-start;
-      gap: 22px; /* room for the bubble tail */
+      gap: 4px;
       pointer-events: auto;
 
-      &.wrong-overlay,
-      &.correct-overlay {
-        display: flex;
-        // Speech bubble stacked above the mascot's head
-        flex-direction: column;
-        align-items: flex-start;
+      .mascot-img-callout {
+        height: 133px;
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
 
-        .mascot-img-callout {
-          height: 120px;
-          width: auto;
-          object-fit: contain;
-          flex-shrink: 0;
-        }
+      .popover-card {
+        position: relative;
+        background: #f8dcb0;
+        border-radius: 20px;
+        padding: 16px 30px;
+        // Starts a little in from the mascot's left edge, per the design
+        margin-left: 33px;
 
-        .yellow-popover-card {
-          position: relative;
+        // Tail drops beside the mascot and points at the right side of its head
+        &::before {
+          content: '';
+          position: absolute;
+          bottom: -32px;
+          left: 120px;
+          width: 40px;
+          height: 33px;
           background: #f8dcb0;
-          border-radius: 20px;
-          padding: 16px 30px;
-          width: 375px;
-          // Starts a little in from the cat's left edge, per the design
-          margin-left: 33px;
-
-          // Tail drops past the cat's raised tail and points at the right side of its head
-          &::before {
-            content: '';
-            position: absolute;
-            bottom: -32px;
-            left: 120px;
-            width: 40px;
-            height: 33px;
-            background: #f8dcb0;
-            // 30px-wide base along the bubble, tip leaning slightly down and to the left
-            clip-path: polygon(calc(100% - 30px) 0, 100% 0, 0 100%);
-          }
-          .popover-title,
-          .popover-sub,
-          .try-again-btn {
-            font-family: 'Roboto', system-ui, -apple-system, sans-serif;
-            font-size: 1.8rem;
-            font-weight: 400;
-            line-height: 1.3;
-            color: #1C1A1A;
-          }
-          .popover-title {
-            margin-bottom: 4px;
-          }
-          .popover-sub {
-            margin-bottom: 20px;
-          }
-          .try-again-btn {
-            background: #ff9f00;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1.6rem;
-            letter-spacing: 0%;
-            padding: 5px 12px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            &:hover {
-              background: #e68f00;
-            }
-          }
+          // 30px-wide base along the bubble, tip leaning slightly down and to the left
+          clip-path: polygon(calc(100% - 30px) 0, 100% 0, 0 100%);
         }
-        .green-popover-card {
-          position: relative;
-          background: #d1fae5;
-          border-radius: 12px;
-          padding: 12px 18px;
+        .popover-title,
+        .popover-sub,
+        .try-again-btn {
+          font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+          font-size: 1.8rem;
+          font-weight: 400;
+          line-height: 1.3;
+          color: #1C1A1A;
+        }
+      }
 
-          // Speech-bubble tail pointing down at the mascot; same shape as the
-          // welcome .speech-bubble-box tail, at half size for the smaller bubble
-          &::before {
-            content: '';
-            position: absolute;
-            bottom: -18px;
-            left: 24px;
-            width: 28px;
-            height: 19px;
-            background: #d1fae5;
-            // 16px-wide base along the bubble, tip leaning down and to the left
-            clip-path: polygon(calc(100% - 16px) 0, 100% 0, 0 100%);
-          }
-          .popover-title {
-            font-weight: 700;
-            font-size: 13px;
-            color: #065f46;
-            margin: 0;
+      &.wrong-overlay .popover-card {
+        .popover-title {
+          margin-bottom: 4px;
+        }
+        .popover-sub {
+          margin-bottom: 20px;
+        }
+        .try-again-btn {
+          background: #ff9f00;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 1.6rem;
+          letter-spacing: 0%;
+          padding: 5px 12px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+          &:hover {
+            background: #e68f00;
           }
         }
       }
 
-      // Wrong-answer cat: bubble sits almost on top of it, tail beside its head
-      &.wrong-overlay {
-        gap: 4px;
+      &.correct-overlay {
+        left: 20px;
+        gap: 14px; // bubble sits 10px higher above the metronome than the cat's bubble
+        .popover-card {
+          // Tip lands just right of the metronome's top-right corner
+          &::before {
+            left: 77px;
+          }
+          .popover-title {
+            margin: 0;
+          }
+        }
         .mascot-img-callout {
-          height: 133px;
+          height: 148px;
         }
       }
     }
