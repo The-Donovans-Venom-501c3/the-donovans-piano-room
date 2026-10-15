@@ -810,6 +810,9 @@ export default function Home() {
                         ) : selectedGameKey === "chord" ? (
                           <ChordOptions
                             handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={!!savedAnswer || answerStatus === "wrong"}
                             level={selectedLevel ?? "easy"}
                           />
                         ) : selectedGameKey === "key" ? (
