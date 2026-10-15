@@ -49,19 +49,29 @@ const yellowMascot = "/games/Character_Loading.svg";
 const purpleSpotlightBeam = "/games/HomePageLight.svg";
 const musicStand = "/games/Music_stand.svg";
 const musicStandDeskview = "/games/Music_Stand_Deskview.png";
-const welcomeCat = "/games/sadCat.svg";
+const welcomeCat = "/games/Welcome_Character.svg";
 const cryingCat = "/games/cryingCat.svg";
+const happyCat = "/games/happyCat.svg"
 const successCharacter = "/games/Affirmation_Success_Character.svg";
 const blankBanner = "/games/BlankBanner.png";
 const mainBanner = "/games/Banner.png";
 
 // Gameplay Control SVGs
 const accessibilityIcon = "/games/Accessibility.svg";
+const volumeIcon = "/games/gameVolume.svg"
+const expandIcon = "/games/gameExpand.svg"
+const minimizeIcon = "/games/gameMinimize.svg"
+const redCloseIcon = "/games/gameRedClose.svg"
 const timerIcon = "/games/Timer.svg";
 const scoreIcon = "/games/Score.svg";
 const pauseIcon = "/games/Pause1.svg";
+const resumeIcon = "/games/Resume.svg";
 const restartIcon = "/games/Restart1.svg";
 const trebleClefIcon = "/games/MusicSymbol.png";
+const lifeIcon = "/games/gameLifeFilled.svg"
+const missingLifeIcon = "/games/gameLifeStroked.svg"
+const prevIcon = "/games/gamePaginationPrevIcon.svg"
+const nextIcon = "/games/gamePaginationNextIcon.svg"
 
 // Accessibility Options Images
 const fontSizeImg = "/games/Fontsize.png";
@@ -151,6 +161,8 @@ export default function Home() {
   const [volume, setVolume] = useState<number>(80);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [answerStatus, setAnswerStatus] = useState<"correct" | "wrong" | null>(null);
+  // Wrong picks for the current question; they stay red until the right answer is chosen
+  const [wrongOptions, setWrongOptions] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -254,6 +266,7 @@ export default function Home() {
     setSelectedGameKey(gameKey);
     setSelectedAnswer(null);
     setAnswerStatus(null);
+    setWrongOptions([]);
     setFlowStage("banner");
   };
 
@@ -276,15 +289,23 @@ export default function Home() {
     setIsPaused(false);
     setSelectedAnswer(null);
     setAnswerStatus(null);
+    setWrongOptions([]);
     setFlowStage("loading_screen");
   };
 
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
 
+  // TODO: remove once game testing is complete!
+  // useEffect(() => {
+  //   console.log('questions.length', questions.length)
+  //   console.log("currentQuestion", questionIndex, currentQuestion);
+  // }, [questionIndex, currentQuestion]);
+
   const easyRecord = highScores[`${selectedGameKey}:easy`];
   const mediumRecord = highScores[`${selectedGameKey}:medium`];
   const hardRecord = highScores[`${selectedGameKey}:hard`];
+
   // Medium unlocks once Easy is completed, and Hard unlocks once Easy and Medium are completed
   const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
   const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
@@ -298,6 +319,7 @@ export default function Home() {
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
+      setWrongOptions([]);
       // fix: score per question is now dynamic (100 / total questions in this round)
       // instead of a hardcoded +25, so a perfect run always totals exactly 100
       // regardless of how many questions the level has (10, 20, 30, etc.)
@@ -314,6 +336,7 @@ export default function Home() {
       }, 1500);
     } else {
       setAnswerStatus("wrong");
+      setWrongOptions((prev) => [...prev, selectedOption]);
       const nextLives = Math.max(0, lives - 1);
       setLives(nextLives);
     }
@@ -356,6 +379,7 @@ export default function Home() {
     setTimerSeconds(0);
     setSelectedAnswer(null);
     setAnswerStatus(null);
+    setWrongOptions([]);
     setIsPaused(false);
     setFlowStage("active_game");
   };
@@ -614,25 +638,32 @@ export default function Home() {
           )}
           <div className="deskview-overlay-content">
             <div className="game-screen-card">
+              {/* Answer Callout Overlays (pinned to the card's bottom-left corner) */}
+              {answerStatus === "wrong" && (
+                <div className="callout-overlay wrong-overlay">
+                  <div className="popover-card">
+                    <p className="popover-title">Oops, that&apos;s not the right answer.</p>
+                    <p className="popover-sub">Sorry, we need to take one of your lives.</p>
+                    <button className="try-again-btn" onClick={handleTryAgain}>
+                      TRY AGAIN
+                    </button>
+                  </div>
+                  <img src={happyCat} alt="Cat Mascot" className="mascot-img-callout" />
+                </div>
+              )}
+              {answerStatus === "correct" && (
+                <div className="callout-overlay correct-overlay">
+                  <div className="popover-card">
+                    <p className="popover-title">Correct answer, good job!</p>
+                  </div>
+                  <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />
+                </div>
+              )}
+
               {/* Top Controls */}
               <div className="game-top-bar">
                 <div className="volume-control">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="volume-icon">
-                    <path
-                      d="M11 5L6 9H2V15H6L11 19V5Z"
-                      stroke="#8B5CF6"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"
-                      stroke="#8B5CF6"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <img src={volumeIcon} alt="Volume" className="volume-icon" />
                   <input
                     type="range"
                     min="0"
@@ -652,27 +683,17 @@ export default function Home() {
                   </button>
                   {isExpanded ? (
                     <button className="pill-btn minimize-btn" onClick={() => setIsExpanded(false)}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="control-btn-icon">
-                        <polyline points="4 14 10 14 10 20" />
-                        <polyline points="20 10 14 10 14 4" />
-                        <line x1="14" y1="10" x2="21" y2="3" />
-                        <line x1="3" y1="21" x2="10" y2="14" />
-                      </svg>
+                      <img src={minimizeIcon} alt="" className="control-btn-icon" />
                       <span>Minimize</span>
                     </button>
                   ) : (
                     <button className="pill-btn expand-btn" onClick={() => setIsExpanded(true)}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="control-btn-icon">
-                        <polyline points="15 3 21 3 21 9" />
-                        <polyline points="9 21 3 21 3 15" />
-                        <line x1="21" y1="3" x2="14" y2="10" />
-                        <line x1="3" y1="21" x2="10" y2="14" />
-                      </svg>
+                      <img src={expandIcon} alt="" className="control-btn-icon" />
                       <span>Expand</span>
                     </button>
                   )}
                   <button className="pill-btn close-btn" onClick={triggerExitGame} title="Close">
-                    <span className="close-x">✕</span>
+                    <img src={redCloseIcon} alt="" className="control-btn-icon" />
                     <span>Close</span>
                   </button>
                 </div>
@@ -683,12 +704,11 @@ export default function Home() {
                 <div className="game-screen-left">
                   {/* Dynamic SVG / Staff Question Display */}
                   {currentQuestion?.questionImage ? (
-                    <div className="question-image-container" style={{ textAlign: "center", margin: "1rem 0" }}>
+                    <div className="question-image-container">
                       <img
                         src={currentQuestion.questionImage}
                         alt="Question SVG"
                         className="question-svg-image"
-                        style={{ maxHeight: "180px", maxWidth: "100%", objectFit: "contain" }}
                       />
                     </div>
                   ) : (
@@ -718,29 +738,8 @@ export default function Home() {
                     {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
                   </p>
 
-                  {/* Options Matrix & Callout Overlays */}
+                  {/* Options Matrix */}
                   <div className="keyboard-matrix-wrapper">
-                    {answerStatus === "wrong" && (
-                      <div className="callout-overlay wrong-overlay">
-                        <div className="yellow-popover-card">
-                          <p className="popover-title">Oops, that&apos;s not the right answer.</p>
-                          <p className="popover-sub">Sorry, we need to take one of your lives.</p>
-                          <button className="try-again-btn" onClick={handleTryAgain}>
-                            TRY AGAIN
-                          </button>
-                        </div>
-                        <img src={welcomeCat} alt="Cat Mascot" className="mascot-img-callout" />
-                      </div>
-                    )}
-                    {answerStatus === "correct" && (
-                      <div className="callout-overlay correct-overlay">
-                        <div className="green-popover-card">
-                          <p className="popover-title">Correct answer, good job!</p>
-                        </div>
-                        <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />
-                      </div>
-                    )}
-
                     {
                       /*
                         Use each game's Options components if present,
@@ -749,21 +748,43 @@ export default function Home() {
                       */
                     }
                     {selectedGameKey === "math" ? (
-                      <MathOptions handleOptionClick={handleAnswerSubmit} />
+                      <MathOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : selectedGameKey === "note" ? (
-                      <NoteOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <NoteOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        wrongOptions={wrongOptions}
+                        correctOption={answerStatus === "correct" ? selectedAnswer : null}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "chord" ? (
-                      <ChordOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <ChordOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "key" ? (
-                      <KeyOptions handleOptionClick={handleAnswerSubmit} />
+                      <KeyOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : selectedGameKey === "major-minor" ? (
-                      <MajorMinorOptions handleOptionClick={handleAnswerSubmit} />
+                      <MajorMinorOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : selectedGameKey === "ledger" ? (
-                      <LedgerOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <LedgerOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "scale" ? (
-                      <ScaleOptions handleOptionClick={handleAnswerSubmit} level={selectedLevel ?? "easy"} />
+                      <ScaleOptions
+                        handleOptionClick={handleAnswerSubmit}
+                        level={selectedLevel ?? "easy"}
+                      />
                     ) : selectedGameKey === "interval" ? (
-                      <IntervalOptions handleOptionClick={handleAnswerSubmit} />
+                      <IntervalOptions
+                        handleOptionClick={handleAnswerSubmit}
+                      />
                     ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                       <div
                         className="options-grid"
@@ -820,31 +841,33 @@ export default function Home() {
                 <div className="game-screen-right">
                   <div className="stats-group">
                     {/* TIMER Section */}
-                    <div className="game-stat">
-                      <span className="stat-label">TIMER</span>
-                      <div className="stat-value-row">
-                        <img src={timerIcon} alt="Timer" className="stat-icon" />
-                        <span className="stat-value">{formatTime(timerSeconds)}</span>
-                      </div>
+                    <div className="game-stat timer-block">
+                      <span className="stat-label">Timer</span>
+                      <img src={timerIcon} alt="Timer" className="stat-icon" />
+                      <span className="stat-value">{formatTime(timerSeconds)}</span>
                     </div>
                     {/* SCORE Section */}
-                    <div className="game-stat">
-                      <span className="stat-label">SCORE</span>
-                      <div className="stat-value-row">
-                        <img src={scoreIcon} alt="Score" className="stat-icon" />
-                        <span className="stat-value">{score}/100</span>
-                      </div>
+                    <div className="game-stat score-block">
+                      <span className="stat-label">Score</span>
+                      <img src={scoreIcon} alt="Score" className="stat-icon" />
+                      <span className="stat-value">{score}/100</span>
                     </div>
                     {/* LIVES Section */}
                     <div className="game-stat lives-block">
-                      <span className="stat-label">LIVES ({lives}/3)</span>
+                      <span className="stat-label">
+                        Lives
+                        <span className="life-count">({lives}/3)</span>
+                      </span>
                       <div className="lives-quaver-bar">
                         {[0, 1, 2].map((index) => {
                           const isActive = index < lives;
                           return (
-                            <span key={index} className={`single-quaver ${isActive ? "active" : "lost"}`}>
-                              ♪
-                            </span>
+                            <img
+                              key={index}
+                              src={isActive ? lifeIcon : missingLifeIcon}
+                              alt={isActive ? "Life Icon" : "Missing Life Icon"}
+                              className={`life-icon ${isActive ? "active" : "lost"}`}
+                            />
                           );
                         })}
                       </div>
@@ -854,16 +877,16 @@ export default function Home() {
                   {/* PAUSE / RESTART Controls */}
                   <div className="game-action-buttons">
                     <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
-                      <div className="circle-bg orange">
-                        <img src={pauseIcon} alt="Pause" />
-                      </div>
-                      <span className="action-label">{isPaused ? "RESUME" : "PAUSE"}</span>
+                      <img
+                        src={isPaused ? resumeIcon : pauseIcon}
+                        alt={isPaused ? "Resume" : "Pause"}
+                        className="action-icon"
+                      />
+                      <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
                     </button>
                     <button className="action-circle-btn" onClick={triggerRestartGame}>
-                      <div className="circle-bg orange">
-                        <img src={restartIcon} alt="Restart" />
-                      </div>
-                      <span className="action-label">RESTART</span>
+                      <img src={restartIcon} alt="Restart" className="action-icon" />
+                      <span className="action-label">Restart</span>
                     </button>
                   </div>
 
@@ -872,8 +895,9 @@ export default function Home() {
                     <button
                       className="nav-arrow"
                       onClick={() => setQuestionIndex((prev) => Math.max(1, prev - 1))}
+                      disabled={questionIndex <= 1}
                     >
-                      ‹
+                      <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
                     </button>
                     <span className="page-text">
                       {questionIndex} of {questions.length || 8}
@@ -881,8 +905,9 @@ export default function Home() {
                     <button
                       className="nav-arrow"
                       onClick={() => setQuestionIndex((prev) => Math.min(questions.length || 8, prev + 1))}
+                      disabled={questionIndex >= (questions.length || 8)}
                     >
-                      ›
+                      <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                     </button>
                   </div>
                 </div>

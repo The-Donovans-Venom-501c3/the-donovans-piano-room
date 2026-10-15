@@ -14,21 +14,35 @@ const symbols = [
   },
 ];
 
-export default function NoteOptions({ handleOptionClick, level }: { handleOptionClick: OptionClickHandler; level: Level }) {
+export default function NoteOptions({
+  handleOptionClick,
+  level,
+  wrongOptions = [],
+  correctOption = null,
+}: {
+  handleOptionClick: OptionClickHandler;
+  level: Level;
+  wrongOptions?: string[];
+  // Set from a correct pick until the next question loads
+  correctOption?: string | null;
+}) {
   return (
     <div className='small-btn-wrapper'>
       {symbols.map((symbol, index) =>
         notes.map((note, idx) =>
-          (level == 'easy' && index > 0) || (level == 'medium' && index > 1) ? (
+          (level === 'easy' && index > 0) || (level === 'medium' && index > 1) ? (
             <div key={note} className='option-blank'></div>
           ) : (
             <button
               key={idx}
               onClick={() => handleOptionClick(note + symbol.name)}
-              className='option-btn small-btn'
+              className={`option-btn small-btn ${
+                wrongOptions.includes(note + symbol.name) ? 'wrong' : note + symbol.name === correctOption ? 'correct' : ''
+              }`}
+              disabled={wrongOptions.includes(note + symbol.name)}
             >
               <span>{note}</span>
-              {index != 0 ? <img src={index === 1 ? '/games/SharpSymbol.svg' : '/games/BimolSymbol.svg'} alt={symbol.name} /> : null}
+              {index !== 0 ? (index === 1 ? '\u266F' : '\u266D') : null}
             </button>
           )
         )

@@ -3,25 +3,54 @@
 .option-btn {
   border: 1px solid $grey-200;
   box-shadow: 0px 5px 0px 0px $grey-200;
-  font-size: 15px;
+  font-size: 2.07rem;
   font-weight: 500;
-
-  &:hover {
+  &:hover,
+  &:active {
+    border-color: $yellow-300;
     background-color: $yellow-100-hover;
     box-shadow: 0px 5px 0px 0px $yellow-300;
   }
   &:active {
-    background-color: white;
-    box-shadow: 0px 1px 0px 0px $grey-200;
-    transform: translateY(2px);
+    box-shadow: 0px 2px 0px 0px $yellow-300;
+    transform: translateY(3px);
+  }
+  &.wrong {
+    $wrong-bg: #FF7A7A;
+    background-color: $wrong-bg;
+    border-color: $wrong-bg;
+    box-shadow: 0px 5px 0px 0px rgba($wrong-bg, 0.8);
+    &:hover,
+    &:active {
+      background-color: $wrong-bg;
+      box-shadow: 0px 5px 0px 0px rgba($wrong-bg, 0.8);
+      transform: none;
+    }
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+  &.correct {
+    $correct-bg: #438342;
+    background-color: $correct-bg;
+    border-color: $correct-bg;
+    box-shadow: 0px 5px 0px 0px rgba($correct-bg, 0.8);
+    color: #fff;
+    &:hover,
+    &:active {
+      background-color: $correct-bg;
+      border-color: $correct-bg;
+      box-shadow: 0px 5px 0px 0px rgba($correct-bg, 0.8);
+      transform: none;
+    }
   }
 }
 
 .small-btn-wrapper {
-  margin-top: 15px;
+  margin-top: 22px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-column-gap: 5px;
+  grid-column-gap: 15px;
   grid-row-gap: 10px;
 
   .small-btn {
