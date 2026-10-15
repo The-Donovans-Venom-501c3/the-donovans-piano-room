@@ -343,11 +343,13 @@ export default function Home() {
       setAnswerStatus("correct");
       setAnswers((prev) => ({ ...prev, [questionIndex]: { correct: selectedOption, wrong: wrongOptions } }));
       setWrongOptions([]);
-      // Score is the share of questions answered correctly, rounded once so a perfect
-      // run totals exactly 100 (rounding each answer's points left 30 questions at 90).
-      // answers only holds correctly answered questions, and this one isn't in it yet
-      const correctCount = Object.keys(answers).length + 1;
-      setScore(questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0);
+      // Score is the share of questions answered right on the first try, rounded once so a
+      // perfect run totals exactly 100 (rounding each answer's points left 30 questions at 90).
+      // answers only holds answered questions, and this one isn't in it yet
+      const firstTryCount =
+        Object.values(answers).filter((answer) => answer.wrong.length === 0).length +
+        (wrongOptions.length === 0 ? 1 : 0);
+      setScore(questions.length > 0 ? Math.round((firstTryCount / questions.length) * 100) : 0);
       // questionIndex can't be stale here: any navigation cancels this timer first
       feedbackTimeoutRef.current = setTimeout(() => {
         feedbackTimeoutRef.current = null;
