@@ -19,12 +19,15 @@ export default function NoteOptions({
   level,
   wrongOptions = [],
   correctOption = null,
+  locked = false,
 }: {
   handleOptionClick: OptionClickHandler;
   level: Level;
   wrongOptions?: string[];
   // Set from a correct pick until the next question loads
   correctOption?: string | null;
+  // Answers aren't accepted right now (question answered or Wrong popover up), so every button is disabled
+  locked?: boolean;
 }) {
   return (
     <div className='small-btn-wrapper'>
@@ -39,7 +42,7 @@ export default function NoteOptions({
               className={`option-btn small-btn ${
                 wrongOptions.includes(note + symbol.name) ? 'wrong' : note + symbol.name === correctOption ? 'correct' : ''
               }`}
-              disabled={wrongOptions.includes(note + symbol.name)}
+              disabled={locked || wrongOptions.includes(note + symbol.name)}
             >
               <span>{note}</span>
               {index !== 0 ? (index === 1 ? '\u266F' : '\u266D') : null}
