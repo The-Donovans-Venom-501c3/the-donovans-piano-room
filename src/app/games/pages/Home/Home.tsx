@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSetAtom, useAtom } from "jotai";
 import { Button } from "./button";
 import {
@@ -94,6 +94,9 @@ type GameFlowStage =
 
 type DifficultyLevel = "easy" | "medium" | "hard";
 
+// How long the Correct / Wrong popover shows before it hides itself
+const FEEDBACK_MS = 1500;
+
 const FULL_NOTE_ROWS: string[][] = [
   ["C", "D", "E", "F", "G", "A", "B"],
   ["C#", "D#", "E#", "F#", "G#", "A#", "B#"],
@@ -163,6 +166,10 @@ export default function Home() {
   const [answerStatus, setAnswerStatus] = useState<"correct" | "wrong" | null>(null);
   // Wrong picks for the current question; they stay red until the right answer is chosen
   const [wrongOptions, setWrongOptions] = useState<string[]>([]);
+  // Answers given this run, by question number; answered questions are shown read-only
+  const [answers, setAnswers] = useState<Record<number, { correct: string; wrong: string[] }>>({});
+  // Pending popover timer (correct: advance, wrong: hide or game over); cleared whenever the question changes
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -284,17 +291,16 @@ export default function Home() {
     setQuizState("quiz");
     setScore(0);
     setLives(3);
-    setQuestionIndex(1);
+    goToQuestion(1);
+    setAnswers({});
     setTimerSeconds(0);
     setIsPaused(false);
-    setSelectedAnswer(null);
-    setAnswerStatus(null);
-    setWrongOptions([]);
     setFlowStage("loading_screen");
   };
 
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
+  const savedAnswer = answers[questionIndex];
 
   // TODO: remove once game testing is complete!
   // useEffect(() => {
@@ -311,42 +317,60 @@ export default function Home() {
   const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
   const isHardCompleted = !!completedLevels[`${selectedGameKey}:hard`];
 
+  const cancelFeedbackTimer = () => {
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+  };
+
+  // Every question change goes through here so per-question state never carries over
+  const goToQuestion = (index: number) => {
+    cancelFeedbackTimer();
+    setSelectedAnswer(null);
+    setAnswerStatus(null);
+    setWrongOptions([]);
+    setQuestionIndex(index);
+  };
+
   const handleAnswerSubmit = (selectedOption: string) => {
-    if (answerStatus !== null || !currentQuestion) return;
+    if (answerStatus !== null || !currentQuestion || savedAnswer) return;
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
 
     if (selectedOption === expectedAnswer) {
       setAnswerStatus("correct");
+      setAnswers((prev) => ({ ...prev, [questionIndex]: { correct: selectedOption, wrong: wrongOptions } }));
       setWrongOptions([]);
       // fix: score per question is now dynamic (100 / total questions in this round)
       // instead of a hardcoded +25, so a perfect run always totals exactly 100
       // regardless of how many questions the level has (10, 20, 30, etc.)
       const increment = questions.length > 0 ? 100 / questions.length : 0;
       setScore((prev) => Math.min(100, Math.round(prev + increment)));
-      setTimeout(() => {
-        setSelectedAnswer(null);
-        setAnswerStatus(null);
+      // questionIndex can't be stale here: any navigation cancels this timer first
+      feedbackTimeoutRef.current = setTimeout(() => {
+        feedbackTimeoutRef.current = null;
         if (questionIndex >= (questions.length || 8)) {
           setFlowStage("game_finished");
         } else {
-          setQuestionIndex((prev) => prev + 1);
+          goToQuestion(questionIndex + 1);
         }
-      }, 1500);
+      }, FEEDBACK_MS);
     } else {
       setAnswerStatus("wrong");
       setWrongOptions((prev) => [...prev, selectedOption]);
       const nextLives = Math.max(0, lives - 1);
       setLives(nextLives);
-    }
-  };
-
-  const handleTryAgain = () => {
-    setSelectedAnswer(null);
-    setAnswerStatus(null);
-    if (lives <= 0) {
-      setFlowStage("game_finished");
+      // Hide the popover on its own; nextLives because lives is still the old value here
+      feedbackTimeoutRef.current = setTimeout(() => {
+        feedbackTimeoutRef.current = null;
+        setSelectedAnswer(null);
+        setAnswerStatus(null);
+        if (nextLives <= 0) {
+          setFlowStage("game_finished");
+        }
+      }, FEEDBACK_MS);
     }
   };
 
@@ -356,6 +380,7 @@ export default function Home() {
   };
 
   const confirmExitGame = () => {
+    cancelFeedbackTimer();
     setShowExitModal(false);
     setAppState("home");
     setFlowStage("dashboard");
@@ -375,11 +400,9 @@ export default function Home() {
     setShowRestartModal(false);
     setScore(0);
     setLives(3);
-    setQuestionIndex(1);
+    goToQuestion(1);
+    setAnswers({});
     setTimerSeconds(0);
-    setSelectedAnswer(null);
-    setAnswerStatus(null);
-    setWrongOptions([]);
     setIsPaused(false);
     setFlowStage("active_game");
   };
@@ -644,9 +667,6 @@ export default function Home() {
                   <div className="popover-card">
                     <p className="popover-title">Oops, that&apos;s not the right answer.</p>
                     <p className="popover-sub">Sorry, we need to take one of your lives.</p>
-                    <button className="try-again-btn" onClick={handleTryAgain}>
-                      TRY AGAIN
-                    </button>
                   </div>
                   <img src={happyCat} alt="Cat Mascot" className="mascot-img-callout" />
                 </div>
@@ -754,8 +774,8 @@ export default function Home() {
                     ) : selectedGameKey === "note" ? (
                       <NoteOptions
                         handleOptionClick={handleAnswerSubmit}
-                        wrongOptions={wrongOptions}
-                        correctOption={answerStatus === "correct" ? selectedAnswer : null}
+                        wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                        correctOption={savedAnswer?.correct ?? (answerStatus === "correct" ? selectedAnswer : null)}
                         level={selectedLevel ?? "easy"}
                       />
                     ) : selectedGameKey === "chord" ? (
@@ -892,20 +912,22 @@ export default function Home() {
 
                   {/* Footer Pagination Navigation */}
                   <div className="question-pagination">
+                    {/* Prev: blocked while the Wrong popover is up, so its game-over timer can't be cancelled at 0 lives */}
                     <button
                       className="nav-arrow"
-                      onClick={() => setQuestionIndex((prev) => Math.max(1, prev - 1))}
-                      disabled={questionIndex <= 1}
+                      onClick={() => goToQuestion(Math.max(1, questionIndex - 1))}
+                      disabled={questionIndex <= 1 || answerStatus === "wrong"}
                     >
                       <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
                     </button>
                     <span className="page-text">
                       {questionIndex} of {questions.length || 8}
                     </span>
+                    {/* Next: only once this question has been answered */}
                     <button
                       className="nav-arrow"
-                      onClick={() => setQuestionIndex((prev) => Math.min(questions.length || 8, prev + 1))}
-                      disabled={questionIndex >= (questions.length || 8)}
+                      onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
+                      disabled={questionIndex >= (questions.length || 8) || !savedAnswer}
                     >
                       <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                     </button>
