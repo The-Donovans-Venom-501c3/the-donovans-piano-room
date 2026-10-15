@@ -612,8 +612,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
           clip-path: polygon(calc(100% - 30px) 0, 100% 0, 0 100%);
         }
         .popover-title,
-        .popover-sub,
-        .try-again-btn {
+        .popover-sub {
           font-family: $roboto-font;
           font-size: 1.8rem;
           font-weight: 400;
@@ -625,24 +624,6 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       &.wrong-overlay .popover-card {
         .popover-title {
           margin-bottom: 4px;
-        }
-        .popover-sub {
-          margin-bottom: 20px;
-        }
-        .try-again-btn {
-          background: #ff9f00;
-          color: #ffffff;
-          border: none;
-          border-radius: 8px;
-          font-weight: 600;
-          font-size: 1.6rem;
-          letter-spacing: 0%;
-          padding: 5px 12px;
-          cursor: pointer;
-          transition: background 0.2s ease;
-          &:hover {
-            background: #e68f00;
-          }
         }
       }
 
