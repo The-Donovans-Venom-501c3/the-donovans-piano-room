@@ -90,7 +90,8 @@ type GameFlowStage =
   | "stage_start_2"
   | "stage_start_3"
   | "active_game"
-  | "game_finished";
+  | "game_finished"
+  | "reviewing";
 
 type DifficultyLevel = "easy" | "medium" | "hard";
 
@@ -167,7 +168,8 @@ export default function Home() {
   // Wrong picks for the current question; they stay red until the right answer is chosen
   const [wrongOptions, setWrongOptions] = useState<string[]>([]);
   // Answers given this run, by question number; answered questions are shown read-only
-  const [answers, setAnswers] = useState<Record<number, { correct: string; wrong: string[] }>>({});
+  // correct is null for the question that ended the game (its wrong picks are kept for Review)
+  const [answers, setAnswers] = useState<Record<number, { correct: string | null; wrong: string[] }>>({});
   // Pending popover timer (correct: advance, wrong: hide or game over); cleared whenever the question changes
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -301,6 +303,9 @@ export default function Home() {
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
   const savedAnswer = answers[questionIndex];
+  const isReviewing = flowStage === "reviewing";
+  // In Review, questions never answered correctly still show their right answer
+  const reviewCorrectAnswer = isReviewing ? currentQuestion?.correctOption || currentQuestion?.answer || null : null;
 
   // TODO: remove once game testing is complete!
   // useEffect(() => {
@@ -334,7 +339,7 @@ export default function Home() {
   };
 
   const handleAnswerSubmit = (selectedOption: string) => {
-    if (answerStatus !== null || !currentQuestion || savedAnswer) return;
+    if (answerStatus !== null || !currentQuestion || savedAnswer || isReviewing) return;
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
@@ -360,6 +365,8 @@ export default function Home() {
     } else {
       setAnswerStatus("wrong");
       setWrongOptions((prev) => [...prev, selectedOption]);
+      // wrongOptions is still the old list here, so build this question's picks so far
+      const wrongSoFar = [...wrongOptions, selectedOption];
       const nextLives = Math.max(0, lives - 1);
       setLives(nextLives);
       // Hide the popover on its own; nextLives because lives is still the old value here
@@ -368,10 +375,24 @@ export default function Home() {
         setSelectedAnswer(null);
         setAnswerStatus(null);
         if (nextLives <= 0) {
+          // Saved here rather than on the click: a saved answer enables Next, which would let the
+          // player leave and cancel this game-over timer while the popover is still up
+          setAnswers((prev) => ({ ...prev, [questionIndex]: { correct: null, wrong: wrongSoFar } }));
           setFlowStage("game_finished");
         }
       }, FEEDBACK_MS);
     }
+  };
+
+  // Review mode: the game screen with every question read-only, starting from the first
+  const startReview = () => {
+    goToQuestion(1);
+    setFlowStage("reviewing");
+  };
+
+  const backToResults = () => {
+    goToQuestion(1);
+    setFlowStage("game_finished");
   };
 
   // Exit Modal Actions
@@ -654,7 +675,7 @@ export default function Home() {
       )}
 
       {/* ACTIVE GAMEPLAY STAGE (stays up when the game finishes, to show the result in the card) */}
-      {(flowStage === "active_game" || flowStage === "game_finished") && (
+      {(flowStage === "active_game" || flowStage === "game_finished" || isReviewing) && (
         <div className={`active-game-stage-wrapper ${isExpanded ? "fullscreen-mode" : ""}`}>
           {!isExpanded && (
             <img src={musicStandDeskview} alt="Deskview Background" className="deskview-bg-image" />
@@ -680,8 +701,7 @@ export default function Home() {
                       <button onClick={confirmExitGame} className="back-btn">
                         Back to Games
                       </button>
-                      {/* TODO: enable once there's a review screen and the player's answers are recorded */}
-                      <button className="review-btn" disabled>
+                      <button onClick={startReview} className="review-btn">
                         Review Your Questions
                       </button>
                     </div>
@@ -803,16 +823,16 @@ export default function Home() {
                           <NoteOptions
                             handleOptionClick={handleAnswerSubmit}
                             wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={!!savedAnswer || answerStatus === "wrong"}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                             level={selectedLevel ?? "easy"}
                           />
                         ) : selectedGameKey === "chord" ? (
                           <ChordOptions
                             handleOptionClick={handleAnswerSubmit}
                             wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={!!savedAnswer || answerStatus === "wrong"}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                             level={selectedLevel ?? "easy"}
                           />
                         ) : selectedGameKey === "key" ? (
@@ -927,20 +947,28 @@ export default function Home() {
                       </div>
 
                       {/* PAUSE / RESTART Controls */}
-                      <div className="game-action-buttons">
-                        <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
-                          <img
-                            src={isPaused ? resumeIcon : pauseIcon}
-                            alt={isPaused ? "Resume" : "Pause"}
-                            className="action-icon"
-                          />
-                          <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
-                        </button>
-                        <button className="action-circle-btn" onClick={triggerRestartGame}>
-                          <img src={restartIcon} alt="Restart" className="action-icon" />
-                          <span className="action-label">Restart</span>
-                        </button>
-                      </div>
+                      {isReviewing ? (
+                        <div className="game-action-buttons">
+                          <button className="review-back-btn" onClick={backToResults}>
+                            Back to Results
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="game-action-buttons">
+                          <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
+                            <img
+                              src={isPaused ? resumeIcon : pauseIcon}
+                              alt={isPaused ? "Resume" : "Pause"}
+                              className="action-icon"
+                            />
+                            <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
+                          </button>
+                          <button className="action-circle-btn" onClick={triggerRestartGame}>
+                            <img src={restartIcon} alt="Restart" className="action-icon" />
+                            <span className="action-label">Restart</span>
+                          </button>
+                        </div>
+                      )}
 
                       {/* Footer Pagination Navigation */}
                       <div className="question-pagination">
@@ -955,11 +983,12 @@ export default function Home() {
                         <span className="page-text">
                           {questionIndex} of {questions.length || 8}
                         </span>
-                        {/* Next: only once this question has been answered */}
+                        {/* Next: only once this question has been answered, or in Review mode */}
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
-                          disabled={questionIndex >= (questions.length || 8) || !savedAnswer}
+                          disabled={questionIndex >= (questions.length || 8) || (!isReviewing && !savedAnswer)}
+
                         >
                           <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                         </button>
