@@ -996,7 +996,8 @@ export default function Home() {
 
                       {/* Footer Pagination Navigation */}
                       <div className="question-pagination">
-                        {/* Prev: when there's a wrong pick, disable until the right pick has been chosen. */}
+                        {/* Prev: when there's a wrong pick, disable until the right pick has been chosen. This also
+                            covers the Wrong popover, so its game-over timer can't be cancelled at 0 lives. */}
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.max(1, questionIndex - 1))}
