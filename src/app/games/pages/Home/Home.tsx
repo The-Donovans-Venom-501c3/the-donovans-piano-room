@@ -821,7 +821,7 @@ export default function Home() {
                         </div>
                       )}
 
-                      <p className="question-prompt">
+                      <p className={`question-prompt ${selectedGameKey} ${selectedLevel}`}>
                         {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
                       </p>
 
@@ -857,6 +857,9 @@ export default function Home() {
                         ) : selectedGameKey === "key" ? (
                           <KeyOptions
                             handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "major-minor" ? (
                           <MajorMinorOptions
