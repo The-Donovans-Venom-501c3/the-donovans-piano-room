@@ -951,6 +951,41 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       width: 100%;
       max-width: 680px; /* Match .keyboard-matrix-wrapper so the image spans the answer keys */
       margin: 0 auto;
+      &.note {
+        aspect-ratio: 736 / 240;
+      }
+      &.math {
+        aspect-ratio: 1114 / 266;
+      }
+      &.chord {
+        aspect-ratio: 736 / 211;
+      }
+      &.key {
+        aspect-ratio: 736 / 163;
+      }
+      &.major-minor {
+        aspect-ratio: 736 / 236;
+      }
+      &.ledger {
+        aspect-ratio: 736 / 341;
+      }
+      &.scale {
+        aspect-ratio: 736 / 249;
+      }
+      &.interval {
+        aspect-ratio: 736 / 166;
+      }
+      &.reading {
+        &.easy {
+          aspect-ratio: 1552 / 270;
+        }
+        &.medium {
+          aspect-ratio: 1734 / 282;
+        }
+        &.hard {
+          aspect-ratio: 2945 / 284;
+        }
+      }
       .question-svg-image {
         display: block;
         width: 100%;

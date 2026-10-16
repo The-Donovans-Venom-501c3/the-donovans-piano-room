@@ -97,6 +97,9 @@ type DifficultyLevel = "easy" | "medium" | "hard";
 // How long the Correct / Wrong popover shows before it hides itself
 const FEEDBACK_MS = 1500;
 
+// How many upcoming question images to fetch ahead of the player
+const PRELOAD_AHEAD = 2;
+
 const FULL_NOTE_ROWS: string[][] = [
   ["C", "D", "E", "F", "G", "A", "B"],
   ["C#", "D#", "E#", "F#", "G#", "A#", "B#"],
@@ -266,6 +269,19 @@ export default function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStage]);
+
+  // Warm the browser cache for the next few questions so their images show without a delay
+  useEffect(() => {
+    for (let i = 0; i < PRELOAD_AHEAD; i++) {
+      // currentQuestion is questions[questionIndex - 1], so the next one is questions[questionIndex]
+      const upcoming = questions[questionIndex + i];
+      if (!upcoming) break; // past the last question
+      if (upcoming.questionImage) {
+        const img = new Image();
+        img.src = upcoming.questionImage;
+      }
+    }
+  }, [questions, questionIndex]);
 
   const handleSelectGame = (gameKey: GameType, title: string) => {
     setGameState(gameKey as unknown as Parameters<typeof setGameState>[0]);
@@ -726,8 +742,9 @@ export default function Home() {
                 <div className="game-screen-left">
                   {/* Dynamic SVG / Staff Question Display */}
                   {currentQuestion?.questionImage ? (
-                    <div className="question-image-container">
+                    <div className={`question-image-container ${selectedGameKey} ${selectedLevel}`}>
                       <img
+                        key={currentQuestion.questionImage}
                         src={currentQuestion.questionImage}
                         alt="Question SVG"
                         className="question-svg-image"
