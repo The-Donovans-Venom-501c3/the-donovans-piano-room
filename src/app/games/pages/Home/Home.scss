@@ -201,7 +201,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  .blank-banner-bg {
+  .stage-banner-img {
     position: absolute;
     top: 0;
     left: 0;
@@ -1000,6 +1000,9 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       color: #1D1D1D;
       text-align: center;
       flex-shrink: 0;
+      &.key {
+        margin-top: 28px;
+      }
     }
     .question-image-container {
       width: 100%;

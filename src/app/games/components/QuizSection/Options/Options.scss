@@ -59,6 +59,9 @@
   grid-template-columns: repeat(7, 1fr);
   grid-column-gap: 15px;
   grid-row-gap: 10px;
+  &.key {
+    margin-top: 38px;
+  }
 
   .small-btn {
     display: flex;
