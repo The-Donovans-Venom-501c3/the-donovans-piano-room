@@ -16,7 +16,7 @@ export default function MajorMinorOptions({
 }) {
   return (
     <div className="large-btn-wrapper major-minor">
-      {chords.map((chord, index) => (
+      {chords.map((chord) => (
         <button
           key={chord}
           className={`option-btn large-btn ${
