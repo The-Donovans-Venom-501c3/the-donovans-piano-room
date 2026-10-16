@@ -863,6 +863,9 @@ export default function Home() {
                         ) : selectedGameKey === "major-minor" ? (
                           <MajorMinorOptions
                             handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "ledger" ? (
                           <LedgerOptions

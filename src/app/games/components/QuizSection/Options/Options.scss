@@ -53,9 +53,13 @@
   }
 }
 
-.small-btn-wrapper {
+.small-btn-wrapper,
+.large-btn-wrapper {
   margin-top: 22px;
   display: grid;
+}
+
+.small-btn-wrapper {
   grid-template-columns: repeat(7, 1fr);
   grid-column-gap: 15px;
   grid-row-gap: 10px;
@@ -92,10 +96,16 @@
 }
 
 .large-btn-wrapper {
-  display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-column-gap: 5px;
-  grid-row-gap: 10px;
+  grid-column-gap: 12px;
+  grid-row-gap: 14px;
+  &.major-minor {
+    margin-top: 36px;
+
+    .large-btn {
+      height: 85px;
+    }
+  }
 
   .large-btn {
     border-radius: 12px;
