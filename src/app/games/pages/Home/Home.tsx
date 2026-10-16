@@ -90,7 +90,8 @@ type GameFlowStage =
   | "stage_start_2"
   | "stage_start_3"
   | "active_game"
-  | "game_finished";
+  | "game_finished"
+  | "reviewing";
 
 type DifficultyLevel = "easy" | "medium" | "hard";
 
@@ -170,7 +171,8 @@ export default function Home() {
   // Wrong picks for the current question; they stay red until the right answer is chosen
   const [wrongOptions, setWrongOptions] = useState<string[]>([]);
   // Answers given this run, by question number; answered questions are shown read-only
-  const [answers, setAnswers] = useState<Record<number, { correct: string; wrong: string[] }>>({});
+  // correct is null for the question that ended the game (its wrong picks are kept for Review)
+  const [answers, setAnswers] = useState<Record<number, { correct: string | null; wrong: string[] }>>({});
   // Pending popover timer (correct: advance, wrong: hide or game over); cleared whenever the question changes
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -317,6 +319,9 @@ export default function Home() {
   const currentQuestion =
     questions.length > 0 ? questions[(questionIndex - 1) % questions.length] : null;
   const savedAnswer = answers[questionIndex];
+  const isReviewing = flowStage === "reviewing";
+  // In Review, questions never answered correctly still show their right answer
+  const reviewCorrectAnswer = isReviewing ? currentQuestion?.correctOption || currentQuestion?.answer || null : null;
 
   // TODO: remove once game testing is complete!
   // useEffect(() => {
@@ -350,7 +355,7 @@ export default function Home() {
   };
 
   const handleAnswerSubmit = (selectedOption: string) => {
-    if (answerStatus !== null || !currentQuestion || savedAnswer) return;
+    if (answerStatus !== null || !currentQuestion || savedAnswer || isReviewing) return;
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
@@ -378,6 +383,8 @@ export default function Home() {
     } else {
       setAnswerStatus("wrong");
       setWrongOptions((prev) => [...prev, selectedOption]);
+      // wrongOptions is still the old list here, so build this question's picks so far
+      const wrongSoFar = [...wrongOptions, selectedOption];
       const nextLives = Math.max(0, lives - 1);
       setLives(nextLives);
       // Hide the popover on its own; nextLives because lives is still the old value here
@@ -386,10 +393,24 @@ export default function Home() {
         setSelectedAnswer(null);
         setAnswerStatus(null);
         if (nextLives <= 0) {
+          // Saved here rather than on the click: a saved answer enables Next, which would let the
+          // player leave and cancel this game-over timer while the popover is still up
+          setAnswers((prev) => ({ ...prev, [questionIndex]: { correct: null, wrong: wrongSoFar } }));
           setFlowStage("game_finished");
         }
       }, FEEDBACK_MS);
     }
+  };
+
+  // Review mode: the game screen with every question read-only, starting from the first
+  const startReview = () => {
+    goToQuestion(1);
+    setFlowStage("reviewing");
+  };
+
+  const backToResults = () => {
+    goToQuestion(1);
+    setFlowStage("game_finished");
   };
 
   // Exit Modal Actions
@@ -671,289 +692,330 @@ export default function Home() {
         </div>
       )}
 
-      {/* ACTIVE GAMEPLAY STAGE */}
-      {flowStage === "active_game" && (
+      {/* ACTIVE GAMEPLAY STAGE (stays up when the game finishes, to show the result in the card) */}
+      {(flowStage === "active_game" || flowStage === "game_finished" || isReviewing) && (
         <div className={`active-game-stage-wrapper ${isExpanded ? "fullscreen-mode" : ""}`}>
           {!isExpanded && (
             <img src={musicStandDeskview} alt="Deskview Background" className="deskview-bg-image" />
           )}
           <div className="deskview-overlay-content">
             <div className="game-screen-card">
-              {/* Answer Callout Overlays (pinned to the card's bottom-left corner) */}
-              {answerStatus === "wrong" && (
-                <div className="callout-overlay wrong-overlay">
-                  <div className="popover-card">
-                    <p className="popover-title">Oops, that&apos;s not the right answer.</p>
-                    <p className="popover-sub">Sorry, we need to take one of your lives.</p>
+              {flowStage === "game_finished" ? (
+                // Game Over / Game Complete, shown in place of the game
+                <div className="game-finished-content">
+                  <img src={welcomeCat} alt="Cat Mascot" className="cat-finished-img" />
+                  <div className="finished-details">
+                    <h2 className="finished-title">{lives === 0 ? "Game Over!" : "Amazing!"}</h2>
+                    <p className="finished-message">
+                      {lives === 0
+                        ? "You ran out of lives. Better luck next time!"
+                        : "You have successfully finished this game."}
+                    </p>
+                    <p className="finished-score">
+                      SCORE: <strong>{score}</strong>
+                    </p>
+                    {lives > 0 && <p className="finished-encouragement">Keep it up, Superstar!</p>}
+                    <div className="finish-actions">
+                      <button onClick={confirmExitGame} className="back-btn">
+                        Back to Games
+                      </button>
+                      <button onClick={startReview} className="review-btn">
+                        Review Your Questions
+                      </button>
+                    </div>
                   </div>
-                  <img src={happyCat} alt="Cat Mascot" className="mascot-img-callout" />
                 </div>
-              )}
-              {answerStatus === "correct" && (
-                <div className="callout-overlay correct-overlay">
-                  <div className="popover-card">
-                    <p className="popover-title">Correct answer, good job!</p>
-                  </div>
-                  <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />
-                </div>
-              )}
-
-              {/* Top Controls */}
-              <div className="game-top-bar">
-                <div className="volume-control">
-                  <img src={volumeIcon} alt="Volume" className="volume-icon" />
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={volume}
-                    onChange={(e) => setVolume(Number(e.target.value))}
-                    className="volume-slider-input"
-                  />
-                </div>
-                <div className="right-controls">
-                  <button
-                    className="icon-circle-btn"
-                    title="Accessibility"
-                    onClick={() => setShowAccessibilityModal(true)}
-                  >
-                    <img src={accessibilityIcon} alt="Accessibility" />
-                  </button>
-                  {isExpanded ? (
-                    <button className="pill-btn minimize-btn" onClick={() => setIsExpanded(false)}>
-                      <img src={minimizeIcon} alt="" className="control-btn-icon" />
-                      <span>Minimize</span>
-                    </button>
-                  ) : (
-                    <button className="pill-btn expand-btn" onClick={() => setIsExpanded(true)}>
-                      <img src={expandIcon} alt="" className="control-btn-icon" />
-                      <span>Expand</span>
-                    </button>
+              ) : (
+                <>
+                  {/* Answer Callout Overlays (pinned to the card's bottom-left corner) */}
+                  {answerStatus === "wrong" && (
+                    <div className="callout-overlay wrong-overlay">
+                      <div className="popover-card">
+                        <p className="popover-title">Oops, that&apos;s not the right answer.</p>
+                        <p className="popover-sub">Sorry, we need to take one of your lives.</p>
+                      </div>
+                      <img src={happyCat} alt="Cat Mascot" className="mascot-img-callout" />
+                    </div>
                   )}
-                  <button className="pill-btn close-btn" onClick={triggerExitGame} title="Close">
-                    <img src={redCloseIcon} alt="" className="control-btn-icon" />
-                    <span>Close</span>
-                  </button>
-                </div>
-              </div>
+                  {answerStatus === "correct" && (
+                    <div className="callout-overlay correct-overlay">
+                      <div className="popover-card">
+                        <p className="popover-title">Correct answer, good job!</p>
+                      </div>
+                      <img src={successCharacter} alt="Success Mascot" className="mascot-img-callout" />
+                    </div>
+                  )}
 
-              {/* Game Body */}
-              <div className="game-screen-body">
-                <div className="game-screen-left">
-                  {/* Dynamic SVG / Staff Question Display */}
-                  {currentQuestion?.questionImage ? (
-                    <div className={`question-image-container ${selectedGameKey} ${selectedLevel}`}>
-                      <img
-                        key={currentQuestion.questionImage}
-                        src={currentQuestion.questionImage}
-                        alt="Question SVG"
-                        className="question-svg-image"
+                  {/* Top Controls */}
+                  <div className="game-top-bar">
+                    <div className="volume-control">
+                      <img src={volumeIcon} alt="Volume" className="volume-icon" />
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={volume}
+                        onChange={(e) => setVolume(Number(e.target.value))}
+                        className="volume-slider-input"
                       />
                     </div>
-                  ) : (
-                    <div className="music-staff-container">
-                      <div className="treble-clef-wrapper">
-                        <img src={trebleClefIcon} alt="Treble Clef" />
-                      </div>
-                      <div className="staff-lines">
-                        <span className="line" />
-                        <span className="line" />
-                        <span className="line" />
-                        <span className="line" />
-                        <span className="line" />
-                      </div>
-                      {currentQuestion?.notePosition && (
-                        <div className={`note-marker position-${currentQuestion.notePosition}`}>
-                          <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
-                            <ellipse cx="12" cy="9" rx="10" ry="7" fill="#2B1236" transform="rotate(-15 12 9)" />
-                            <ellipse cx="12" cy="9" rx="5" ry="3" fill="#FFFFFF" transform="rotate(-35 12 9)" />
-                          </svg>
+                    <div className="right-controls">
+                      <button
+                        className="icon-circle-btn"
+                        title="Accessibility"
+                        onClick={() => setShowAccessibilityModal(true)}
+                      >
+                        <img src={accessibilityIcon} alt="Accessibility" />
+                      </button>
+                      {isExpanded ? (
+                        <button className="pill-btn minimize-btn" onClick={() => setIsExpanded(false)}>
+                          <img src={minimizeIcon} alt="" className="control-btn-icon" />
+                          <span>Minimize</span>
+                        </button>
+                      ) : (
+                        <button className="pill-btn expand-btn" onClick={() => setIsExpanded(true)}>
+                          <img src={expandIcon} alt="" className="control-btn-icon" />
+                          <span>Expand</span>
+                        </button>
+                      )}
+                      <button className="pill-btn close-btn" onClick={triggerExitGame} title="Close">
+                        <img src={redCloseIcon} alt="" className="control-btn-icon" />
+                        <span>Close</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Game Body */}
+                  <div className="game-screen-body">
+                    <div className="game-screen-left">
+                      {/* Dynamic SVG / Staff Question Display */}
+                      {currentQuestion?.questionImage ? (
+                        <div className={`question-image-container ${selectedGameKey} ${selectedLevel}`}>
+                          <img
+                            key={currentQuestion.questionImage}
+                            src={currentQuestion.questionImage}
+                            alt="Question SVG"
+                            className="question-svg-image"
+                          />
+                        </div>
+                      ) : (
+                        <div className="music-staff-container">
+                          <div className="treble-clef-wrapper">
+                            <img src={trebleClefIcon} alt="Treble Clef" />
+                          </div>
+                          <div className="staff-lines">
+                            <span className="line" />
+                            <span className="line" />
+                            <span className="line" />
+                            <span className="line" />
+                            <span className="line" />
+                          </div>
+                          {currentQuestion?.notePosition && (
+                            <div className={`note-marker position-${currentQuestion.notePosition}`}>
+                              <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
+                                <ellipse cx="12" cy="9" rx="10" ry="7" fill="#2B1236" transform="rotate(-15 12 9)" />
+                                <ellipse cx="12" cy="9" rx="5" ry="3" fill="#FFFFFF" transform="rotate(-35 12 9)" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  <p className="question-prompt">
-                    {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
-                  </p>
+                      <p className="question-prompt">
+                        {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
+                      </p>
 
-                  {/* Options Matrix */}
-                  <div className="keyboard-matrix-wrapper">
-                    {
-                      /*
-                        Use each game's Options components if present,
-                        else use JSON Multiple Choice Options if present,
-                        else fallback to full keyboard
-                      */
-                    }
-                    {selectedGameKey === "math" ? (
-                      <MathOptions
-                        handleOptionClick={handleAnswerSubmit}
-                      />
-                    ) : selectedGameKey === "note" ? (
-                      <NoteOptions
-                        handleOptionClick={handleAnswerSubmit}
-                        wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                        correctOption={savedAnswer?.correct ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                        locked={!!savedAnswer || answerStatus === "wrong"}
-                        level={selectedLevel ?? "easy"}
-                      />
-                    ) : selectedGameKey === "chord" ? (
-                      <ChordOptions
-                        handleOptionClick={handleAnswerSubmit}
-                        level={selectedLevel ?? "easy"}
-                      />
-                    ) : selectedGameKey === "key" ? (
-                      <KeyOptions
-                        handleOptionClick={handleAnswerSubmit}
-                      />
-                    ) : selectedGameKey === "major-minor" ? (
-                      <MajorMinorOptions
-                        handleOptionClick={handleAnswerSubmit}
-                      />
-                    ) : selectedGameKey === "ledger" ? (
-                      <LedgerOptions
-                        handleOptionClick={handleAnswerSubmit}
-                        level={selectedLevel ?? "easy"}
-                      />
-                    ) : selectedGameKey === "scale" ? (
-                      <ScaleOptions
-                        handleOptionClick={handleAnswerSubmit}
-                        level={selectedLevel ?? "easy"}
-                      />
-                    ) : selectedGameKey === "interval" ? (
-                      <IntervalOptions
-                        handleOptionClick={handleAnswerSubmit}
-                      />
-                    ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
-                      <div
-                        className="options-grid"
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(2, 1fr)",
-                          gap: "10px",
-                          width: "100%",
-                        }}
-                      >
-                        {currentQuestion.options.map((option) => {
-                          const isSelected = selectedAnswer === option;
-                          let btnClass = "grid-note-btn";
-                          if (isSelected) {
-                            btnClass += answerStatus === "correct" ? " correct" : " wrong";
-                          }
-                          return (
-                            <button
-                              key={option}
-                              className={btnClass}
-                              onClick={() => handleAnswerSubmit(option)}
-                            >
-                              {option}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="keyboard-grid">
-                        {FULL_NOTE_ROWS.map((row) =>
-                          row.map((note) => {
-                            const isSelected = selectedAnswer === note;
-                            let btnClass = "grid-note-btn";
-                            if (isSelected) {
-                              btnClass += answerStatus === "correct" ? " correct" : " wrong";
-                            }
-                            return (
-                              <button
-                                key={note}
-                                className={btnClass}
-                                onClick={() => handleAnswerSubmit(note)}
-                              >
-                                {formatNoteLabel(note)}
-                              </button>
-                            );
-                          })
+                      {/* Options Matrix */}
+                      <div className="keyboard-matrix-wrapper">
+                        {
+                          /*
+                            Use each game's Options components if present,
+                            else use JSON Multiple Choice Options if present,
+                            else fallback to full keyboard
+                          */
+                        }
+                        {selectedGameKey === "math" ? (
+                          <MathOptions
+                            handleOptionClick={handleAnswerSubmit}
+                          />
+                        ) : selectedGameKey === "note" ? (
+                          <NoteOptions
+                            handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            level={selectedLevel ?? "easy"}
+                          />
+                        ) : selectedGameKey === "chord" ? (
+                          <ChordOptions
+                            handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            level={selectedLevel ?? "easy"}
+                          />
+                        ) : selectedGameKey === "key" ? (
+                          <KeyOptions
+                            handleOptionClick={handleAnswerSubmit}
+                          />
+                        ) : selectedGameKey === "major-minor" ? (
+                          <MajorMinorOptions
+                            handleOptionClick={handleAnswerSubmit}
+                          />
+                        ) : selectedGameKey === "ledger" ? (
+                          <LedgerOptions
+                            handleOptionClick={handleAnswerSubmit}
+                            level={selectedLevel ?? "easy"}
+                          />
+                        ) : selectedGameKey === "scale" ? (
+                          <ScaleOptions
+                            handleOptionClick={handleAnswerSubmit}
+                            level={selectedLevel ?? "easy"}
+                          />
+                        ) : selectedGameKey === "interval" ? (
+                          <IntervalOptions
+                            handleOptionClick={handleAnswerSubmit}
+                          />
+                        ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
+                          <div
+                            className="options-grid"
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "repeat(2, 1fr)",
+                              gap: "10px",
+                              width: "100%",
+                            }}
+                          >
+                            {currentQuestion.options.map((option) => {
+                              const isSelected = selectedAnswer === option;
+                              let btnClass = "grid-note-btn";
+                              if (isSelected) {
+                                btnClass += answerStatus === "correct" ? " correct" : " wrong";
+                              }
+                              return (
+                                <button
+                                  key={option}
+                                  className={btnClass}
+                                  onClick={() => handleAnswerSubmit(option)}
+                                >
+                                  {option}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="keyboard-grid">
+                            {FULL_NOTE_ROWS.map((row) =>
+                              row.map((note) => {
+                                const isSelected = selectedAnswer === note;
+                                let btnClass = "grid-note-btn";
+                                if (isSelected) {
+                                  btnClass += answerStatus === "correct" ? " correct" : " wrong";
+                                }
+                                return (
+                                  <button
+                                    key={note}
+                                    className={btnClass}
+                                    onClick={() => handleAnswerSubmit(note)}
+                                  >
+                                    {formatNoteLabel(note)}
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Right Side Controls & Stats Panel */}
-                <div className="game-screen-right">
-                  <div className="stats-group">
-                    {/* TIMER Section */}
-                    <div className="game-stat timer-block">
-                      <span className="stat-label">Timer</span>
-                      <img src={timerIcon} alt="Timer" className="stat-icon" />
-                      <span className="stat-value">{formatTime(timerSeconds)}</span>
-                    </div>
-                    {/* SCORE Section */}
-                    <div className="game-stat score-block">
-                      <span className="stat-label">Score</span>
-                      <img src={scoreIcon} alt="Score" className="stat-icon" />
-                      <span className="stat-value">{score}/100</span>
-                    </div>
-                    {/* LIVES Section */}
-                    <div className="game-stat lives-block">
-                      <span className="stat-label">
-                        Lives
-                        <span className="life-count">({lives}/3)</span>
-                      </span>
-                      <div className="lives-quaver-bar">
-                        {[0, 1, 2].map((index) => {
-                          const isActive = index < lives;
-                          return (
+                    {/* Right Side Controls & Stats Panel */}
+                    <div className="game-screen-right">
+                      <div className="stats-group">
+                        {/* TIMER Section */}
+                        <div className="game-stat timer-block">
+                          <span className="stat-label">Timer</span>
+                          <img src={timerIcon} alt="Timer" className="stat-icon" />
+                          <span className="stat-value">{formatTime(timerSeconds)}</span>
+                        </div>
+                        {/* SCORE Section */}
+                        <div className="game-stat score-block">
+                          <span className="stat-label">Score</span>
+                          <img src={scoreIcon} alt="Score" className="stat-icon" />
+                          <span className="stat-value">{score}/100</span>
+                        </div>
+                        {/* LIVES Section */}
+                        <div className="game-stat lives-block">
+                          <span className="stat-label">
+                            Lives
+                            <span className="life-count">({lives}/3)</span>
+                          </span>
+                          <div className="lives-quaver-bar">
+                            {[0, 1, 2].map((index) => {
+                              const isActive = index < lives;
+                              return (
+                                <img
+                                  key={index}
+                                  src={isActive ? lifeIcon : missingLifeIcon}
+                                  alt={isActive ? "Life Icon" : "Missing Life Icon"}
+                                  className={`life-icon ${isActive ? "active" : "lost"}`}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* PAUSE / RESTART Controls */}
+                      {isReviewing ? (
+                        <div className="game-action-buttons">
+                          <button className="review-back-btn" onClick={backToResults}>
+                            Back to Results
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="game-action-buttons">
+                          <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
                             <img
-                              key={index}
-                              src={isActive ? lifeIcon : missingLifeIcon}
-                              alt={isActive ? "Life Icon" : "Missing Life Icon"}
-                              className={`life-icon ${isActive ? "active" : "lost"}`}
+                              src={isPaused ? resumeIcon : pauseIcon}
+                              alt={isPaused ? "Resume" : "Pause"}
+                              className="action-icon"
                             />
-                          );
-                        })}
+                            <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
+                          </button>
+                          <button className="action-circle-btn" onClick={triggerRestartGame}>
+                            <img src={restartIcon} alt="Restart" className="action-icon" />
+                            <span className="action-label">Restart</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Footer Pagination Navigation */}
+                      <div className="question-pagination">
+                        {/* Prev: blocked while the Wrong popover is up, so its game-over timer can't be cancelled at 0 lives */}
+                        <button
+                          className="nav-arrow"
+                          onClick={() => goToQuestion(Math.max(1, questionIndex - 1))}
+                          disabled={questionIndex <= 1 || answerStatus === "wrong"}
+                        >
+                          <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
+                        </button>
+                        <span className="page-text">
+                          {questionIndex} of {questions.length || 8}
+                        </span>
+                        {/* Next: only once this question has been answered, or in Review mode */}
+                        <button
+                          className="nav-arrow"
+                          onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
+                          disabled={questionIndex >= (questions.length || 8) || (!isReviewing && !savedAnswer)}
+
+                        >
+                          <img src={nextIcon} alt="Next Page" className="nav-icon next" />
+                        </button>
                       </div>
                     </div>
                   </div>
-
-                  {/* PAUSE / RESTART Controls */}
-                  <div className="game-action-buttons">
-                    <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
-                      <img
-                        src={isPaused ? resumeIcon : pauseIcon}
-                        alt={isPaused ? "Resume" : "Pause"}
-                        className="action-icon"
-                      />
-                      <span className="action-label">{isPaused ? "Resume" : "Pause"}</span>
-                    </button>
-                    <button className="action-circle-btn" onClick={triggerRestartGame}>
-                      <img src={restartIcon} alt="Restart" className="action-icon" />
-                      <span className="action-label">Restart</span>
-                    </button>
-                  </div>
-
-                  {/* Footer Pagination Navigation */}
-                  <div className="question-pagination">
-                    {/* Prev: blocked while the Wrong popover is up, so its game-over timer can't be cancelled at 0 lives */}
-                    <button
-                      className="nav-arrow"
-                      onClick={() => goToQuestion(Math.max(1, questionIndex - 1))}
-                      disabled={questionIndex <= 1 || answerStatus === "wrong"}
-                    >
-                      <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
-                    </button>
-                    <span className="page-text">
-                      {questionIndex} of {questions.length || 8}
-                    </span>
-                    {/* Next: only once this question has been answered */}
-                    <button
-                      className="nav-arrow"
-                      onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
-                      disabled={questionIndex >= (questions.length || 8) || !savedAnswer}
-                    >
-                      <img src={nextIcon} alt="Next Page" className="nav-icon next" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1066,28 +1128,6 @@ export default function Home() {
                   Keep Playing
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* GAME FINISHED STAGE */}
-      {flowStage === "game_finished" && (
-        <div className="stage-view-wrapper">
-          <img src={blankBanner} alt="Stage Background" className="blank-banner-bg" />
-          <div className="game-over-card">
-            <img src={welcomeCat} alt="Cat Mascot" className="cat-finished-img" />
-            <h2>{lives === 0 ? "Game Over!" : "Amazing!"}</h2>
-            <p>
-              {lives === 0
-                ? "You ran out of lives. Better luck next time!"
-                : "You have successfully finished this game."}
-            </p>
-            <h3>SCORE: {score}</h3>
-            <div className="finish-actions">
-              <button onClick={confirmExitGame} className="back-btn">
-                Back to Games
-              </button>
             </div>
           </div>
         </div>

@@ -17,13 +17,13 @@ const naturalMajors: ChordOptionItem[] = [
 ];
 
 const sharpMajors: ChordOptionItem[] = [
-  { label: 'C#', value: 'C# Major' },
-  { label: 'D#', value: 'D# Major' },
-  { label: 'E#', value: 'E# Major' },
-  { label: 'F#', value: 'F# Major' },
-  { label: 'G#', value: 'G# Major' },
-  { label: 'A#', value: 'A# Major' },
-  { label: 'B#', value: 'B# Major' },
+  { label: 'C♯', value: 'C# Major' },
+  { label: 'D♯', value: 'D# Major' },
+  { label: 'E♯', value: 'E# Major' },
+  { label: 'F♯', value: 'F# Major' },
+  { label: 'G♯', value: 'G# Major' },
+  { label: 'A♯', value: 'A# Major' },
+  { label: 'B♯', value: 'B# Major' },
 ];
 
 const flatMajors: ChordOptionItem[] = [
@@ -51,52 +51,52 @@ const emptyRow = Array(7).fill('');
 export default function ChordOptions({
   handleOptionClick,
   level,
+  wrongOptions = [],
+  correctOption = null,
+  locked = false,
 }: {
   handleOptionClick: OptionClickHandler;
   level: Level;
+  wrongOptions?: string[];
+  // Set from a correct pick until the next question loads
+  correctOption?: string | null;
+  // Answers aren't accepted right now (question answered or Wrong popover up), so every button is disabled
+  locked?: boolean;
 }) {
   const currentLevel = String(level).toLowerCase();
+
+  // Same states as NoteOptions: wrong picks stay red and disabled, the right answer turns green
+  const renderOption = (item: ChordOptionItem, labelSuffix = '') => (
+    <button
+      key={item.value}
+      className={`option-btn small-btn ${
+        wrongOptions.includes(item.value) ? 'wrong' : item.value === correctOption ? 'correct' : ''
+      }`}
+      onClick={() => handleOptionClick(item.value)}
+      disabled={locked || wrongOptions.includes(item.value)}
+      title={item.value}
+    >
+      {item.label}
+      {labelSuffix}
+    </button>
+  );
 
   return (
     <div className="chord-options-container">
       {/* Row 1: Natural Majors */}
       <div className="small-btn-wrapper">
-        {naturalMajors.map((item) => (
-          <button
-            key={item.value}
-            className="option-btn small-btn xsmall-font"
-            onClick={() => handleOptionClick(item.value)}
-          >
-            {item.label}
-          </button>
-        ))}
+        {naturalMajors.map((item) => renderOption(item))}
       </div>
 
       {/* Rows 2 & 3: Sharps and Flats */}
       {currentLevel === 'medium' || currentLevel === 'hard' ? (
         <>
           <div className="small-btn-wrapper">
-            {sharpMajors.map((item) => (
-              <button
-                key={item.value}
-                className="option-btn small-btn xsmall-font"
-                onClick={() => handleOptionClick(item.value)}
-              >
-                {item.label}
-              </button>
-            ))}
+            {sharpMajors.map((item) => renderOption(item))}
           </div>
 
           <div className="small-btn-wrapper">
-            {flatMajors.map((item) => (
-              <button
-                key={item.value}
-                className="option-btn small-btn xsmall-font"
-                onClick={() => handleOptionClick(item.value)}
-              >
-                {item.label}
-              </button>
-            ))}
+            {flatMajors.map((item) => renderOption(item))}
           </div>
         </>
       ) : (
@@ -117,15 +117,7 @@ export default function ChordOptions({
       {/* Row 4: Minors */}
       {currentLevel === 'hard' ? (
         <div className="small-btn-wrapper">
-          {naturalMinors.map((item) => (
-            <button
-              key={item.value}
-              className="option-btn small-btn xsmall-font"
-              onClick={() => handleOptionClick(item.value)}
-            >
-              {item.label}m
-            </button>
-          ))}
+          {naturalMinors.map((item) => renderOption(item, 'm'))}
         </div>
       ) : (
         <div className="small-btn-wrapper">

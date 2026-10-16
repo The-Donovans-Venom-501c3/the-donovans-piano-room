@@ -313,50 +313,6 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       }
     }
   }
-  .game-over-card {
-    position: relative;
-    z-index: 2;
-    background: #ffffff;
-    padding: 3rem;
-    border-radius: 28px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-    text-align: center;
-    .cat-finished-img {
-      width: 160px;
-      height: auto;
-      margin-bottom: 1rem;
-    }
-    h2 {
-      font-size: 2rem;
-      color: #2b1236;
-      margin: 0 0 0.5rem 0;
-    }
-    p {
-      color: #584661;
-      margin-bottom: 1rem;
-    }
-    h3 {
-      font-size: 1.5rem;
-      color: #8b5cf6;
-      margin-bottom: 1.5rem;
-    }
-    .finish-actions {
-      .back-btn {
-        background: #8b5cf6;
-        color: #ffffff;
-        border: none;
-        padding: 12px 28px;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        &:hover {
-          background: #7c3aed;
-        }
-      }
-    }
-  }
 }
 
 .mascot-speech-container {
@@ -451,10 +407,18 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       cursor: pointer;
       border: 3px solid #F0D454;
       box-shadow: 0px 7px 0px 0px #F0D454;
+      transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease, border-color 0.15s ease;
+      &:active {
+        transform: translateY(6px);
+        box-shadow: 0px 1px 0px 0px #F0D454;
+      }
       &:hover {
         background-color: #f4e89d;
         border-color: #e2bd44;
         box-shadow: 0px 7px 0px 0px #e2bd44;
+        &:active {
+          box-shadow: 0px 1px 0px 0px #e2bd44;
+        }
       }
     }
     &.locked {
@@ -465,10 +429,16 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       background: #E5F3E5;
       border: 3px solid #A5D1A4;
       box-shadow: 0px 7px 0px 0px #A5D1A4;
+      &:active {
+        box-shadow: 0px 1px 0px 0px #A5D1A4;
+      }
       &:hover {
         background-color: #d2e5ce;
         border-color: #84b27a;
         box-shadow: 0px 7px 0px 0px #84b27a;
+        &:active {
+          box-shadow: 0px 1px 0px 0px #84b27a;
+        }
       }
       .high-score-tag {
         color: #76B474;
@@ -526,6 +496,90 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
     box-sizing: border-box;
     overflow: visible; /* FIXED: Prevent popup clipping */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    // Game Over / Game Complete, shown in place of the game when it finishes:
+    // cat on the left, result and actions centred on the right (per Figma)
+    .game-finished-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 118px;
+      .cat-finished-img {
+        height: 320px;
+        width: auto;
+        flex-shrink: 0;
+      }
+      .finished-details {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        font-family: $roboto-font;
+        color: #1C1A1A;
+        p {
+          margin: 0;
+        }
+      }
+      .finished-title {
+        font-size: 3.6rem;
+        font-weight: 500;
+        letter-spacing: -2%;
+        margin: 0 0 12px;
+      }
+      .finished-message,
+      .finished-encouragement {
+        font-size: 2.2rem;
+        font-weight: 400;
+      }
+      p.finished-score {
+        font-size: 3.6rem;
+        font-weight: 400;
+        letter-spacing: -2%;
+        text-transform: uppercase;
+        margin: 40px 0 16px;
+        strong {
+          font-weight: 500;
+        }
+      }
+      .finish-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 17px;
+        margin-top: 36px;
+        .back-btn,
+        .review-btn {
+          min-width: 354px;
+          height: 56px;
+          padding: 0 32px;
+          border-radius: 56px;
+          border: 1px solid #6F219E;
+          font-family: $roboto-font;
+          font-size: 2.4rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.2s ease;
+          // Cancel the global `button:active` press style from QuizScreen.scss
+          &:active {
+            box-shadow: none;
+            transform: translateY(2px);
+          }
+        }
+        .back-btn {
+          background: #6F219E;
+          color: #ffffff;
+          &:hover {
+            background: #5c1a85;
+          }
+        }
+        .review-btn {
+          background: transparent;
+          color: #6F219E;
+          &:hover {
+            background: #f3e8ff;
+          }
+        }
+      }
+    }
     .callout-overlay {
       position: absolute;
       // Pinned flush to the game card's bottom-left corner
@@ -1118,6 +1172,28 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       gap: 20px;
       margin-top: 44px;
       margin-bottom: 16px;
+      // Shown in place of Pause / Restart while reviewing questions
+      .review-back-btn {
+        height: 40px;
+        padding: 0 20px;
+        border-radius: 40px;
+        border: 1px solid #6F219E;
+        background: transparent;
+        color: #6F219E;
+        font-family: $roboto-font;
+        font-size: 1.6rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        &:hover {
+          background: #f3e8ff;
+        }
+        // Cancel the global `button:active` press style from QuizScreen.scss
+        &:active {
+          box-shadow: none;
+          transform: translateY(2px);
+        }
+      }
       .action-circle-btn {
         display: flex;
         flex-direction: column;
@@ -1279,6 +1355,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
           white-space: nowrap;
           &:active {
             box-shadow: none;
+            transform: translateY(2px); // smaller press than the global 4px
           }
         }
         .outline-action-btn {
@@ -1291,8 +1368,8 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
           border: 1px solid #6F219E;
           color: #ffffff;
           &:hover {
-            background: #6d28d9;
-            border-color: #6d28d9;
+            background: #5c1a85;
+            border-color: #5c1a85;
           }
         }
       }
