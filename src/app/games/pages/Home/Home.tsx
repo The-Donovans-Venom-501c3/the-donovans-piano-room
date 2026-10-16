@@ -53,7 +53,6 @@ const welcomeCat = "/games/Welcome_Character.svg";
 const cryingCat = "/games/cryingCat.svg";
 const happyCat = "/games/happyCat.svg"
 const successCharacter = "/games/Affirmation_Success_Character.svg";
-const blankBanner = "/games/BlankBanner.png";
 const mainBanner = "/games/Banner.png";
 
 // Gameplay Control SVGs
@@ -602,7 +601,7 @@ export default function Home() {
       {/* LEVEL SELECTION STAGE */}
       {(flowStage === "welcome" || flowStage === "rockstar_msg" || flowStage === "levels") && (
         <div className="stage-view-wrapper">
-          <img src={blankBanner} alt="Stage Background" className="blank-banner-bg" />
+          <img src={mainBanner} alt="Stage Banner" className="stage-banner-img" />
           <div className="enter-card-container">
             <h1 className="enter-game-title">
               Welcome to the <span className="highlight-game-name">{selectedGameTitle}</span>
@@ -654,7 +653,7 @@ export default function Home() {
       {/* LOADING SCREEN */}
       {flowStage === "loading_screen" && (
         <div className="stage-view-wrapper">
-          <img src={blankBanner} alt="Stage Background" className="blank-banner-bg" />
+          <img src={mainBanner} alt="Stage Banner" className="stage-banner-img" />
           <div className="loading-card-container">
             <div className="loading-mascot-wrapper">
               <img src={yellowMascot} alt="Loading Mascot" className="loading-mascot-img" />
