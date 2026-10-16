@@ -343,11 +343,13 @@ export default function Home() {
       setAnswerStatus("correct");
       setAnswers((prev) => ({ ...prev, [questionIndex]: { correct: selectedOption, wrong: wrongOptions } }));
       setWrongOptions([]);
-      // fix: score per question is now dynamic (100 / total questions in this round)
-      // instead of a hardcoded +25, so a perfect run always totals exactly 100
-      // regardless of how many questions the level has (10, 20, 30, etc.)
-      const increment = questions.length > 0 ? 100 / questions.length : 0;
-      setScore((prev) => Math.min(100, Math.round(prev + increment)));
+      // Score is the share of questions answered right on the first try, rounded once so a
+      // perfect run totals exactly 100 (rounding each answer's points left 30 questions at 90).
+      // answers only holds answered questions, and this one isn't in it yet
+      const firstTryCount =
+        Object.values(answers).filter((answer) => answer.wrong.length === 0).length +
+        (wrongOptions.length === 0 ? 1 : 0);
+      setScore(questions.length > 0 ? Math.round((firstTryCount / questions.length) * 100) : 0);
       // questionIndex can't be stale here: any navigation cancels this timer first
       feedbackTimeoutRef.current = setTimeout(() => {
         feedbackTimeoutRef.current = null;
