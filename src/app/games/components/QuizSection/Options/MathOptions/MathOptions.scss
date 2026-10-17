@@ -1,0 +1,23 @@
+@use "../../../../assets/scss/variables" as *;
+
+.math-options-container {
+  margin-top: 22px;
+
+  input {
+    font-size: 2.07rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 2px solid $grey-200;
+    width: 160px;
+    height: 45px;
+    color: #1C1A1A;
+    background-color: #fff;
+  }
+
+  .small-btn-wrapper:first-of-type,
+  .small-btn-wrapper:last-of-type {
+    margin-top: 15px;
+  }
+}
