@@ -1,4 +1,5 @@
 import type { Level, OptionClickHandler } from '../../../../types';
+import "./ChordOptions.scss";
 
 interface ChordOptionItem {
   label: string;
@@ -84,29 +85,29 @@ export default function ChordOptions({
   return (
     <div className="chord-options-container">
       {/* Row 1: Natural Majors */}
-      <div className="small-btn-wrapper">
+      <div className="small-btn-wrapper chord">
         {naturalMajors.map((item) => renderOption(item))}
       </div>
 
       {/* Rows 2 & 3: Sharps and Flats */}
       {currentLevel === 'medium' || currentLevel === 'hard' ? (
         <>
-          <div className="small-btn-wrapper">
+          <div className="small-btn-wrapper chord">
             {sharpMajors.map((item) => renderOption(item))}
           </div>
 
-          <div className="small-btn-wrapper">
+          <div className="small-btn-wrapper chord">
             {flatMajors.map((item) => renderOption(item))}
           </div>
         </>
       ) : (
         <>
-          <div className="small-btn-wrapper">
+          <div className="small-btn-wrapper chord">
             {emptyRow.map((_, idx) => (
               <div key={`blank-sharp-${idx}`} className="option-blank" />
             ))}
           </div>
-          <div className="small-btn-wrapper">
+          <div className="small-btn-wrapper chord">
             {emptyRow.map((_, idx) => (
               <div key={`blank-flat-${idx}`} className="option-blank" />
             ))}
@@ -116,11 +117,11 @@ export default function ChordOptions({
 
       {/* Row 4: Minors */}
       {currentLevel === 'hard' ? (
-        <div className="small-btn-wrapper">
+        <div className="small-btn-wrapper chord">
           {naturalMinors.map((item) => renderOption(item, 'm'))}
         </div>
       ) : (
-        <div className="small-btn-wrapper">
+        <div className="small-btn-wrapper chord">
           {emptyRow.map((_, idx) => (
             <div key={`blank-minor-${idx}`} className="option-blank" />
           ))}
