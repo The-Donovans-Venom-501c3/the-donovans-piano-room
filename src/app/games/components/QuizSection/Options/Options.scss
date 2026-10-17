@@ -5,6 +5,7 @@
   box-shadow: 0px 5px 0px 0px $grey-200;
   font-size: 2.07rem;
   font-weight: 500;
+  color: #1C1A1A;
   // Disabled buttons (wrong picks, answered questions) get no hover or press effect
   &:not(:disabled):hover,
   &:not(:disabled):active {
@@ -66,7 +67,8 @@
   &.key {
     margin-top: 38px;
   }
-  &.chord {
+  &.chord,
+  &.math {
     margin-top: 10px; // same as `grid-row-gap` on `.small-btn-wrapper`
   }
 
@@ -96,6 +98,10 @@
 
 .small-btn-wrapper-6 {
   grid-template-columns: repeat(6, 1fr);
+}
+
+.small-btn-wrapper-5 {
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .large-btn-wrapper {
