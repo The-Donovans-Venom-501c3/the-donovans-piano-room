@@ -66,6 +66,9 @@
   &.key {
     margin-top: 38px;
   }
+  &.chord {
+    margin-top: 10px; // same as `grid-row-gap` on `.small-btn-wrapper`
+  }
 
   .small-btn {
     display: flex;
