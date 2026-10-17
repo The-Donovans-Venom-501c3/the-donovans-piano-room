@@ -4,7 +4,7 @@
     {
       "level": "Easy",
       "numberOfQuestions": {
-        "easy": 8
+        "easy": 10
       },
       "questions": [
         {
@@ -142,8 +142,8 @@
     {
       "level": "Medium",
       "numberOfQuestions": {
-        "easy": 3,
-        "medium": 7
+        "easy": 10,
+        "medium": 10
       },
       "questions": [
         {
@@ -291,8 +291,8 @@
     {
       "level": "Hard",
       "numberOfQuestions": {
-        "easy": 3,
-        "medium": 3,
+        "easy": 10,
+        "medium": 10,
         "hard": 10
       },
       "questions": [

@@ -181,6 +181,8 @@ export default function Home() {
   // Modal Control States
   const [showExitModal, setShowExitModal] = useState<boolean>(false);
   const [showRestartModal, setShowRestartModal] = useState<boolean>(false);
+  // Bumped on every restart so option components with their own state (ScaleOptions' selected note) start fresh
+  const [restartCount, setRestartCount] = useState<number>(0);
   const [showAccessibilityModal, setShowAccessibilityModal] = useState<boolean>(false);
 
   // Accessibility Option States
@@ -436,6 +438,7 @@ export default function Home() {
 
   const confirmRestartGame = () => {
     setShowRestartModal(false);
+    setRestartCount((count) => count + 1);
     setScore(0);
     setLives(3);
     goToQuestion(1);
@@ -877,8 +880,12 @@ export default function Home() {
                           />
                         ) : selectedGameKey === "scale" ? (
                           <ScaleOptions
+                            key={`${restartCount}-${questionIndex}`}
                             handleOptionClick={handleAnswerSubmit}
                             level={selectedLevel ?? "easy"}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "interval" ? (
                           <IntervalOptions
