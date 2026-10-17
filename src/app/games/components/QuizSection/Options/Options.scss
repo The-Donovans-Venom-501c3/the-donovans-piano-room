@@ -106,6 +106,16 @@
       height: 85px;
     }
   }
+  &.scale {
+    margin-top: 20px;
+
+    .large-btn {
+      height: 45px;
+      &:not(.note-selected):not(.locked):disabled {
+        color: $grey-200;
+      }
+    }
+  }
 
   .large-btn {
     border-radius: 12px;
