@@ -890,6 +890,9 @@ export default function Home() {
                         ) : selectedGameKey === "interval" ? (
                           <IntervalOptions
                             handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                           <div
