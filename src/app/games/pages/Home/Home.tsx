@@ -871,6 +871,9 @@ export default function Home() {
                           <LedgerOptions
                             handleOptionClick={handleAnswerSubmit}
                             level={selectedLevel ?? "easy"}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "scale" ? (
                           <ScaleOptions
