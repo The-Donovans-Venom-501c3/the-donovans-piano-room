@@ -66,7 +66,8 @@
   &.key {
     margin-top: 38px;
   }
-  &.interval {
+  &.interval,
+  &.chord {
     margin-top: 10px; // same as `grid-row-gap` on `.small-btn-wrapper`
   }
 
@@ -107,6 +108,16 @@
 
     .large-btn {
       height: 85px;
+    }
+  }
+  &.scale {
+    margin-top: 20px;
+
+    .large-btn {
+      height: 45px;
+      &:not(.note-selected):not(.locked):disabled {
+        color: $grey-200;
+      }
     }
   }
 

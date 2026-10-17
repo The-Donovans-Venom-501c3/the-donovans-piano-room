@@ -181,6 +181,8 @@ export default function Home() {
   // Modal Control States
   const [showExitModal, setShowExitModal] = useState<boolean>(false);
   const [showRestartModal, setShowRestartModal] = useState<boolean>(false);
+  // Bumped on every restart so option components with their own state (ScaleOptions' selected note) start fresh
+  const [restartCount, setRestartCount] = useState<number>(0);
   const [showAccessibilityModal, setShowAccessibilityModal] = useState<boolean>(false);
 
   // Accessibility Option States
@@ -436,6 +438,7 @@ export default function Home() {
 
   const confirmRestartGame = () => {
     setShowRestartModal(false);
+    setRestartCount((count) => count + 1);
     setScore(0);
     setLives(3);
     goToQuestion(1);
@@ -871,11 +874,18 @@ export default function Home() {
                           <LedgerOptions
                             handleOptionClick={handleAnswerSubmit}
                             level={selectedLevel ?? "easy"}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "scale" ? (
                           <ScaleOptions
+                            key={`${restartCount}-${questionIndex}`}
                             handleOptionClick={handleAnswerSubmit}
                             level={selectedLevel ?? "easy"}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "interval" ? (
                           <IntervalOptions
@@ -996,18 +1006,19 @@ export default function Home() {
 
                       {/* Footer Pagination Navigation */}
                       <div className="question-pagination">
-                        {/* Prev: blocked while the Wrong popover is up, so its game-over timer can't be cancelled at 0 lives */}
+                        {/* Prev: when there's a wrong pick, disable until the right pick has been chosen. This also
+                            covers the Wrong popover, so its game-over timer can't be cancelled at 0 lives. */}
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.max(1, questionIndex - 1))}
-                          disabled={questionIndex <= 1 || answerStatus === "wrong"}
+                          disabled={questionIndex <= 1 || wrongOptions.length > 0}
                         >
                           <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
                         </button>
                         <span className="page-text">
                           {questionIndex} of {questions.length || 8}
                         </span>
-                        {/* Next: only once this question has been answered, or in Review mode */}
+                        {/* Next: only enabled once this question has been answered, or in Review mode */}
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
