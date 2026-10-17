@@ -4,11 +4,12 @@ const notes2 = ["m2", "m3", "m6", "m7"];
 
 const notes3 = ["Octave", "Unison"];
 import type { OptionClickHandler } from "../../../../types";
+import "./IntervalOptions.scss";
 
 export default function IntervalOptions({ handleOptionClick }: { handleOptionClick: OptionClickHandler }) {
   return (
-    <div>
-      <div className="small-btn-wrapper small-btn-wrapper-6" style={{ marginTop: 20 }}>
+    <div className="interval-options-container">
+      <div className="small-btn-wrapper small-btn-wrapper-6 interval">
         {notes.map((note, index) => (
           <button
             className="option-btn small-btn"
@@ -20,7 +21,7 @@ export default function IntervalOptions({ handleOptionClick }: { handleOptionCli
         ))}
       </div>
 
-      <div className="small-btn-wrapper small-btn-wrapper-6">
+      <div className="small-btn-wrapper small-btn-wrapper-6 interval">
         {notes2.map((note, index) => (
           <button
             className="option-btn small-btn"
@@ -32,13 +33,12 @@ export default function IntervalOptions({ handleOptionClick }: { handleOptionCli
         ))}
       </div>
 
-      <div className="small-btn-wrapper">
+      <div className="small-btn-wrapper small-btn-wrapper-6 interval">
         {notes3.map((note, index) => (
           <button
             className="option-btn small-btn"
             onClick={() => handleOptionClick(note)}
             key={index}
-            style={{ paddingLeft: "10px", paddingRight: "10px" }}
           >
             {note}
           </button>
