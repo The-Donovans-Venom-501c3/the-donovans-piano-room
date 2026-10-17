@@ -996,18 +996,19 @@ export default function Home() {
 
                       {/* Footer Pagination Navigation */}
                       <div className="question-pagination">
-                        {/* Prev: blocked while the Wrong popover is up, so its game-over timer can't be cancelled at 0 lives */}
+                        {/* Prev: when there's a wrong pick, disable until the right pick has been chosen. This also
+                            covers the Wrong popover, so its game-over timer can't be cancelled at 0 lives. */}
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.max(1, questionIndex - 1))}
-                          disabled={questionIndex <= 1 || answerStatus === "wrong"}
+                          disabled={questionIndex <= 1 || wrongOptions.length > 0}
                         >
                           <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
                         </button>
                         <span className="page-text">
                           {questionIndex} of {questions.length || 8}
                         </span>
-                        {/* Next: only once this question has been answered, or in Review mode */}
+                        {/* Next: only enabled once this question has been answered, or in Review mode */}
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
