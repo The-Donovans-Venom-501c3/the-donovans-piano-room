@@ -68,7 +68,8 @@
     margin-top: 38px;
   }
   &.chord,
-  &.math {
+  &.math,
+  &.interval {
     margin-top: 10px; // same as `grid-row-gap` on `.small-btn-wrapper`
   }
 
