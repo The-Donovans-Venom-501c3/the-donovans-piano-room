@@ -736,6 +736,19 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
             .option-btn,
             .option-output {
               font-size: 3.277rem;
+              height: 85px;
+            }
+            .small-btn-wrapper {
+              grid-row-gap: 15px;
+              &.chord,
+              &.math,
+              &.interval {
+                margin-top: 15px;
+              }
+
+              .option-blank {
+                height: 90px;
+              }
             }
           }
         }
