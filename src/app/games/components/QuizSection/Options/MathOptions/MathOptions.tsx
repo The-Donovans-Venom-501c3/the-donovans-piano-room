@@ -58,14 +58,13 @@ export default function MathOptions({
 
   return (
     <div className="math-options-container">
-      {/* Display box showing current numeric input */}
-      <input
-        type="text"
-        readOnly
-        value={displayValue}
-        placeholder="0"
-        className={displayClass}
-      />
+      {/* Display box showing the number being entered */}
+      <output
+        className={`option-output ${displayClass}`}
+        aria-label="Your answer"
+      >
+        {displayValue}
+      </output>
 
       {/* Row 1: Numbers 1-5 */}
       <div className="small-btn-wrapper small-btn-wrapper-5 math">

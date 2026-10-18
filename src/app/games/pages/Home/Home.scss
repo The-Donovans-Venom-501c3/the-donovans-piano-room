@@ -733,7 +733,8 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
               border-radius: 10px;
             }
             // Answer buttons from the game Options components (styled in Options.scss)
-            .option-btn {
+            .option-btn,
+            .option-output {
               font-size: 3.277rem;
             }
           }
