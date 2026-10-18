@@ -1,32 +1,60 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import type { OptionClickHandler } from "../../../../types";
 import "./MathOptions.scss";
 
 export default function MathOptions({
   handleOptionClick,
+  wrongOptions = [],
+  correctOption = null,
+  locked = false,
 }: {
   handleOptionClick: OptionClickHandler;
+  wrongOptions?: string[];
+  // Set from a correct pick until the next question loads
+  correctOption?: string | null;
+  // Answers aren't accepted right now (question answered or Wrong popover up), so every button is disabled
+  locked?: boolean;
 }) {
   const [inputValue, setInputValue] = useState<string>("");
+  // Set by Submit, so the next digit starts a new number instead of adding to the wrong one
+  const startNewRef = useRef(false);
 
+  // No typing after a correct answer either, while the game moves on
+  const disabled = locked || correctOption !== null;
+  // The typed number was already a wrong answer for this question
+  const isWrong = wrongOptions.includes(inputValue);
+
+  // The first digit after a Submit starts a new number, and so does a digit after
+  // a lone 0, so "05" can't be submitted for 5
   const handleNumClick = (digit: string) => {
-    setInputValue((prev) => prev + digit);
+    const startNew = startNewRef.current;
+    startNewRef.current = false;
+    setInputValue((prev) => (startNew || prev === "0" ? digit : prev + digit));
   };
 
   const handleClear = () => {
+    startNewRef.current = false;
     setInputValue("");
   };
 
   const handleBackspace = () => {
+    startNewRef.current = false;
     setInputValue((prev) => prev.slice(0, -1));
   };
 
   const handleSubmit = () => {
-    if (inputValue.trim() !== "") {
+    if (inputValue.trim() !== "" && !isWrong) {
+      startNewRef.current = true;
       handleOptionClick(inputValue);
-      setInputValue("");
     }
   };
+
+  // Saved answers and Review have nothing typed, so show the right answer,
+  // or the last wrong one when the game ended on this question
+  const displayValue =
+    correctOption ?? (inputValue || (locked ? wrongOptions[wrongOptions.length - 1] ?? "" : ""));
+  const displayClass =
+    correctOption !== null ? "correct" : wrongOptions.includes(displayValue) ? "wrong" : "";
 
   return (
     <div className="math-options-container">
@@ -34,8 +62,9 @@ export default function MathOptions({
       <input
         type="text"
         readOnly
-        value={inputValue}
+        value={displayValue}
         placeholder="0"
+        className={displayClass}
       />
 
       {/* Row 1: Numbers 1-5 */}
@@ -45,6 +74,7 @@ export default function MathOptions({
             key={num}
             className="option-btn small-btn"
             onClick={() => handleNumClick(num)}
+            disabled={disabled}
           >
             {num}
           </button>
@@ -58,6 +88,7 @@ export default function MathOptions({
             key={num}
             className="option-btn small-btn"
             onClick={() => handleNumClick(num)}
+            disabled={disabled}
           >
             {num}
           </button>
@@ -67,23 +98,23 @@ export default function MathOptions({
       {/* Row 3: Action Controls */}
       <div className="small-btn-wrapper math">
         <button
-          className="option-btn small-btn"
+          className="option-btn small-btn clear-btn"
           onClick={handleClear}
-          style={{ paddingLeft: "14px", paddingRight: "14px" }}
+          disabled={disabled}
         >
           Clear
         </button>
         <button
-          className="option-btn small-btn"
+          className="option-btn small-btn del-btn"
           onClick={handleBackspace}
-          style={{ paddingLeft: "14px", paddingRight: "14px" }}
+          disabled={disabled}
         >
           ⌫
         </button>
         <button
-          className="option-btn small-btn"
+          className="option-btn small-btn submit-btn"
           onClick={handleSubmit}
-          style={{ paddingLeft: "20px", paddingRight: "20px" }}
+          disabled={disabled || inputValue === "" || isWrong}
         >
           Submit
         </button>
