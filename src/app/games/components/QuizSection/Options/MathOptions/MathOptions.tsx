@@ -18,6 +18,25 @@ export default function MathOptions({
   const [enteredValue, setEnteredValue] = useState<string>("");
   // Set by Submit, so the next digit starts a new number instead of adding to the wrong one
   const startNewRef = useRef(false);
+  // The display, so a digit press can flash it
+  const outputRef = useRef<HTMLOutputElement>(null);
+
+  // Flash the display yellow, then fade back to its own background and border
+  const flashDisplay = () => {
+    const el = outputRef.current;
+    if (!el) return;
+    const styles = getComputedStyle(el);
+    el.animate(
+      [
+        {
+          backgroundColor: styles.getPropertyValue("--flash-bg"),
+          borderColor: styles.getPropertyValue("--flash-border"),
+          offset: 0,
+        },
+      ],
+      { duration: 1000, easing: "ease-out" },
+    );
+  };
 
   // No typing after a correct answer either, while the game moves on
   const disabled = locked || correctOption !== null;
@@ -30,6 +49,7 @@ export default function MathOptions({
     const startNew = startNewRef.current;
     startNewRef.current = false;
     setEnteredValue((prev) => (startNew || prev === "0" ? digit : prev + digit));
+    flashDisplay();
   };
 
   const handleClear = () => {
@@ -60,6 +80,7 @@ export default function MathOptions({
     <div className="math-options-container">
       {/* Display box showing the number being entered */}
       <output
+        ref={outputRef}
         className={`option-output ${displayClass}`}
         aria-label="Your answer"
       >
