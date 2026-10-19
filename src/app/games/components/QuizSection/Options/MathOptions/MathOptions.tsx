@@ -15,44 +15,44 @@ export default function MathOptions({
   // Answers aren't accepted right now (question answered or Wrong popover up), so every button is disabled
   locked?: boolean;
 }) {
-  const [inputValue, setInputValue] = useState<string>("");
+  const [enteredValue, setEnteredValue] = useState<string>("");
   // Set by Submit, so the next digit starts a new number instead of adding to the wrong one
   const startNewRef = useRef(false);
 
   // No typing after a correct answer either, while the game moves on
   const disabled = locked || correctOption !== null;
   // The typed number was already a wrong answer for this question
-  const isWrong = wrongOptions.includes(inputValue);
+  const isWrong = wrongOptions.includes(enteredValue);
 
   // The first digit after a Submit starts a new number, and so does a digit after
   // a lone 0, so "05" can't be submitted for 5
   const handleNumClick = (digit: string) => {
     const startNew = startNewRef.current;
     startNewRef.current = false;
-    setInputValue((prev) => (startNew || prev === "0" ? digit : prev + digit));
+    setEnteredValue((prev) => (startNew || prev === "0" ? digit : prev + digit));
   };
 
   const handleClear = () => {
     startNewRef.current = false;
-    setInputValue("");
+    setEnteredValue("");
   };
 
   const handleBackspace = () => {
     startNewRef.current = false;
-    setInputValue((prev) => prev.slice(0, -1));
+    setEnteredValue((prev) => prev.slice(0, -1));
   };
 
   const handleSubmit = () => {
-    if (inputValue.trim() !== "" && !isWrong) {
+    if (enteredValue.trim() !== "" && !isWrong) {
       startNewRef.current = true;
-      handleOptionClick(inputValue);
+      handleOptionClick(enteredValue);
     }
   };
 
   // Saved answers and Review have nothing typed, so show the right answer,
   // or the last wrong one when the game ended on this question
   const displayValue =
-    correctOption ?? (inputValue || (locked ? wrongOptions[wrongOptions.length - 1] ?? "" : ""));
+    correctOption ?? (enteredValue || (locked ? wrongOptions[wrongOptions.length - 1] ?? "" : ""));
   const displayClass =
     correctOption !== null ? "correct" : wrongOptions.includes(displayValue) ? "wrong" : "";
 
@@ -113,7 +113,7 @@ export default function MathOptions({
         <button
           className="option-btn small-btn submit-btn"
           onClick={handleSubmit}
-          disabled={disabled || inputValue === "" || isWrong}
+          disabled={disabled || enteredValue === "" || isWrong}
         >
           Submit
         </button>
