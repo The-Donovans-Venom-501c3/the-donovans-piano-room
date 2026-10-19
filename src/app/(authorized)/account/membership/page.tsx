@@ -95,13 +95,27 @@ export default function Page() {
 
   useEffect(() => {
     let isMounted = true;
+    
     (async () => {
+    
       try {
         setLoading(true);
         const userMembership = await getUserMembership().catch(() => null);
         if (!isMounted) return;
         setMembership(userMembership);
-      } finally {
+
+        // ar2. DYNAMIC CONDITION: Change view if a valid membership is returned
+        // (Adjust this condition based on your exact API response structure)
+        if (userMembership && userMembership.levelId) {
+          setShowPlanSelection(false); // Show Dashboard (View 2) instead of the Selection grid
+        } else {
+          setShowPlanSelection(true);  // Keep Selection Grid (View 1) open for non-members
+        }
+      } catch (error) {
+          console.error("Failed to load membership status", error);
+      
+      }
+      finally {
         if (isMounted) setLoading(false);
       }
     })();
