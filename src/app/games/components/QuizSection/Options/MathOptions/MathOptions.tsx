@@ -69,10 +69,8 @@ export default function MathOptions({
     }
   };
 
-  // Saved answers and Review have nothing typed, so show the right answer,
-  // or the last wrong one when the game ended on this question
-  const displayValue =
-    correctOption ?? (enteredValue || (locked ? wrongOptions[wrongOptions.length - 1] ?? "" : ""));
+  // Answered questions and Review have nothing typed, so they show the right answer
+  const displayValue = correctOption ?? enteredValue;
   const displayClass =
     correctOption !== null ? "correct" : wrongOptions.includes(displayValue) ? "wrong" : "";
 
