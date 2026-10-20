@@ -1,0 +1,13 @@
+.info-button {
+  display: inline-flex;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+
+  .info-icon {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+}
