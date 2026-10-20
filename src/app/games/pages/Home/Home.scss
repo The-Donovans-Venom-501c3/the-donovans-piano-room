@@ -149,7 +149,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
     .buttonContainer {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 2px;
+      gap: 21px 32px;
       width: 100%;
       max-width: 1050px;
     }
