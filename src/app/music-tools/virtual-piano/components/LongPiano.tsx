@@ -1,5 +1,6 @@
 import React from "react";
 import { playSynthesizedNote } from "@/utils/soundEngine";
+import { twMerge } from "tailwind-merge";
 
 const octaveKeys = [
   { white: "C", black: "Db", blackText1: "C♯", blackText2: "D♭" },
@@ -18,6 +19,8 @@ interface LongPianoProps {
   showNotes: boolean;
   instrument: string;
   isOverlay?: boolean;
+  activeNotes?: Set<string>; // <-- Added to receive external MIDI triggers
+  onKeyClick?: (note: string) => void; // <-- Optional callback for UI clicks
 }
 
 const LongPiano: React.FC<LongPianoProps> = ({
@@ -25,9 +28,12 @@ const LongPiano: React.FC<LongPianoProps> = ({
   showNotes,
   instrument,
   isOverlay = false,
+  activeNotes = new Set(),
+  onKeyClick,
 }) => {
   const playNote = (note: string) => {
     playSynthesizedNote(note, instrument, volume);
+    if (onKeyClick) onKeyClick(note);
   };
 
   return (
@@ -44,17 +50,24 @@ const LongPiano: React.FC<LongPianoProps> = ({
               const whiteNote = `${white}${octave}`;
               const blackNote = black ? `${black}${octave}` : null;
 
+              const isWhiteActive = activeNotes.has(whiteNote);
+              const isBlackActive = blackNote ? activeNotes.has(blackNote) : false;
+
               return (
                 <div key={whiteNote} className="relative flex flex-col items-center h-full">
                   {/* White Key */}
                   <button
                     type="button"
                     onClick={() => playNote(whiteNote)}
-                    className={`border-x border-t border-gray-300 border-b-[8px] border-b-gray-400 rounded-b-xl shadow-md active:bg-gray-100 active:border-b-4 flex flex-col justify-end items-center transition-all cursor-pointer bg-white ${
+                    className={twMerge(
+                      "border-x border-t border-gray-300 border-b-[8px] border-b-gray-400 rounded-b-xl shadow-md flex flex-col justify-end items-center transition-all cursor-pointer bg-white",
                       isOverlay
                         ? "w-14 md:w-16 lg:w-20 h-full pb-8"
-                        : "w-8 md:w-10 h-full pb-4"
-                    }`}
+                        : "w-8 md:w-10 h-full pb-4",
+                      isWhiteActive
+                        ? "bg-gray-200 border-b-2 translate-y-1.5 shadow-inner"
+                        : "active:bg-gray-100 active:border-b-4 active:translate-y-1"
+                    )}
                   >
                     {showNotes && (
                       <span className={`font-extrabold text-purple-950 pointer-events-none mb-1 ${
@@ -70,11 +83,15 @@ const LongPiano: React.FC<LongPianoProps> = ({
                     <button
                       type="button"
                       onClick={() => playNote(blackNote)}
-                      className={`absolute top-0 z-20 bg-[#111111] rounded-b-lg shadow-xl active:bg-black flex flex-col justify-center items-center text-white transition-all cursor-pointer left-full -translate-x-1/2 ${
+                      className={twMerge(
+                        "absolute top-0 z-20 rounded-b-lg shadow-xl flex flex-col justify-center items-center text-white transition-all cursor-pointer left-full -translate-x-1/2",
                         isOverlay
                           ? "w-8 md:w-10 lg:w-12 h-[60%]"
-                          : "w-5 md:w-6 h-[180px]"
-                      }`}
+                          : "w-5 md:w-6 h-[180px]",
+                        isBlackActive
+                          ? "bg-gray-800 shadow-inner translate-y-1"
+                          : "bg-[#111111] active:bg-black"
+                      )}
                     >
                       {showNotes && (
                         <div className="pointer-events-none text-center font-bold leading-snug">
