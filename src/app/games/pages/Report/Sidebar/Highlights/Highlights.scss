@@ -27,9 +27,15 @@
     text-transform: uppercase;
     color: #59371D;
 
-    .info-icon {
-      width: 1.2rem;
-      height: 1.2rem;
+    .info-button {
+      &:active {
+        transform: translateY(1px);
+      }
+
+      .info-icon {
+        width: 1.2rem;
+        height: 1.2rem;
+      }
     }
   }
 
