@@ -25,6 +25,10 @@
       color: #3F3B3C;
       cursor: pointer;
       transition: background-color 0.2s ease, color 0.2s ease;
+      // Cancel the global `button:active` press style from QuizScreen.scss
+      &:active {
+        box-shadow: none;
+      }
 
       &.active {
         background: #D8BCFD;

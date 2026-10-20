@@ -5,6 +5,15 @@
   border: none;
   border-radius: 50%;
   cursor: pointer;
+  &:hover {
+    background-color: #f3e8ff;
+  }
+  // Cancel the global `button:active` press style from QuizScreen.scss
+  &:active {
+    background-color: transparent;
+    box-shadow: none;
+    transform: translateY(2px);
+  }
 
   .info-icon {
     width: 2.4rem;
