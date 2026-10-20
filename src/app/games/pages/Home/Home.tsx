@@ -841,7 +841,11 @@ export default function Home() {
                         }
                         {selectedGameKey === "math" ? (
                           <MathOptions
+                            key={`${restartCount}-${questionIndex}`}
                             handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "note" ? (
                           <NoteOptions
@@ -1029,7 +1033,6 @@ export default function Home() {
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
                           disabled={questionIndex >= (questions.length || 8) || (!isReviewing && !savedAnswer)}
-
                         >
                           <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                         </button>
