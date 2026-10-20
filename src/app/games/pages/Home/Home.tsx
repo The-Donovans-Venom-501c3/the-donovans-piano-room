@@ -46,6 +46,7 @@ const greyPadlockIcon = "/games/Grey padlock.svg";
 
 // Background & Character Assets
 const yellowMascot = "/games/Character_Loading.svg";
+const yellowGuy = "/games/yellowGuy.svg";
 const mascotShadow = "/games/Character_Ellipse.svg";
 const purpleSpotlightBeam = "/games/HomePageLight.svg";
 const musicStand = "/games/Music_stand.svg";
@@ -218,7 +219,7 @@ export default function Home() {
         timer = setTimeout(() => setFlowStage("levels"), 1500);
         break;
       case "loading_screen":
-        timer = setTimeout(() => setFlowStage("stage_start_1"), 2500);
+        timer = setTimeout(() => setFlowStage("stage_start_1"), 3300);
         break;
       case "stage_start_1":
         timer = setTimeout(() => setFlowStage("stage_start_2"), 1200);
@@ -482,7 +483,7 @@ export default function Home() {
           <div className="whole-page-layout">
             <div className="hero-section">
               <div className="mascot-wrapper">
-                <img src={yellowMascot} alt="Yellow Headphone Mascot" className="mascot-img" />
+                <img src={yellowGuy} alt="Yellow Headphone Mascot" className="mascot-img" />
               </div>
               <h2 className="main-heading">
                 Let&apos;s take a<br />game break!
