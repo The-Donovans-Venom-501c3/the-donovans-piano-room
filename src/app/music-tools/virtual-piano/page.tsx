@@ -1,19 +1,57 @@
-"use client";
 
-import React, { useState, useEffect, useRef } from "react";
+/* Here is how the dual-input setup functions seamlessly works
+
+Mouse / Touch Clicks:
+
+When a user clicks a key with the mouse, onClick={() => playNote(whiteNote)} fires immediately.playNote invokes playSynthesizedNote(...) to produce the sound just like before.
+Tailwind's native active: pseudo-classes (active:bg-gray-100, active:translate-y-1, etc.) handle the physical visual depression when clicked.
+
+MIDI Devices / File Playback:
+
+When notes arrive from a USB keyboard or a playing .mid file, the useMIDI hook updates the activeNotes state in your parent container page.tsx.
+The isWhiteActive and isBlackActive checks use that state to light up or depress the keys programmatically.
+Both input methods share the component harmoniously without breaking your existing behavior! */
+
+
+"use client";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import ShortPiano from "./components/ShortPiano";
 import LongPiano from "./components/LongPiano";
 import SwitchComponent from "./components/Switch";
 import VolumeSlider from "./components/VolumeSlider";
+import { useMIDI } from "./components/useMidi";
+import { playSynthesizedNote } from "@/utils/soundEngine";
 
 export default function VirtualPiano() {
   const [isPiano, setIsPiano] = useState(true);
   const [volume, setVolume] = useState<number>(50);
+  
   const [showNotes, setShowNotes] = useState(false);
   const [instrument, setInstrument] = useState("Electric Piano");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set());
   const fullScreenRef = useRef<HTMLDivElement>(null);
+
+  // Handle note activation from USB or MIDI file
+  const handleNoteOn = useCallback((noteName: string, velocity: number = 1) => {
+    setActiveNotes((prev) => new Set(prev).add(noteName));
+    playSynthesizedNote(noteName, instrument, Math.max(5, Math.round(volume * (0.5 + 0.5 * velocity))));
+  }, [volume, instrument]);
+
+  const handleNoteOff = useCallback((noteName: string) => {
+    setActiveNotes((prev) => {
+      const next = new Set(prev);
+      next.delete(noteName);
+      return next;
+    });
+  }, []);
+
+  // Initialize the decoupled MIDI module
+  const { devices, isSupported, isPlayingFile, playMIDIFile, stopMIDIFile } = useMIDI({
+    onNoteOn: handleNoteOn,
+    onNoteOff: handleNoteOff,
+  });
 
   const toggleFullScreen = async (enable: boolean) => {
     setIsExpanded(enable);
@@ -55,7 +93,7 @@ export default function VirtualPiano() {
         /* STANDARD VIEW */
         <div className="w-full max-w-[1400px] mx-auto flex flex-col items-center">
           {/* Top Controls Bar */}
-          <div className="relative flex flex-wrap items-center justify-between w-full mb-6 px-4 gap-4">
+          <div className="relative flex flex-wrap items-center justify-between w-full mb-4 px-4 gap-4">
             <div className="flex items-center gap-3">
               <span className="font-semibold text-gray-700 text-sm md:text-base">
                 Show Note Names
@@ -65,6 +103,42 @@ export default function VirtualPiano() {
                 checked={showNotes}
                 onChange={(e) => setShowNotes(Boolean(e.target.checked))}
               />
+            </div>
+
+            {/* MIDI Status & File Playback Controls */}
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-gray-200 shadow-sm">
+              <div className="text-xs">
+                <span className="font-bold text-gray-800">MIDI: </span>
+                <span className="text-gray-600">
+                  {!isSupported 
+                    ? "Not Supported" 
+                    : devices.length > 0 
+                      ? devices.join(", ") 
+                      : "No USB Keyboard Connected"}
+                </span>
+              </div>
+              {!isPlayingFile ? (
+                <label className="bg-[#6B109B] text-white px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-purple-800 transition-all">
+                  Load MIDI
+                  <input
+                    type="file"
+                    accept=".mid,.midi,audio/midi"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) playMIDIFile(URL.createObjectURL(f));
+                    }}
+                  />
+                </label>
+              ) : (
+                <button
+                  type="button"
+                  onClick={stopMIDIFile}
+                  className="bg-rose-600 text-white px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-rose-700 transition-all"
+                >
+                  Stop MIDI
+                </button>
+              )}
             </div>
 
             <div>
@@ -84,26 +158,26 @@ export default function VirtualPiano() {
               <span className="font-semibold text-gray-700 text-sm md:text-base">Volume</span>
               <VolumeSlider volume={volume} setVolume={setVolume} />
 
-            {/* MASCOT AVATAR */}
-            <div
-              className="absolute z-30 pointer-events-none select-none"
-              style={{
-                top: "10px",
-                right: "-80px",
-                width: "140px",
-                height: "118px",
-                transform: "rotate(35.4deg)",
-              }}
-            >
-              <Image
-                src="/auth/smilingcharacter.svg"
-                alt="Mascot"
-                width={140}
-                height={118}
-                className="w-full h-full object-contain"
-                unoptimized
-              />
-            </div>
+              {/* MASCOT AVATAR */}
+              <div
+                className="absolute z-30 pointer-events-none select-none"
+                style={{
+                  top: "10px",
+                  right: "-80px",
+                  width: "140px",
+                  height: "118px",
+                  transform: "rotate(35.4deg)",
+                }}
+              >
+                <Image
+                  src="/auth/smilingcharacter.svg"
+                  alt="Mascot"
+                  width={140}
+                  height={118}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
+              </div>
             </div>
           </div>
 
@@ -141,12 +215,14 @@ export default function VirtualPiano() {
                   volume={volume}
                   showNotes={showNotes}
                   instrument={instrument}
+                  activeNotes={activeNotes}
                 />
               ) : (
                 <LongPiano
                   volume={volume}
                   showNotes={showNotes}
                   instrument={instrument}
+                  activeNotes={activeNotes}
                 />
               )}
             </div>
@@ -177,7 +253,36 @@ export default function VirtualPiano() {
               />
             </div>
 
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-6">
+              {/* MIDI Fullscreen Controls */}
+              <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl border border-white/20">
+                <span className="text-white text-xs">
+                  {devices.length > 0 ? `USB: ${devices[0]}` : "No MIDI Device"}
+                </span>
+                {!isPlayingFile ? (
+                  <label className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                    Load MIDI
+                    <input
+                      type="file"
+                      accept=".mid,.midi,audio/midi"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) playMIDIFile(URL.createObjectURL(f));
+                      }}
+                    />
+                  </label>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={stopMIDIFile}
+                    className="bg-rose-600/80 text-white px-3 py-1 rounded-lg text-xs font-bold transition-all"
+                  >
+                    Stop MIDI
+                  </button>
+                )}
+              </div>
+
               {/* Dropdown Selector */}
               <select
                 value={instrument}
@@ -223,6 +328,7 @@ export default function VirtualPiano() {
                 volume={volume}
                 showNotes={showNotes}
                 instrument={instrument}
+                activeNotes={activeNotes}
                 isOverlay
               />
             ) : (
@@ -230,6 +336,7 @@ export default function VirtualPiano() {
                 volume={volume}
                 showNotes={showNotes}
                 instrument={instrument}
+                activeNotes={activeNotes}
                 isOverlay
               />
             )}
