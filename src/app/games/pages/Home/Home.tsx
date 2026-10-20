@@ -499,7 +499,7 @@ export default function Home() {
               <div className="mascot-wrapper">
                 <img src={yellowGuy} alt="Yellow Headphone Mascot" className="mascot-img" />
               </div>
-              <h2 className="main-heading">
+              <h2 className="main-heading font-montserrat">
                 Let&apos;s take a<br />game break!
               </h2>
               <p className="sub-description">
