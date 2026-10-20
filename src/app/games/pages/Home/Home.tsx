@@ -46,6 +46,7 @@ const greyPadlockIcon = "/games/Grey padlock.svg";
 
 // Background & Character Assets
 const yellowMascot = "/games/Character_Loading.svg";
+const mascotShadow = "/games/Character_Ellipse.svg";
 const purpleSpotlightBeam = "/games/HomePageLight.svg";
 const musicStand = "/games/Music_stand.svg";
 const musicStandDeskview = "/games/Music_Stand_Deskview.png";
@@ -660,6 +661,7 @@ export default function Home() {
           <div className="loading-card-container">
             <div className="loading-mascot-wrapper">
               <img src={yellowMascot} alt="Loading Mascot" className="loading-mascot-img" />
+              <img src={mascotShadow} alt="" aria-hidden="true" className="loading-mascot-shadow" />
             </div>
             <h1 className="loading-heading">Get Ready for Awesomeness!</h1>
             <p className="loading-subtext">
