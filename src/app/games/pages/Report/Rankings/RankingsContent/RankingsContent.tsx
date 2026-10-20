@@ -2,7 +2,7 @@ import "./RankingsContent.scss";
 
 export default function RankingsContent() {
   return (
-    <div className="rankings-content">
+    <div className="rankings-content font-roboto">
       <div className="rankings-tabs">
         <button className="most-played-tab active">
           Most played

@@ -3,7 +3,7 @@ import InfoButton from "../../InfoButton/InfoButton";
 
 export default function Highlights() {
   return (
-    <section className="highlights-block">
+    <section className="highlights-block font-roboto">
       <h3 className="highlights-heading">
         Your highlights
       </h3>

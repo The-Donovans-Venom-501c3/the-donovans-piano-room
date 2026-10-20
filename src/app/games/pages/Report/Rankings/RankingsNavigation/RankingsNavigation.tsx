@@ -31,7 +31,7 @@ export default function RankingsNavigation() {
             className="nav-icon prev"
           />
         </button>
-        <span className="rankings-date-range">
+        <span className="rankings-date-range font-roboto">
           June 5 &ndash; 11, 2024
         </span>
         <button
