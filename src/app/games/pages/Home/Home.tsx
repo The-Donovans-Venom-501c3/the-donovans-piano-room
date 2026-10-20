@@ -480,6 +480,20 @@ export default function Home() {
           <div className="dashboard-header">
             <h1 className="page-title">Games</h1>
           </div>
+          <div className="tab-switcher-pill">
+            <button
+              className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              Games dashboard
+            </button>
+            <button
+              className={`tab ${activeTab === "report" ? "active" : ""}`}
+              onClick={() => setActiveTab("report")}
+            >
+              Games&apos; report
+            </button>
+          </div>
           <div className="whole-page-layout">
             <div className="hero-section">
               <div className="mascot-wrapper">
@@ -494,20 +508,6 @@ export default function Home() {
               <p className="action-prompt">Choose a game you want to play!</p>
             </div>
             <div className="right-content-section">
-              <div className="tab-switcher-pill">
-                <button
-                  className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
-                  onClick={() => setActiveTab("dashboard")}
-                >
-                  Games dashboard
-                </button>
-                <button
-                  className={`tab ${activeTab === "report" ? "active" : ""}`}
-                  onClick={() => setActiveTab("report")}
-                >
-                  Games&apos; report
-                </button>
-              </div>
               <div className="buttonContainer">
                 <Button
                   icon={NoteIdentification}
