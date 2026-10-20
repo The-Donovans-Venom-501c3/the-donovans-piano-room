@@ -72,8 +72,8 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
   width: 420px;
   height: 48px;
   margin: 0 0 4.6rem;
-  border: 2px solid #ffffff;
-  border-radius: 8px;
+  border: 2px solid #FEF8EE;
+  border-radius: 10px;
   overflow: hidden;
   .tab {
     flex: 1;
@@ -86,11 +86,13 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
     color: #59371D;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    box-shadow: inset 0 5px 8px 0 rgba(#FFC895, 60%);
     & + .tab {
-      border-left: 2px solid #ffffff;
+      border-left: 2px solid #FEF8EE;
     }
     &.active {
       background: #D8BCFD;
+      box-shadow: inset 0 0 15px 0 rgba(#C5A5F3, 25%);
     }
     &:active {
       transform: none;
