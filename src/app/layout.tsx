@@ -25,6 +25,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={mountainsOfChristmas.variable}>
+      <head>
+        {/* Loaded here rather than with @import in globals.css: Next bundles next/font's
+            @font-face rules ahead of globals.css, and browsers ignore an @import after them */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap"
+        />
+      </head>
       <body className="pt-10">
         <Providers>
           <BetaBanner /> {/* 2. Re-add the BetaBanner component here */}

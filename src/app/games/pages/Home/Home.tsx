@@ -46,6 +46,8 @@ const greyPadlockIcon = "/games/Grey padlock.svg";
 
 // Background & Character Assets
 const yellowMascot = "/games/Character_Loading.svg";
+const yellowGuy = "/games/yellowGuy.svg";
+const mascotShadow = "/games/Character_Ellipse.svg";
 const purpleSpotlightBeam = "/games/HomePageLight.svg";
 const musicStand = "/games/Music_stand.svg";
 const musicStandDeskview = "/games/Music_Stand_Deskview.png";
@@ -217,7 +219,7 @@ export default function Home() {
         timer = setTimeout(() => setFlowStage("levels"), 1500);
         break;
       case "loading_screen":
-        timer = setTimeout(() => setFlowStage("stage_start_1"), 2500);
+        timer = setTimeout(() => setFlowStage("stage_start_1"), 3300);
         break;
       case "stage_start_1":
         timer = setTimeout(() => setFlowStage("stage_start_2"), 1200);
@@ -478,12 +480,26 @@ export default function Home() {
           <div className="dashboard-header">
             <h1 className="page-title">Games</h1>
           </div>
+          <div className="tab-switcher-pill">
+            <button
+              className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              Games dashboard
+            </button>
+            <button
+              className={`tab ${activeTab === "report" ? "active" : ""}`}
+              onClick={() => setActiveTab("report")}
+            >
+              Games&apos; report
+            </button>
+          </div>
           <div className="whole-page-layout">
             <div className="hero-section">
               <div className="mascot-wrapper">
-                <img src={yellowMascot} alt="Yellow Headphone Mascot" className="mascot-img" />
+                <img src={yellowGuy} alt="Yellow Headphone Mascot" className="mascot-img" />
               </div>
-              <h2 className="main-heading">
+              <h2 className="main-heading font-montserrat">
                 Let&apos;s take a<br />game break!
               </h2>
               <p className="sub-description">
@@ -492,20 +508,6 @@ export default function Home() {
               <p className="action-prompt">Choose a game you want to play!</p>
             </div>
             <div className="right-content-section">
-              <div className="tab-switcher-pill">
-                <button
-                  className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
-                  onClick={() => setActiveTab("dashboard")}
-                >
-                  Games dashboard
-                </button>
-                <button
-                  className={`tab ${activeTab === "report" ? "active" : ""}`}
-                  onClick={() => setActiveTab("report")}
-                >
-                  Games&apos; report
-                </button>
-              </div>
               <div className="buttonContainer">
                 <Button
                   icon={NoteIdentification}
@@ -660,6 +662,7 @@ export default function Home() {
           <div className="loading-card-container">
             <div className="loading-mascot-wrapper">
               <img src={yellowMascot} alt="Loading Mascot" className="loading-mascot-img" />
+              <img src={mascotShadow} alt="" aria-hidden="true" className="loading-mascot-shadow" />
             </div>
             <h1 className="loading-heading">Get Ready for Awesomeness!</h1>
             <p className="loading-subtext">
