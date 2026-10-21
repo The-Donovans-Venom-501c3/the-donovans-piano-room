@@ -1,36 +1,58 @@
+import { useState } from "react";
 import "./Highlights.scss";
 import InfoButton from "../../InfoButton/InfoButton";
 
+const placeholderDescription =
+  "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.";
+
+const highlights = [
+  { key: "rank", label: "rank", value: "10", description: placeholderDescription },
+  { key: "streak", label: "streak", value: "2", description: placeholderDescription },
+  { key: "gpa", label: "GPA", value: "3.5", description: placeholderDescription },
+  { key: "coins", label: "coins", value: "125", description: placeholderDescription },
+];
+
 export default function Highlights() {
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
+
+  const toggle = (key: string) => {
+    setOpenKeys((keys) =>
+      keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key]
+    );
+  };
+
   return (
     <section className="highlights-block font-roboto">
       <h3 className="highlights-heading">
         Your highlights
       </h3>
       <dl className="highlights-list">
-        <dt className="highlight-label rank-label">
-          <span>Rank</span>
-          <InfoButton label="More info about your rank" />
-        </dt>
-        <dd className="highlight-value rank-value">10</dd>
+        {highlights.map(({ key, label, value, description }) => {
+          const isOpen = openKeys.includes(key);
 
-        <dt className="highlight-label streak-label">
-          <span>Streak</span>
-          <InfoButton label="More info about your streak" />
-        </dt>
-        <dd className="highlight-value streak-value">2</dd>
-
-        <dt className="highlight-label gpa-label">
-          <span>GPA</span>
-          <InfoButton label="More info about your GPA" />
-        </dt>
-        <dd className="highlight-value gpa-value">3.5</dd>
-
-        <dt className="highlight-label coins-label">
-          <span>Coins</span>
-          <InfoButton label="More info about your coins" />
-        </dt>
-        <dd className="highlight-value coins-value">125</dd>
+          return (
+            <div
+              key={key}
+              className={`highlight-item ${isOpen ? "is-open" : ""}`}
+            >
+              <dt className="highlight-label">
+                <span>{label}</span>
+                <InfoButton
+                  label={`More info about your ${label}`}
+                  expanded={isOpen}
+                  controls={`highlight-${key}`}
+                  onClick={() => toggle(key)}
+                />
+              </dt>
+              <dd
+                id={`highlight-${key}`}
+                className={isOpen ? "highlight-description" : "highlight-value"}
+              >
+                {isOpen ? description : value}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
     </section>
   );

@@ -10,16 +10,37 @@
     margin-bottom: 3.2rem;
   }
 
-  // Each dt + dd pair reads as one white card: the dt is the top half,
-  // the dd the bottom half
+  .highlights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
+
+  // Each dt + dd pair is wrapped in a div (allowed inside a <dl>) so the
+  // pair can be styled and clicked as one card
+  .highlight-item {
+    position: relative;
+    padding: 1.6rem;
+    background: #FFFFFF;
+    border-radius: 12px;
+    text-align: center;
+    transition: background-color 0.15s ease;
+
+    &.is-open {
+      background: #F9F3FE;
+    }
+
+    &:hover,
+    &:has(.info-button:focus-visible) {
+      background: #D8BCFD;
+    }
+  }
+
   .highlight-label {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    padding: 1.6rem 1.6rem 0.2rem;
-    background: #FFFFFF;
-    border-radius: 8px 8px 0 0;
     font-weight: 600;
     font-size: 1.2rem;
     line-height: 1.5;
@@ -28,8 +49,23 @@
     color: #59371D;
 
     .info-button {
+      // Stretch the click area over the whole card, so clicking anywhere on
+      // it shows or hides the description
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 12px;
+      }
+
+      // The whole card is the target now, so drop the icon's own hover
+      // circle and press movement
+      &:hover {
+        background-color: transparent;
+      }
+
       &:active {
-        transform: translateY(1px);
+        transform: none;
       }
 
       .info-icon {
@@ -40,18 +76,22 @@
   }
 
   .highlight-value {
-    padding: 0 1.6rem 1.6rem;
-    margin-bottom: 2.4rem;
-    background: #FFFFFF;
-    border-radius: 0 0 8px 8px;
     font-weight: 700;
     font-size: 1.6rem;
     line-height: 1.5;
     color: #1C1A1A;
-    text-align: center;
+  }
 
-    &:last-child {
-      margin-bottom: 0;
-    }
+  .highlight-description {
+    margin-top: 1.2rem;
+    font-size: 1.4rem;
+    line-height: 1.5;
+    color: #1C1A1A;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlights-block .highlight-item {
+    transition: none;
   }
 }
