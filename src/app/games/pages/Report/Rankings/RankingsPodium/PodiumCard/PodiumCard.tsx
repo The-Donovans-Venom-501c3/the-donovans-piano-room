@@ -1,4 +1,5 @@
 import "./PodiumCard.scss";
+import type { GameType, SelectGameHandler } from "@/app/games/types";
 
 const arrowIcon = "/games/gameDashboardArrow.svg";
 
@@ -10,16 +11,25 @@ const toOrdinal = (n: number) => `${n}${ordinalSuffixes[ordinalRules.select(n)] 
 
 interface PodiumCardProps {
   rank: number;
+  gameKey: GameType;
+  // Passed to `onSelectGame` for the welcome screen, e.g. "Scale Identification
+  // Game". Must match the title the dashboard passes for the same game
+  gameTitle: string;
   gameIcon: string;
+  // Shown on the card, e.g. "Scale identification"
   gameName: string;
   playCount: number;
+  onSelectGame: SelectGameHandler;
 }
 
 export default function PodiumCard({
   rank,
+  gameKey,
+  gameTitle,
   gameIcon,
   gameName,
-  playCount
+  playCount,
+  onSelectGame
 }: PodiumCardProps) {
   const rankLabel = `${toOrdinal(rank)}${rank <= 3 ? " place" : ""}`;
 
@@ -39,6 +49,7 @@ export default function PodiumCard({
         type="button"
         className="podium-btn"
         aria-label={`Play ${gameName} game`}
+        onClick={() => onSelectGame(gameKey, gameTitle)}
       >
         <img src={arrowIcon} alt="" className="arrow-icon" />
       </button>

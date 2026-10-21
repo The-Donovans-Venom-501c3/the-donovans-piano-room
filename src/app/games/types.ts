@@ -9,6 +9,8 @@ export type GameType =
   | "reading"
   | "math";
 
+export type SelectGameHandler = (gameKey: GameType, title: string) => void;
+
 export type Level = "easy" | "medium" | "hard";
 
 export interface Question {

@@ -498,7 +498,7 @@ export default function Home() {
             </button>
           </div>
           {activeTab === "report" && (
-            <Report />
+            <Report onSelectGame={handleSelectGame} />
           )}
           {activeTab === "dashboard" && (
           <div className="whole-page-layout">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./RankingsContent.scss";
 import RankingsPodium from "../RankingsPodium/RankingsPodium";
+import type { SelectGameHandler } from "@/app/games/types";
 
 const tabs = [
   { key: "most-played", label: "Most played" },
@@ -10,7 +11,11 @@ const tabs = [
 
 export type RankingsTab = (typeof tabs)[number]["key"];
 
-export default function RankingsContent() {
+interface RankingsContentProps {
+  onSelectGame: SelectGameHandler;
+}
+
+export default function RankingsContent({ onSelectGame }: RankingsContentProps) {
   const [activeTab, setActiveTab] = useState<RankingsTab>("most-played");
 
   return (
@@ -28,7 +33,11 @@ export default function RankingsContent() {
         ))}
       </div>
 
-      <RankingsPodium key={activeTab} activeTab={activeTab} />
+      <RankingsPodium
+        key={activeTab}
+        activeTab={activeTab}
+        onSelectGame={onSelectGame}
+      />
     </div>
   );
 }

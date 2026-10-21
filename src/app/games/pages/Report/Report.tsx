@@ -1,8 +1,13 @@
 import "./Report.scss";
 import Rankings from "./Rankings/Rankings";
 import Sidebar from "./Sidebar/Sidebar";
+import type { SelectGameHandler } from "@/app/games/types";
 
-export default function Report() {
+interface ReportProps {
+  onSelectGame: SelectGameHandler;
+}
+
+export default function Report({ onSelectGame }: ReportProps) {
   return (
     <section className="games-report-view">
       <div className="report-main">
@@ -14,7 +19,7 @@ export default function Report() {
         </p>
 
         {/* Main Report Content */}
-        <Rankings />
+        <Rankings onSelectGame={onSelectGame} />
       </div>
 
       {/* Report Averages/Highlights */}
