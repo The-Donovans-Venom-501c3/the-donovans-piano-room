@@ -35,7 +35,7 @@ export default function PodiumCard({
 
   return (
     <li className={`podium-card ${
-      placeClasses[rank - 1] ?? ""
+      placeClasses[rank - 1] ?? "below-podium"
     }`}>
       <h4 className="podium-heading">
         <span className="podium-rank">{rankLabel}</span>

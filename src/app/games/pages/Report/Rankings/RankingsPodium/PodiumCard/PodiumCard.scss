@@ -122,6 +122,101 @@
       height: 3.2rem;
     }
   }
+
+  // 4th place and below: a wide card with the icon on the left, the rank in
+  // the top right corner and the arrow only on hover. Comes last so it
+  // overrides the podium styles above, which have the same specificity
+  &.below-podium {
+    display: grid;
+    grid-template-columns: 5.8rem minmax(0, 1fr) 3.2rem;
+    grid-template-rows: auto auto;
+    column-gap: 1.6rem;
+    padding: 2rem;
+    box-shadow: 0 0.8rem 0 0 $card-border;
+    text-align: left;
+
+    &:hover,
+    &:has(.podium-btn:focus-visible) {
+      background: $card-border;
+      box-shadow: 0 0.8rem 0 0 $card-border-hover;
+    }
+
+    &:has(.podium-btn:active) {
+      transform: translateY(0.6rem);
+      box-shadow: 0 0.2rem 0 0 $card-border-hover;
+    }
+
+    // The heading wraps the icon and name, but the play count sits outside
+    // it, so the heading shares the card's grid (subgrid) to line them up
+    .podium-heading {
+      display: grid;
+      grid-column: 1 / 3;
+      grid-row: 1 / 3;
+      grid-template-columns: subgrid;
+      grid-template-rows: subgrid;
+    }
+
+    .podium-rank {
+      top: -1.2rem;
+      right: -1.2rem;
+      left: auto;
+      transform: none;
+      padding: 0.8rem 1rem;
+      background: #FFFFFF;
+      border-color: $card-border;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      line-height: 1.333;
+      color: #1C1A1A;
+    }
+
+    &:hover .podium-rank,
+    &:has(.podium-btn:focus-visible) .podium-rank {
+      border-color: $card-border-hover;
+    }
+
+    .game-icon {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      align-self: center;
+      width: 5.8rem;
+      height: 5.8rem;
+      margin: 0;
+      border-radius: 8px;
+    }
+
+    .game-name {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: end;
+      color: #59371D;
+    }
+
+    .game-play-count {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: start;
+      margin: 0.2rem 0 0;
+      font-size: 1.2rem;
+      font-weight: 500;
+      line-height: 1.333;
+    }
+
+    .podium-btn {
+      grid-column: 3;
+      grid-row: 1 / 3;
+      align-self: center;
+      margin: 0;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    &:hover .podium-btn,
+    .podium-btn:focus-visible {
+      opacity: 1;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
