@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./RankingsContent.scss";
+import RankingsPodium from "../RankingsPodium/RankingsPodium";
 
 const tabs = [
   { key: "most-played", label: "Most played" },
@@ -7,7 +8,7 @@ const tabs = [
   { key: "fastest-time", label: "Fastest time" },
 ] as const;
 
-type RankingsTab = (typeof tabs)[number]["key"];
+export type RankingsTab = (typeof tabs)[number]["key"];
 
 export default function RankingsContent() {
   const [activeTab, setActiveTab] = useState<RankingsTab>("most-played");
@@ -26,6 +27,8 @@ export default function RankingsContent() {
           </button>
         ))}
       </div>
+
+      <RankingsPodium key={activeTab} activeTab={activeTab} />
     </div>
   );
 }
