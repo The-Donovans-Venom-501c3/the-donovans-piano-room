@@ -19,7 +19,7 @@ interface RankingsPodiumProps {
 
 export default function RankingsPodium({ activeTab }: RankingsPodiumProps) {
   return (
-    <ol className="podium-cards" role="list">
+    <ol className={`podium-cards ${activeTab}`} role="list">
       <PodiumCard
         rank={1}
         gameIcon={ScaleIdentification}
