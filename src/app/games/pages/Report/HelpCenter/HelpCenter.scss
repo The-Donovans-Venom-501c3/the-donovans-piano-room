@@ -1,0 +1,32 @@
+.help-center {
+  .help-center-heading {
+    font-weight: 600;
+    font-size: 2rem;
+    line-height: 1.4;
+    color: #59371D;
+
+    .info-icon {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  .close-btn {
+    .close-btn-icon {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+  }
+
+  .help-center-subheading,
+  .help-center-description {
+    font-weight: 700;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    color: #1C1A1A;
+  }
+
+  .help-center-description {
+    font-weight: 400;
+  }
+}
