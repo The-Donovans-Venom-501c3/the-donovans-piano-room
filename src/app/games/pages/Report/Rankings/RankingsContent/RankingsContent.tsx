@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./RankingsContent.scss";
-import RankingsPodium from "../RankingsPodium/RankingsPodium";
+import RankingsPodium from "./RankingsPodium/RankingsPodium";
 import type { SelectGameHandler } from "@/app/games/types";
 
 const tabs = [

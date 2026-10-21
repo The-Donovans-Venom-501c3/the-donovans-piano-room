@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./RankingsPodium.scss";
 import PodiumCard from "./PodiumCard/PodiumCard";
-import type { RankingsTab } from "../RankingsContent/RankingsContent";
+import type { RankingsTab } from "../RankingsContent";
 import type { SelectGameHandler } from "@/app/games/types";
 
 const NoteIdentification = "/games/NoteIdentification.png";
