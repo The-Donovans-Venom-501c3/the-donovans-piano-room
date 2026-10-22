@@ -2,7 +2,12 @@ import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { profileInterface } from "@/interfaces/profileInterface";
 import { notification } from "@/interfaces/notificationInterface";
-import type { CompletedLevels, HighScores } from "@/app/games/types";
+import type {
+    CompletedLevels,
+    HighScores,
+    PlayCounts,
+    FastestTimes
+} from "@/app/games/types";
 
 ///////////////
 ////SIGN UP////
@@ -146,5 +151,19 @@ export const completedLevelsAtom = atomWithStorage<CompletedLevels>(
     "tdpr_completed_levels",
     {},
     createJSONStorage<CompletedLevels>(getLocalStorage),
+    { getOnInit: true }
+);
+
+export const playCountsAtom = atomWithStorage<PlayCounts>(
+    "tdpr_play_counts",
+    {},
+    createJSONStorage<PlayCounts>(getLocalStorage),
+    { getOnInit: true }
+);
+
+export const fastestTimesAtom = atomWithStorage<FastestTimes>(
+    "tdpr_fastest_times",
+    {},
+    createJSONStorage<FastestTimes>(getLocalStorage),
     { getOnInit: true }
 );

@@ -13,7 +13,12 @@ import {
   questionAtom,
   levelStateAtom,
 } from "@/store/game-atoms";
-import { completedLevelsAtom, highScoresAtom } from "@/utils/stores";
+import {
+  completedLevelsAtom,
+  highScoresAtom,
+  playCountsAtom,
+  fastestTimesAtom
+} from "@/utils/stores";
 
 // Imports from types and utils using correct relative paths
 import type { GameType, HighScore, Level, Question, LevelKey } from "../../types";
@@ -165,6 +170,8 @@ export default function Home() {
 
   const [highScores, setHighScores] = useAtom(highScoresAtom);
   const [completedLevels, setCompletedLevels] = useAtom(completedLevelsAtom);
+  const setPlayCounts = useSetAtom(playCountsAtom);
+  const setFastestTimes = useSetAtom(fastestTimesAtom);
 
   // Gameplay Control States
   const [volume, setVolume] = useState<number>(80);
@@ -254,9 +261,14 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
 
-  // Save a high score when a game finishes
+  // Save the play count, high score, completion and fastest time when a game finishes
   useEffect(() => {
     if (flowStage !== "game_finished" || !selectedLevel) return;
+
+    setPlayCounts((all) => ({
+      ...all,
+      [selectedGameKey]: (all[selectedGameKey] ?? 0) + 1,
+    }));
 
     const key: LevelKey = `${selectedGameKey}:${selectedLevel}`;
     const prev = highScores[key];
@@ -269,9 +281,16 @@ export default function Home() {
         [key]: { score, timeSeconds: timerSeconds, date: new Date().toISOString() },
       }));
     }
-    // Finishing with lives left completes the level; a later game over never undoes it
+    // Finishing with lives left completes the level and can set a fastest time; a later
+    // game over never undoes either
     if (lives > 0) {
       setCompletedLevels((all) => ({ ...all, [key]: true }));
+
+      setFastestTimes((all) => {
+        const prevTime = all[key];
+        if (prevTime !== undefined && prevTime <= timerSeconds) return all;
+        return { ...all, [key]: timerSeconds };
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStage]);
