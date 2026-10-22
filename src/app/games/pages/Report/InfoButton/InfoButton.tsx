@@ -1,12 +1,12 @@
 import "./InfoButton.scss";
 
-const infoIcon = "/games/infoIcon.svg";
+const infoIcon = "/games/purpleInfoIcon.svg";
 
 interface InfoButtonProps {
   label: string;
   expanded?: boolean;
   controls?: string;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export default function InfoButton({

@@ -1,6 +1,8 @@
+import { useRef, useState } from "react";
 import "./Report.scss";
 import Rankings from "./Rankings/Rankings";
 import Sidebar from "./Sidebar/Sidebar";
+import HelpCenter from "./HelpCenter/HelpCenter";
 import type { SelectGameHandler } from "@/app/games/types";
 
 interface ReportProps {
@@ -8,6 +10,19 @@ interface ReportProps {
 }
 
 export default function Report({ onSelectGame }: ReportProps) {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const helpOpenerRef = useRef<HTMLElement | null>(null);
+
+  const openHelp = (opener: HTMLElement) => {
+    helpOpenerRef.current = opener;
+    setIsHelpOpen(true);
+  };
+
+  const closeHelp = () => {
+    setIsHelpOpen(false);
+    helpOpenerRef.current?.focus();
+  };
+
   return (
     <section className="games-report-view">
       <div className="report-main">
@@ -23,9 +38,10 @@ export default function Report({ onSelectGame }: ReportProps) {
       </div>
 
       {/* Report Averages/Highlights */}
-      <Sidebar />
+      <Sidebar isHelpOpen={isHelpOpen} onOpenHelp={openHelp} />
 
       {/* Help Center Popover */}
+      <HelpCenter isOpen={isHelpOpen} onClose={closeHelp} />
     </section>
   );
 }

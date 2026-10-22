@@ -1,20 +1,101 @@
+// A panel pinned to the right edge of the window, from the bottom of the
+// "Games" header down. It's off screen until it gets the `is-open` class,
+// then slides in; removing the class slides it back out
 .help-center {
+  position: fixed;
+  top: 9.2rem; // the bottom of the "Games" header; measure and adjust
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 30rem;
+  max-width: 100%;
+  background: #F5E8FF;
+  border-left: 2px solid #ECD6FE;
+  transform: translateX(100%);
+  // `visibility: hidden` takes the closed panel out of the tab order and out
+  // of what screen readers can reach. It switches only after the slide out
+  // has finished, so the panel stays visible while it moves
+  visibility: hidden;
+  transition: transform 0.3s ease-in-out, visibility 0s linear 0.3s;
+
+  &:focus {
+    outline: none;
+  }
+
+  &.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.3s ease-in-out, visibility 0s;
+  }
+
   .help-center-heading {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin: 0 2.4rem;
+    padding: 2.4rem 4.8rem 1.6rem 0; // right padding keeps the title clear of the close button
+    border-bottom: 2px solid #E8D5FB;
     font-weight: 600;
     font-size: 2rem;
     line-height: 1.4;
     color: #59371D;
 
     .info-icon {
-      width: 2rem;
-      height: 2rem;
+      width: 2.4rem;
+      height: 2.4rem;
     }
   }
 
   .close-btn {
+    position: absolute;
+    top: 2.2rem; // centers the 3.2rem button on the heading's 2.8rem line
+    right: 2.4rem; // lines up with the end of the divider
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ECD6FE;
+    }
+
+    // Cancel the global `button:active` press style from QuizScreen.scss
+    &:active {
+      background-color: #ECD6FE;
+      box-shadow: none;
+      transform: none;
+    }
+
     .close-btn-icon {
       width: 1.4rem;
       height: 1.4rem;
+    }
+  }
+
+  // Only the body scrolls, so the heading and close button stay put
+  .help-center-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2.4rem;
+    scrollbar-width: thin;
+    scrollbar-color: #6F219E transparent;
+
+    // Safari still needs the prefixed scrollbar styles
+    &::-webkit-scrollbar {
+      width: 0.8rem;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #6F219E;
+      border-radius: 4px;
     }
   }
 
@@ -27,6 +108,14 @@
   }
 
   .help-center-description {
+    margin-top: 0.8rem;
     font-weight: 400;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .help-center,
+  .help-center.is-open {
+    transition: none;
   }
 }
