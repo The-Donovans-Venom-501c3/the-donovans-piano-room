@@ -1,0 +1,226 @@
+.podium-card {
+  $card-border: #DDB5FD;
+  $card-border-hover: #6F219E;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4.8rem 3.2rem 3.2rem;
+  background: #FFFFFF;
+  border: 2px solid $card-border;
+  border-radius: 12px;
+  box-shadow: 0 1.2rem 0 0 $card-border;
+  text-align: center;
+  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out, border-color 0.15s ease;
+
+  // The arrow button's click area covers the whole card (see `.podium-btn`),
+  // so the card reacts to it like the dashboard's game cards
+  &:hover,
+  &:has(.podium-btn:focus-visible) {
+    border-color: $card-border-hover;
+    box-shadow: 0 1.2rem 0 0 $card-border-hover;
+  }
+
+  &:has(.podium-btn:active) {
+    transform: translateY(0.8rem);
+    box-shadow: 0 0.4rem 0 0 $card-border-hover;
+  }
+
+  .podium-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  // Sits on the card's top edge, half above it
+  .podium-rank {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0.8rem 2.4rem;
+    background: #F5E8FF;
+    border: 2px solid $card-border;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1.8rem;
+    line-height: 1.4;
+    color: #1C1A1A;
+    white-space: nowrap;
+  }
+
+  &.first-place .podium-rank {
+    background: #F0D454;
+    border-color: #DAA718;
+  }
+
+  &.second-place .podium-rank {
+    background: #DDDADA;
+    border-color: #A8A8A8;
+  }
+
+  &.third-place .podium-rank {
+    background: #ED9E4A;
+    border-color: #B55119;
+  }
+
+  // Must come after the place colours above, which have the same
+  // specificity
+  &:hover .podium-rank,
+  &:has(.podium-btn:focus-visible) .podium-rank {
+    border-color: $card-border-hover;
+  }
+
+  .game-icon {
+    width: 9.2rem;
+    height: 9.2rem;
+    margin-bottom: 1.6rem;
+    border-radius: 12px;
+    object-fit: contain;
+  }
+
+  .game-name {
+    font-weight: 600;
+    font-size: 2rem;
+    line-height: 1.4;
+    color: #1C1A1A;
+  }
+
+  .game-play-count {
+    margin: 0.4rem 0 1.2rem;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    color: #3F3B3C;
+  }
+
+  .podium-btn {
+    display: inline-flex;
+    margin-top: auto; // pushes the arrow to the bottom so every card's lines up
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+
+    // Stretch the click area over the whole card
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+    }
+
+    // Cancel the global `button:active` press style from QuizScreen.scss
+    &:active {
+      background-color: transparent;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .arrow-icon {
+      width: 3.2rem;
+      height: 3.2rem;
+    }
+  }
+
+  // 4th place and below: a wide card with the icon on the left, the rank in
+  // the top right corner and the arrow only on hover. Comes last so it
+  // overrides the podium styles above, which have the same specificity
+  &.below-podium {
+    display: grid;
+    grid-template-columns: 5.8rem minmax(0, 1fr) 3.2rem;
+    grid-template-rows: auto auto;
+    column-gap: 1.6rem;
+    padding: 2rem;
+    box-shadow: 0 0.8rem 0 0 $card-border;
+    text-align: left;
+
+    &:hover,
+    &:has(.podium-btn:focus-visible) {
+      background: $card-border;
+      box-shadow: 0 0.8rem 0 0 $card-border-hover;
+    }
+
+    &:has(.podium-btn:active) {
+      transform: translateY(0.6rem);
+      box-shadow: 0 0.2rem 0 0 $card-border-hover;
+    }
+
+    // The heading wraps the icon and name, but the play count sits outside
+    // it, so the heading shares the card's grid (subgrid) to line them up
+    .podium-heading {
+      display: grid;
+      grid-column: 1 / 3;
+      grid-row: 1 / 3;
+      grid-template-columns: subgrid;
+      grid-template-rows: subgrid;
+    }
+
+    .podium-rank {
+      top: -1.2rem;
+      right: -1.2rem;
+      left: auto;
+      transform: none;
+      padding: 0.8rem 1rem;
+      background: #FFFFFF;
+      border-color: $card-border;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      line-height: 1.333;
+      color: #1C1A1A;
+    }
+
+    &:hover .podium-rank,
+    &:has(.podium-btn:focus-visible) .podium-rank {
+      border-color: $card-border-hover;
+    }
+
+    .game-icon {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      align-self: center;
+      width: 5.8rem;
+      height: 5.8rem;
+      margin: 0;
+      border-radius: 8px;
+    }
+
+    .game-name {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: end;
+      color: #59371D;
+    }
+
+    .game-play-count {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: start;
+      margin: 0.2rem 0 0;
+      font-size: 1.2rem;
+      font-weight: 500;
+      line-height: 1.333;
+    }
+
+    .podium-btn {
+      grid-column: 3;
+      grid-row: 1 / 3;
+      align-self: center;
+      margin: 0;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    &:hover .podium-btn,
+    .podium-btn:focus-visible {
+      opacity: 1;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .podium-card {
+    transition: none;
+  }
+}

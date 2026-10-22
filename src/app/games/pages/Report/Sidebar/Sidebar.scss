@@ -1,0 +1,12 @@
+.report-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4.8rem;
+
+  .score-block,
+  .highlights-block {
+    background: #ECD6FE;
+    border: 2px solid #FFFFFF;
+    border-radius: 14px;
+  }
+}

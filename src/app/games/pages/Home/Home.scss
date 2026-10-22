@@ -75,6 +75,9 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
   border: 2px solid #FEF8EE;
   border-radius: 10px;
   overflow: hidden;
+  &.report-active {
+    margin-bottom: 3.4rem;
+  }
   .tab {
     flex: 1;
     height: 100%;

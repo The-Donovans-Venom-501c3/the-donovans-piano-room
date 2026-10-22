@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSetAtom, useAtom } from "jotai";
 import { Button } from "./button";
+import Report from "../Report/Report";
 import {
   appStateAtom,
   gameStateAtom,
@@ -480,7 +481,9 @@ export default function Home() {
           <div className="dashboard-header">
             <h1 className="page-title">Games</h1>
           </div>
-          <div className="tab-switcher-pill">
+          <div className={`tab-switcher-pill ${
+            activeTab === "dashboard" ? "dashboard-active" : "report-active"
+          }`}>
             <button
               className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
               onClick={() => setActiveTab("dashboard")}
@@ -494,6 +497,10 @@ export default function Home() {
               Games&apos; report
             </button>
           </div>
+          {activeTab === "report" && (
+            <Report onSelectGame={handleSelectGame} />
+          )}
+          {activeTab === "dashboard" && (
           <div className="whole-page-layout">
             <div className="hero-section">
               <div className="mascot-wrapper">
@@ -593,6 +600,7 @@ export default function Home() {
               </div>
             </div>
           </div>
+          )}
         </div>
       )}
 

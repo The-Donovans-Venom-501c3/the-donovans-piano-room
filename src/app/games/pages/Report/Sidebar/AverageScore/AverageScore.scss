@@ -1,0 +1,24 @@
+.score-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 1.6rem;
+  padding: 4rem 2.4rem 3.2rem;
+
+  .score-heading {
+    font-weight: 600;
+    font-size: 2rem;
+    line-height: 1.4;
+    color: #59371D;
+  }
+
+  .score {
+    flex-basis: 100%;
+    font-weight: 600;
+    font-size: 6.4rem;
+    line-height: 1.2;
+    color: #59371D;
+    text-align: center;
+  }
+}
