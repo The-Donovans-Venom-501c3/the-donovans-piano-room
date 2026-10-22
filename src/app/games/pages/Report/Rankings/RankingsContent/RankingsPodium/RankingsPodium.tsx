@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./RankingsPodium.scss";
 import PodiumCard from "./PodiumCard/PodiumCard";
 import type { RankingsTab } from "../RankingsContent";
@@ -23,6 +23,19 @@ interface RankingsPodiumProps {
 
 export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodiumProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const showButtonRef = useRef<HTMLButtonElement>(null);
+  const hideButtonRef = useRef<HTMLButtonElement>(null);
+  const hasToggled = useRef(false);
+
+  const toggle = (expand: boolean) => {
+    hasToggled.current = true;
+    setIsExpanded(expand);
+  };
+
+  useEffect(() => {
+    if (!hasToggled.current) return;
+    (isExpanded ? hideButtonRef : showButtonRef).current?.focus();
+  }, [isExpanded]);
 
   return (
     <>
@@ -31,7 +44,9 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
           type="button"
           className="more-rankings hide"
           aria-expanded={true}
-          onClick={() => setIsExpanded(false)}
+          aria-controls="podium-cards"
+          onClick={() => toggle(false)}
+          ref={hideButtonRef}
         >
           <span className="more-rankings-label">
             Hide more rankings
@@ -40,7 +55,11 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
         </button>
       )}
 
-      <ol className={`podium-cards ${activeTab}`} role="list">
+      <ol
+        id="podium-cards"
+        className={`podium-cards ${activeTab}`}
+        role="list"
+      >
         {!isExpanded && (
           <>
             <PodiumCard
@@ -138,7 +157,9 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
           type="button"
           className="more-rankings show"
           aria-expanded={false}
-          onClick={() => setIsExpanded(true)}
+          aria-controls="podium-cards"
+          onClick={() => toggle(true)}
+          ref={showButtonRef}
         >
           <span className="more-rankings-label">
             Show more rankings
