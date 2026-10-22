@@ -38,6 +38,12 @@ const games = [
 
 const levels: Level[] = ["easy", "medium", "hard"];
 
+const levelLabels: Record<Level, string> = {
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
+};
+
 interface RankingsPodiumProps {
   activeTab: RankingsTab;
   onSelectGame: SelectGameHandler;
@@ -61,13 +67,19 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
     (isExpanded ? hideButtonRef : showButtonRef).current?.focus();
   }, [isExpanded]);
 
-  const getFastestTime = (gameKey: GameType) => {
-    const times = levels.flatMap((level) => {
+  // The game's fastest time across its levels, and which level it was on
+  const getFastestRun = (gameKey: GameType) => {
+    let fastest: { time: number; level: Level } | undefined;
+
+    for (const level of levels) {
       const key: LevelKey = `${gameKey}:${level}`;
       const time = fastestTimes[key];
-      return time === undefined ? [] : [time];
-    });
-    return times.length > 0 ? Math.min(...times) : undefined;
+      if (time !== undefined && (fastest === undefined || time < fastest.time)) {
+        fastest = { time, level };
+      }
+    }
+
+    return fastest;
   };
 
   const getRankingValue = (gameKey: GameType): number | undefined => {
@@ -77,13 +89,13 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
       case "best-score":
         return undefined; // TODO: best score across levels, from highScoresAtom
       case "fastest-time":
-        return getFastestTime(gameKey);
+        return getFastestRun(gameKey)?.time;
     }
   };
 
   const lowerIsBetter = activeTab === "fastest-time";
 
-  const formatStat = (rankingValue: number) => {
+  const formatStat = (rankingValue: number, gameKey: GameType) => {
     switch (activeTab) {
       case "most-played":
         return `${rankingValue} time${rankingValue === 1 ? "" : "s"} played`;
@@ -92,7 +104,9 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
       case "fastest-time": {
         const minutes = Math.floor(rankingValue / 60);
         const seconds = String(rankingValue % 60).padStart(2, "0");
-        return `Fastest: ${minutes}:${seconds}`;
+        // TODO: ask UX how this tab should handle levels; the level label is a stopgap
+        const level = getFastestRun(gameKey)?.level;
+        return `Fastest: ${minutes}:${seconds}${level ? ` (${levelLabels[level]})` : ""}`;
       }
     }
   };
@@ -150,7 +164,7 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
                 key={game.gameKey}
                 {...game}
                 onPodium
-                stat={formatStat(game.rankingValue)}
+                stat={formatStat(game.rankingValue, game.gameKey)}
                 onSelectGame={onSelectGame}
               />
             ))
@@ -161,7 +175,7 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
                 key={game.gameKey}
                 {...game}
                 onPodium={false}
-                stat={formatStat(game.rankingValue)}
+                stat={formatStat(game.rankingValue, game.gameKey)}
                 onSelectGame={onSelectGame}
               />
             ))
