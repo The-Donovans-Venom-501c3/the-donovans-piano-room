@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import "./RankingsPodium.scss";
 import PodiumCard from "./PodiumCard/PodiumCard";
 import type { RankingsTab } from "../RankingsContent";
-import type { SelectGameHandler, GameType } from "@/app/games/types";
-import { playCountsAtom } from "@/utils/stores";
+import type {
+  SelectGameHandler,
+  GameType,
+  Level,
+  LevelKey
+} from "@/app/games/types";
+import { playCountsAtom, fastestTimesAtom } from "@/utils/stores";
 import { useAtomValue } from "jotai";
 
 const NoteIdentification = "/games/NoteIdentification.png";
@@ -31,6 +36,8 @@ const games = [
   { gameKey: "scale", gameTitle: "Scale Identification Game", gameName: "Scale identification", gameIcon: ScaleIdentification },
 ] as const;
 
+const levels: Level[] = ["easy", "medium", "hard"];
+
 interface RankingsPodiumProps {
   activeTab: RankingsTab;
   onSelectGame: SelectGameHandler;
@@ -39,6 +46,7 @@ interface RankingsPodiumProps {
 export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodiumProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const playCounts = useAtomValue(playCountsAtom);
+  const fastestTimes = useAtomValue(fastestTimesAtom);
   const showButtonRef = useRef<HTMLButtonElement>(null);
   const hideButtonRef = useRef<HTMLButtonElement>(null);
   const hasToggled = useRef(false);
@@ -53,6 +61,15 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
     (isExpanded ? hideButtonRef : showButtonRef).current?.focus();
   }, [isExpanded]);
 
+  const getFastestTime = (gameKey: GameType) => {
+    const times = levels.flatMap((level) => {
+      const key: LevelKey = `${gameKey}:${level}`;
+      const time = fastestTimes[key];
+      return time === undefined ? [] : [time];
+    });
+    return times.length > 0 ? Math.min(...times) : undefined;
+  };
+
   const getRankingValue = (gameKey: GameType): number | undefined => {
     switch (activeTab) {
       case "most-played":
@@ -60,7 +77,7 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
       case "best-score":
         return undefined; // TODO: best score across levels, from highScoresAtom
       case "fastest-time":
-        return undefined; // TODO: fastest time across levels, from fastestTimesAtom
+        return getFastestTime(gameKey);
     }
   };
 
@@ -72,8 +89,11 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
         return `${rankingValue} time${rankingValue === 1 ? "" : "s"} played`;
       case "best-score":
         return `Best score: ${rankingValue}`;
-      case "fastest-time":
-        return `Fastest: ${rankingValue}s`; // TODO: format as minutes and seconds
+      case "fastest-time": {
+        const minutes = Math.floor(rankingValue / 60);
+        const seconds = String(rankingValue % 60).padStart(2, "0");
+        return `Fastest: ${minutes}:${seconds}`;
+      }
     }
   };
 
