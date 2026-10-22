@@ -19,7 +19,7 @@ interface PodiumCardProps {
   gameIcon: string;
   // Shown on the card, e.g. "Scale identification"
   gameName: string;
-  playCount: number;
+  stat: string;
   onSelectGame: SelectGameHandler;
 }
 
@@ -30,7 +30,7 @@ export default function PodiumCard({
   gameTitle,
   gameIcon,
   gameName,
-  playCount,
+  stat,
   onSelectGame
 }: PodiumCardProps) {
   const placeClass = onPodium ? placeClasses[rank - 1] : "below-podium";
@@ -43,9 +43,7 @@ export default function PodiumCard({
         <img src={gameIcon} alt="" className="game-icon" />
         <span className="game-name">{gameName}</span>
       </h4>
-      <p className="game-play-count">
-        {playCount} time{playCount === 1 ? "" : "s"} played
-      </p>
+      <p className="game-stat">{stat}</p>
       <button
         type="button"
         className="podium-btn"

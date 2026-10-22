@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./RankingsPodium.scss";
 import PodiumCard from "./PodiumCard/PodiumCard";
 import type { RankingsTab } from "../RankingsContent";
-import type { SelectGameHandler } from "@/app/games/types";
+import type { SelectGameHandler, GameType } from "@/app/games/types";
 import { playCountsAtom } from "@/utils/stores";
 import { useAtomValue } from "jotai";
 
@@ -53,20 +53,47 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
     (isExpanded ? hideButtonRef : showButtonRef).current?.focus();
   }, [isExpanded]);
 
+  const getRankingValue = (gameKey: GameType): number | undefined => {
+    switch (activeTab) {
+      case "most-played":
+        return playCounts[gameKey];
+      case "best-score":
+        return undefined; // TODO: best score across levels, from highScoresAtom
+      case "fastest-time":
+        return undefined; // TODO: fastest time across levels, from fastestTimesAtom
+    }
+  };
+
+  const lowerIsBetter = activeTab === "fastest-time";
+
+  const formatStat = (rankingValue: number) => {
+    switch (activeTab) {
+      case "most-played":
+        return `${rankingValue} time${rankingValue === 1 ? "" : "s"} played`;
+      case "best-score":
+        return `Best score: ${rankingValue}`;
+      case "fastest-time":
+        return `Fastest: ${rankingValue}s`; // TODO: format as minutes and seconds
+    }
+  };
+
   const sortedGames = games
-    .map(
-      (game) => ({ ...game, playCount: playCounts[game.gameKey] ?? 0 })
-    )
-    .filter(
-      (game) => game.playCount > 0
-    )
+    .flatMap((game) => {
+      const rankingValue = getRankingValue(game.gameKey);
+      return rankingValue === undefined || rankingValue === 0
+        ? []
+        : [{ ...game, rankingValue }];
+    })
     .sort(
-      (a, b) => b.playCount - a.playCount || a.gameName.localeCompare(b.gameName)
+      (a, b) =>
+        (lowerIsBetter ? a.rankingValue - b.rankingValue : b.rankingValue - a.rankingValue)
+        ||
+        a.gameName.localeCompare(b.gameName)
     );
 
   const rankedGames = sortedGames.map((game) => ({
     ...game,
-    rank: sortedGames.findIndex((other) => other.playCount === game.playCount) + 1,
+    rank: sortedGames.findIndex((other) => other.rankingValue === game.rankingValue) + 1,
   }));
 
   const topThree = rankedGames.slice(0, 3);
@@ -103,6 +130,7 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
                 key={game.gameKey}
                 {...game}
                 onPodium
+                stat={formatStat(game.rankingValue)}
                 onSelectGame={onSelectGame}
               />
             ))
@@ -113,6 +141,7 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
                 key={game.gameKey}
                 {...game}
                 onPodium={false}
+                stat={formatStat(game.rankingValue)}
                 onSelectGame={onSelectGame}
               />
             ))
