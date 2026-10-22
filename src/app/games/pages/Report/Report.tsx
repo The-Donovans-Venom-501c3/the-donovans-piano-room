@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import "./Report.scss";
 import Rankings from "./Rankings/Rankings";
 import Sidebar from "./Sidebar/Sidebar";
-import HelpCenter from "./HelpCenter/HelpCenter";
+// import HelpCenter from "./HelpCenter/HelpCenter";
 import type { SelectGameHandler } from "@/app/games/types";
 
 interface ReportProps {
@@ -41,7 +41,7 @@ export default function Report({ onSelectGame }: ReportProps) {
       <Sidebar isHelpOpen={isHelpOpen} onOpenHelp={openHelp} />
 
       {/* Help Center Popover */}
-      <HelpCenter isOpen={isHelpOpen} onClose={closeHelp} />
+      {/* <HelpCenter isOpen={isHelpOpen} onClose={closeHelp} /> */}
     </section>
   );
 }

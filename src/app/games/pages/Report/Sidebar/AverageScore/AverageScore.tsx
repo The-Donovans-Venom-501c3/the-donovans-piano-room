@@ -1,5 +1,5 @@
 import "./AverageScore.scss";
-import InfoButton from "../InfoButton/InfoButton";
+// import InfoButton from "../InfoButton/InfoButton";
 
 interface AverageScoreProps {
   isHelpOpen: boolean;
@@ -13,12 +13,12 @@ export default function AverageScore({
   return (
     <section className="score-block">
       <h3 className="score-heading font-roboto">Average score</h3>
-      <InfoButton
+      {/* <InfoButton
         label="More info about average score"
         expanded={isHelpOpen}
         controls="help-center"
         onClick={(event) => onOpenHelp(event.currentTarget)}
-      />
+      /> */}
       <p className="score font-montserrat">9.9</p>
     </section>
   );
