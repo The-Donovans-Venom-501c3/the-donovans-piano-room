@@ -11,6 +11,7 @@ const toOrdinal = (n: number) => `${n}${ordinalSuffixes[ordinalRules.select(n)] 
 
 interface PodiumCardProps {
   rank: number;
+  onPodium: boolean;
   gameKey: GameType;
   // Passed to `onSelectGame` for the welcome screen, e.g. "Scale Identification
   // Game". Must match the title the dashboard passes for the same game
@@ -24,6 +25,7 @@ interface PodiumCardProps {
 
 export default function PodiumCard({
   rank,
+  onPodium,
   gameKey,
   gameTitle,
   gameIcon,
@@ -31,12 +33,11 @@ export default function PodiumCard({
   playCount,
   onSelectGame
 }: PodiumCardProps) {
-  const rankLabel = `${toOrdinal(rank)}${rank <= 3 ? " place" : ""}`;
+  const placeClass = onPodium ? placeClasses[rank - 1] : "below-podium";
+  const rankLabel = `${toOrdinal(rank)}${onPodium ? " place" : ""}`;
 
   return (
-    <li className={`podium-card ${
-      placeClasses[rank - 1] ?? "below-podium"
-    }`}>
+    <li className={`podium-card ${placeClass}`}>
       <h4 className="podium-heading">
         <span className="podium-rank">{rankLabel}</span>
         <img src={gameIcon} alt="" className="game-icon" />
