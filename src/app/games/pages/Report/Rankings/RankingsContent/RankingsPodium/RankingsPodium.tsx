@@ -8,7 +8,11 @@ import type {
   Level,
   LevelKey
 } from "@/app/games/types";
-import { playCountsAtom, fastestTimesAtom } from "@/utils/stores";
+import {
+  playCountsAtom,
+  fastestTimesAtom,
+  highScoresAtom
+} from "@/utils/stores";
 import { useAtomValue } from "jotai";
 
 const NoteIdentification = "/games/NoteIdentification.png";
@@ -53,6 +57,7 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
   const [isExpanded, setIsExpanded] = useState(false);
   const playCounts = useAtomValue(playCountsAtom);
   const fastestTimes = useAtomValue(fastestTimesAtom);
+  const highScores = useAtomValue(highScoresAtom);
   const showButtonRef = useRef<HTMLButtonElement>(null);
   const hideButtonRef = useRef<HTMLButtonElement>(null);
   const hasToggled = useRef(false);
@@ -82,12 +87,27 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
     return fastest;
   };
 
+  // The game's best score across its levels, and which level it was on
+  const getBestRun = (gameKey: GameType) => {
+    let best: { score: number; level: Level } | undefined;
+
+    for (const level of levels) {
+      const key: LevelKey = `${gameKey}:${level}`;
+      const score = highScores[key]?.score;
+      if (score !== undefined && (best === undefined || score >= best.score)) {
+        best = { score, level };
+      }
+    }
+
+    return best;
+  };
+
   const getRankingValue = (gameKey: GameType): number | undefined => {
     switch (activeTab) {
       case "most-played":
         return playCounts[gameKey];
       case "best-score":
-        return undefined; // TODO: best score across levels, from highScoresAtom
+        return getBestRun(gameKey)?.score;
       case "fastest-time":
         return getFastestRun(gameKey)?.time;
     }
@@ -99,8 +119,11 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
     switch (activeTab) {
       case "most-played":
         return `${rankingValue} time${rankingValue === 1 ? "" : "s"} played`;
-      case "best-score":
-        return `Best score: ${rankingValue}`;
+      case "best-score": {
+        // TODO: ask UX how this tab should handle levels; the level label is a stopgap
+        const level = getBestRun(gameKey)?.level;
+        return `Best score: ${rankingValue}/100${level ? ` (${levelLabels[level]})` : ""}`;
+      }
       case "fastest-time": {
         const minutes = Math.floor(rankingValue / 60);
         const seconds = String(rankingValue % 60).padStart(2, "0");
@@ -114,7 +137,7 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
   const sortedGames = games
     .flatMap((game) => {
       const rankingValue = getRankingValue(game.gameKey);
-      return rankingValue === undefined || rankingValue === 0
+      return rankingValue === undefined
         ? []
         : [{ ...game, rankingValue }];
     })
