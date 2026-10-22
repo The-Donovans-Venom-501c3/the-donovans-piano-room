@@ -1,5 +1,5 @@
 import "./AverageScore.scss";
-import InfoButton from "../../InfoButton/InfoButton";
+import InfoButton from "../InfoButton/InfoButton";
 
 interface AverageScoreProps {
   isHelpOpen: boolean;

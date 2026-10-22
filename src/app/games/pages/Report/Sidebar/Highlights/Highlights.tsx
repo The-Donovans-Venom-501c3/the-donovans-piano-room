@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./Highlights.scss";
-import InfoButton from "../../InfoButton/InfoButton";
+import InfoButton from "../InfoButton/InfoButton";
 
 const placeholderDescription =
   "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.";
