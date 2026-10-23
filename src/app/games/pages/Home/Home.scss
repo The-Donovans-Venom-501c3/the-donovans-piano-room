@@ -858,6 +858,9 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
     $thumb-size: 24px;
     $thumb-color: #6F219E;
     $track-color: rgba($thumb-color, 0.3);
+    // Dark purple up to the thumb, light after it. `--volume` is set inline
+    // from the slider's value; the colour change always falls under the thumb
+    $track-fill: linear-gradient(to right, $thumb-color var(--volume, 0%), $track-color var(--volume, 0%));
     $focus-ring: 0 0 0 3px rgba(111, 33, 158, 0.35);
     display: flex;
     align-items: center;
@@ -876,12 +879,12 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       &::-webkit-slider-runnable-track {
         height: $track-height;
         border-radius: $track-height;
-        background: $track-color;
+        background: $track-fill;
       }
       &::-moz-range-track {
         height: $track-height;
         border-radius: $track-height;
-        background: $track-color;
+        background: $track-fill;
       }
       &::-webkit-slider-thumb {
         -webkit-appearance: none;
