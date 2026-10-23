@@ -45,3 +45,7 @@ export type PlayCounts = Partial<Record<GameType, number>>;
 
 // The fastest finish (in seconds) for each level, counting only games finished with lives left
 export type FastestTimes = Partial<Record<LevelKey, number>>;
+
+// Every finished game's score added up, and how many games that is,
+// so the average is total / count
+export type ScoreSummary = { total: number; count: number };

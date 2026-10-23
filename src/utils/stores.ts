@@ -6,7 +6,8 @@ import type {
     CompletedLevels,
     HighScores,
     PlayCounts,
-    FastestTimes
+    FastestTimes,
+    ScoreSummary
 } from "@/app/games/types";
 
 ///////////////
@@ -165,5 +166,12 @@ export const fastestTimesAtom = atomWithStorage<FastestTimes>(
     "tdpr_fastest_times",
     {},
     createJSONStorage<FastestTimes>(getLocalStorage),
+    { getOnInit: true }
+);
+
+export const scoreSummaryAtom = atomWithStorage<ScoreSummary>(
+    "tdpr_score_summary",
+    { total: 0, count: 0 },
+    createJSONStorage<ScoreSummary>(getLocalStorage),
     { getOnInit: true }
 );

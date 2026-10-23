@@ -17,7 +17,8 @@ import {
   completedLevelsAtom,
   highScoresAtom,
   playCountsAtom,
-  fastestTimesAtom
+  fastestTimesAtom,
+  scoreSummaryAtom
 } from "@/utils/stores";
 
 // Imports from types and utils using correct relative paths
@@ -172,6 +173,7 @@ export default function Home() {
   const [completedLevels, setCompletedLevels] = useAtom(completedLevelsAtom);
   const setPlayCounts = useSetAtom(playCountsAtom);
   const setFastestTimes = useSetAtom(fastestTimesAtom);
+  const setScoreSummary = useSetAtom(scoreSummaryAtom);
 
   // Gameplay Control States
   const [volume, setVolume] = useState<number>(80);
@@ -261,13 +263,18 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
 
-  // Save the play count, high score, completion and fastest time when a game finishes
+  // Save the play count, score summary, high score, completion and fastest time when a game finishes
   useEffect(() => {
     if (flowStage !== "game_finished" || !selectedLevel) return;
 
     setPlayCounts((all) => ({
       ...all,
       [selectedGameKey]: (all[selectedGameKey] ?? 0) + 1,
+    }));
+
+    setScoreSummary((summary) => ({
+      total: summary.total + score,
+      count: summary.count + 1,
     }));
 
     const key: LevelKey = `${selectedGameKey}:${selectedLevel}`;
