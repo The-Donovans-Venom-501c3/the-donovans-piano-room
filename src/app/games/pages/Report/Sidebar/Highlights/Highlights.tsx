@@ -23,7 +23,7 @@ export default function Highlights() {
 
   return (
     <section className="highlights-block font-roboto">
-      <h3 className="highlights-heading">
+      {/* <h3 className="highlights-heading">
         Your highlights
       </h3>
       <dl className="highlights-list">
@@ -53,7 +53,7 @@ export default function Highlights() {
             </div>
           );
         })}
-      </dl>
+      </dl> */}
     </section>
   );
 }

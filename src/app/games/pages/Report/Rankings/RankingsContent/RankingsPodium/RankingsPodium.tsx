@@ -2,7 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import "./RankingsPodium.scss";
 import PodiumCard from "./PodiumCard/PodiumCard";
 import type { RankingsTab } from "../RankingsContent";
-import type { SelectGameHandler } from "@/app/games/types";
+import type {
+  SelectGameHandler,
+  GameType,
+  Level,
+  LevelKey
+} from "@/app/games/types";
+import {
+  playCountsAtom,
+  fastestTimesAtom,
+  highScoresAtom
+} from "@/utils/stores";
+import { useAtomValue } from "jotai";
 
 const NoteIdentification = "/games/NoteIdentification.png";
 const ScaleIdentification = "/games/ScaleIdentification.png";
@@ -16,6 +27,31 @@ const ChordIdentification = "/games/ChordIdentification.png";
 const downArrowIcon = "/games/purpleDownArrow.svg";
 const upArrowIcon = "/games/purpleUpArrow.svg";
 
+// Every game that can be ranked. Play counts and ranks come from local storage
+const games = [
+  { gameKey: "chord", gameTitle: "Chord Identification Game", gameName: "Chord identification", gameIcon: ChordIdentification },
+  { gameKey: "interval", gameTitle: "Interval Identification Game", gameName: "Interval identification", gameIcon: IntervalIdentification },
+  { gameKey: "key", gameTitle: "Key Signature Identification Game", gameName: "Key signature identification", gameIcon: KeySignature },
+  { gameKey: "ledger", gameTitle: "Ledger Line Addition Game", gameName: "Ledger line addition", gameIcon: LedgerLine },
+  { gameKey: "major-minor", gameTitle: "Major-minor Identification Game", gameName: "Major-minor identification", gameIcon: MajorMinor },
+  { gameKey: "math", gameTitle: "Music x Math Game", gameName: "Music x Math", gameIcon: VirtualInstrument },
+  { gameKey: "reading", gameTitle: "Music is Reading Game", gameName: "Music is Reading", gameIcon: VirtualInstrument },
+  { gameKey: "note", gameTitle: "Note Identification Game", gameName: "Note identification", gameIcon: NoteIdentification },
+  { gameKey: "scale", gameTitle: "Scale Identification Game", gameName: "Scale identification", gameIcon: ScaleIdentification },
+] as const;
+
+const levels: Level[] = ["easy", "medium", "hard"];
+
+const levelLabels: Record<Level, string> = {
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
+};
+
+// Seconds as minutes and seconds, e.g. 95 → "1:35"
+const formatTime = (totalSeconds: number) =>
+  `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
+
 interface RankingsPodiumProps {
   activeTab: RankingsTab;
   onSelectGame: SelectGameHandler;
@@ -23,6 +59,9 @@ interface RankingsPodiumProps {
 
 export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodiumProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const playCounts = useAtomValue(playCountsAtom);
+  const fastestTimes = useAtomValue(fastestTimesAtom);
+  const highScores = useAtomValue(highScoresAtom);
   const showButtonRef = useRef<HTMLButtonElement>(null);
   const hideButtonRef = useRef<HTMLButtonElement>(null);
   const hasToggled = useRef(false);
@@ -36,6 +75,112 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
     if (!hasToggled.current) return;
     (isExpanded ? hideButtonRef : showButtonRef).current?.focus();
   }, [isExpanded]);
+
+  // The game's fastest time across its levels, and which level it was on
+  const getFastestRun = (gameKey: GameType) => {
+    let fastest: { time: number; level: Level } | undefined;
+
+    for (const level of levels) {
+      const key: LevelKey = `${gameKey}:${level}`;
+      const time = fastestTimes[key];
+      if (time !== undefined && (fastest === undefined || time < fastest.time)) {
+        fastest = { time, level };
+      }
+    }
+
+    return fastest;
+  };
+
+  // The game's best score across its levels, plus the level and how long that run took
+  const getBestRun = (gameKey: GameType) => {
+    let best: { score: number; level: Level; timeSeconds: number } | undefined;
+
+    for (const level of levels) {
+      const key: LevelKey = `${gameKey}:${level}`;
+      const highScore = highScores[key];
+      if (highScore && (best === undefined || highScore.score >= best.score)) {
+        best = { score: highScore.score, level, timeSeconds: highScore.timeSeconds };
+      }
+    }
+
+    return best;
+  };
+
+  const getRankingValue = (gameKey: GameType): number | undefined => {
+    switch (activeTab) {
+      case "most-played":
+        return playCounts[gameKey];
+      case "best-score":
+        return getBestRun(gameKey)?.score;
+      case "fastest-time":
+        return getFastestRun(gameKey)?.time;
+    }
+  };
+
+  const lowerIsBetter = activeTab === "fastest-time";
+
+  // Orders two games whose ranking values are equal. On Best score, the run
+  // on the harder level wins, then the faster run; on the other tabs they stay
+  // tied. Negative puts `a` first, 0 means still tied
+  const compareTies = (a: GameType, b: GameType) => {
+    if (activeTab !== "best-score") return 0;
+
+    const runA = getBestRun(a);
+    const runB = getBestRun(b);
+    if (!runA || !runB) return 0;
+
+    return (
+      levels.indexOf(runB.level) - levels.indexOf(runA.level) ||
+      runA.timeSeconds - runB.timeSeconds
+    );
+  };
+
+  const formatStat = (rankingValue: number, gameKey: GameType) => {
+    switch (activeTab) {
+      case "most-played":
+        return `${rankingValue} time${rankingValue === 1 ? "" : "s"} played`;
+      case "best-score": {
+        // TODO: ask UX how this tab should handle levels; the level label is a stopgap
+        const run = getBestRun(gameKey);
+        const details = run ? ` (${levelLabels[run.level]}, ${formatTime(run.timeSeconds)})` : "";
+        return `Best score: ${rankingValue}/100${details}`;
+      }
+      case "fastest-time": {
+        // TODO: ask UX how this tab should handle levels; the level label is a stopgap
+        const level = getFastestRun(gameKey)?.level;
+        return `Fastest: ${formatTime(rankingValue)}${level ? ` (${levelLabels[level]})` : ""}`;
+      }
+    }
+  };
+
+  const sortedGames = games
+    .flatMap((game) => {
+      const rankingValue = getRankingValue(game.gameKey);
+      return rankingValue === undefined
+        ? []
+        : [{ ...game, rankingValue }];
+    })
+    .sort(
+      (a, b) =>
+        (lowerIsBetter ? a.rankingValue - b.rankingValue : b.rankingValue - a.rankingValue)
+        ||
+        compareTies(a.gameKey, b.gameKey)
+        ||
+        a.gameName.localeCompare(b.gameName)
+    );
+
+  const rankedGames = sortedGames.map((game) => ({
+    ...game,
+    rank: sortedGames.findIndex(
+      (other) =>
+        other.rankingValue === game.rankingValue &&
+        compareTies(other.gameKey, game.gameKey) === 0
+    ) + 1,
+  }));
+
+  const topThree = rankedGames.slice(0, 3);
+  const theRest = rankedGames.slice(3);
+  const hasMore = theRest.length > 0;
 
   return (
     <>
@@ -55,104 +200,43 @@ export default function RankingsPodium({ activeTab, onSelectGame }: RankingsPodi
         </button>
       )}
 
-      <ol
-        id="podium-cards"
-        className={`podium-cards ${activeTab}`}
-        role="list"
-      >
-        {!isExpanded && (
-          <>
-            <PodiumCard
-              rank={1}
-              gameKey="scale"
-              gameTitle="Scale Identification Game"
-              gameIcon={ScaleIdentification}
-              gameName="Scale identification"
-              playCount={23}
-              onSelectGame={onSelectGame}
-            />
-            <PodiumCard
-              rank={2}
-              gameKey="note"
-              gameTitle="Note Identification Game"
-              gameIcon={NoteIdentification}
-              gameName="Note identification"
-              playCount={20}
-              onSelectGame={onSelectGame}
-            />
-            <PodiumCard
-              rank={3}
-              gameKey="math"
-              gameTitle="Music x Math Game"
-              gameIcon={VirtualInstrument}
-              gameName="Music x Math"
-              playCount={17}
-              onSelectGame={onSelectGame}
-            />
-          </>
-        )}
+      {rankedGames.length > 0 && (
+        <ol
+          id="podium-cards"
+          className={`podium-cards ${activeTab}`}
+          role="list"
+        >
+          {!isExpanded &&
+            topThree.map((game) => (
+              <PodiumCard
+                key={game.gameKey}
+                {...game}
+                onPodium
+                stat={formatStat(game.rankingValue, game.gameKey)}
+                onSelectGame={onSelectGame}
+              />
+            ))
+          }
+          {isExpanded &&
+            theRest.map((game) => (
+              <PodiumCard
+                key={game.gameKey}
+                {...game}
+                onPodium={false}
+                stat={formatStat(game.rankingValue, game.gameKey)}
+                onSelectGame={onSelectGame}
+              />
+            ))
+          }
+        </ol>
+      )}
+      {rankedGames.length === 0 && (
+        <p className="rankings-empty">
+          Play a game to see your rankings!
+        </p>
+      )}
 
-        {isExpanded && (
-          <>
-            <PodiumCard
-              rank={4}
-              gameKey="major-minor"
-              gameTitle="Major-minor Identification Game"
-              gameIcon={MajorMinor}
-              gameName="Major-minor identification"
-              playCount={16}
-              onSelectGame={onSelectGame}
-            />
-            <PodiumCard
-              rank={5}
-              gameKey="reading"
-              gameTitle="Music is Reading Game"
-              gameIcon={VirtualInstrument}
-              gameName="Music is Reading"
-              playCount={15}
-              onSelectGame={onSelectGame}
-            />
-            <PodiumCard
-              rank={6}
-              gameKey="interval"
-              gameTitle="Interval Identification Game"
-              gameIcon={IntervalIdentification}
-              gameName="Interval identification"
-              playCount={14}
-              onSelectGame={onSelectGame}
-            />
-            <PodiumCard
-              rank={7}
-              gameKey="ledger"
-              gameTitle="Ledger Line Addition Game"
-              gameIcon={LedgerLine}
-              gameName="Ledger line addition"
-              playCount={13}
-              onSelectGame={onSelectGame}
-            />
-            <PodiumCard
-              rank={8}
-              gameKey="key"
-              gameTitle="Key Signature Identification Game"
-              gameIcon={KeySignature}
-              gameName="Key signature identification"
-              playCount={12}
-              onSelectGame={onSelectGame}
-            />
-            <PodiumCard
-              rank={9}
-              gameKey="chord"
-              gameTitle="Chord Identification Game"
-              gameIcon={ChordIdentification}
-              gameName="Chord identification"
-              playCount={11}
-              onSelectGame={onSelectGame}
-            />
-          </>
-        )}
-      </ol>
-
-      {!isExpanded && (
+      {!isExpanded && hasMore && (
         <button
           type="button"
           className="more-rankings show"
