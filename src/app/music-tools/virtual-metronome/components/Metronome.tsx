@@ -305,7 +305,7 @@ export default function Metronome({
           />
         </svg>
 
-        <div className="relative mt-8 w-[220px] h-[215px] z-10 flex justify-center items-center overflow-hidden rounded-xl">
+        <div className="relative mt-8 w-[220px] h-[215px] z-10 flex justify-center items-center">
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 220 215" fill="none">
             <path
               d="M 38 0 L 182 0 C 188 0, 191 3, 192 8 L 216 205 C 217 210, 213 215, 207 215 L 13 215 C 7 215, 3 210, 4 205 L 28 8 C 29 3, 32 0, 38 0 Z"

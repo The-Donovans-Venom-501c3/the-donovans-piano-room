@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSetAtom, useAtom } from "jotai";
 import { Button } from "./button";
+import Report from "../Report/Report";
 import {
   appStateAtom,
   gameStateAtom,
@@ -12,7 +13,13 @@ import {
   questionAtom,
   levelStateAtom,
 } from "@/store/game-atoms";
-import { completedLevelsAtom, highScoresAtom } from "@/utils/stores";
+import {
+  completedLevelsAtom,
+  highScoresAtom,
+  playCountsAtom,
+  fastestTimesAtom,
+  scoreSummaryAtom
+} from "@/utils/stores";
 
 // Imports from types and utils using correct relative paths
 import type { GameType, HighScore, Level, Question, LevelKey } from "../../types";
@@ -46,6 +53,8 @@ const greyPadlockIcon = "/games/Grey padlock.svg";
 
 // Background & Character Assets
 const yellowMascot = "/games/Character_Loading.svg";
+const yellowGuy = "/games/yellowGuy.svg";
+const mascotShadow = "/games/Character_Ellipse.svg";
 const purpleSpotlightBeam = "/games/HomePageLight.svg";
 const musicStand = "/games/Music_stand.svg";
 const musicStandDeskview = "/games/Music_Stand_Deskview.png";
@@ -162,6 +171,9 @@ export default function Home() {
 
   const [highScores, setHighScores] = useAtom(highScoresAtom);
   const [completedLevels, setCompletedLevels] = useAtom(completedLevelsAtom);
+  const setPlayCounts = useSetAtom(playCountsAtom);
+  const setFastestTimes = useSetAtom(fastestTimesAtom);
+  const setScoreSummary = useSetAtom(scoreSummaryAtom);
 
   // Gameplay Control States
   const [volume, setVolume] = useState<number>(80);
@@ -217,7 +229,7 @@ export default function Home() {
         timer = setTimeout(() => setFlowStage("levels"), 1500);
         break;
       case "loading_screen":
-        timer = setTimeout(() => setFlowStage("stage_start_1"), 2500);
+        timer = setTimeout(() => setFlowStage("stage_start_1"), 3300);
         break;
       case "stage_start_1":
         timer = setTimeout(() => setFlowStage("stage_start_2"), 1200);
@@ -251,9 +263,19 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
 
-  // Save a high score when a game finishes
+  // Save the play count, score summary, high score, completion and fastest time when a game finishes
   useEffect(() => {
     if (flowStage !== "game_finished" || !selectedLevel) return;
+
+    setPlayCounts((all) => ({
+      ...all,
+      [selectedGameKey]: (all[selectedGameKey] ?? 0) + 1,
+    }));
+
+    setScoreSummary((summary) => ({
+      total: summary.total + score,
+      count: summary.count + 1,
+    }));
 
     const key: LevelKey = `${selectedGameKey}:${selectedLevel}`;
     const prev = highScores[key];
@@ -266,9 +288,16 @@ export default function Home() {
         [key]: { score, timeSeconds: timerSeconds, date: new Date().toISOString() },
       }));
     }
-    // Finishing with lives left completes the level; a later game over never undoes it
+    // Finishing with lives left completes the level and can set a fastest time; a later
+    // game over never undoes either
     if (lives > 0) {
       setCompletedLevels((all) => ({ ...all, [key]: true }));
+
+      setFastestTimes((all) => {
+        const prevTime = all[key];
+        if (prevTime !== undefined && prevTime <= timerSeconds) return all;
+        return { ...all, [key]: timerSeconds };
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStage]);
@@ -478,12 +507,32 @@ export default function Home() {
           <div className="dashboard-header">
             <h1 className="page-title">Games</h1>
           </div>
+          <div className={`tab-switcher-pill ${
+            activeTab === "dashboard" ? "dashboard-active" : "report-active"
+          }`}>
+            <button
+              className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              Games dashboard
+            </button>
+            <button
+              className={`tab ${activeTab === "report" ? "active" : ""}`}
+              onClick={() => setActiveTab("report")}
+            >
+              Games&apos; report
+            </button>
+          </div>
+          {activeTab === "report" && (
+            <Report onSelectGame={handleSelectGame} />
+          )}
+          {activeTab === "dashboard" && (
           <div className="whole-page-layout">
             <div className="hero-section">
               <div className="mascot-wrapper">
-                <img src={yellowMascot} alt="Yellow Headphone Mascot" className="mascot-img" />
+                <img src={yellowGuy} alt="Yellow Headphone Mascot" className="mascot-img" />
               </div>
-              <h2 className="main-heading">
+              <h2 className="main-heading font-montserrat">
                 Let&apos;s take a<br />game break!
               </h2>
               <p className="sub-description">
@@ -492,20 +541,6 @@ export default function Home() {
               <p className="action-prompt">Choose a game you want to play!</p>
             </div>
             <div className="right-content-section">
-              <div className="tab-switcher-pill">
-                <button
-                  className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
-                  onClick={() => setActiveTab("dashboard")}
-                >
-                  Games dashboard
-                </button>
-                <button
-                  className={`tab ${activeTab === "report" ? "active" : ""}`}
-                  onClick={() => setActiveTab("report")}
-                >
-                  Games&apos; report
-                </button>
-              </div>
               <div className="buttonContainer">
                 <Button
                   icon={NoteIdentification}
@@ -591,6 +626,7 @@ export default function Home() {
               </div>
             </div>
           </div>
+          )}
         </div>
       )}
 
@@ -660,6 +696,7 @@ export default function Home() {
           <div className="loading-card-container">
             <div className="loading-mascot-wrapper">
               <img src={yellowMascot} alt="Loading Mascot" className="loading-mascot-img" />
+              <img src={mascotShadow} alt="" aria-hidden="true" className="loading-mascot-shadow" />
             </div>
             <h1 className="loading-heading">Get Ready for Awesomeness!</h1>
             <p className="loading-subtext">
@@ -838,7 +875,11 @@ export default function Home() {
                         }
                         {selectedGameKey === "math" ? (
                           <MathOptions
+                            key={`${restartCount}-${questionIndex}`}
                             handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
                           />
                         ) : selectedGameKey === "note" ? (
                           <NoteOptions
@@ -1026,7 +1067,6 @@ export default function Home() {
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
                           disabled={questionIndex >= (questions.length || 8) || (!isReviewing && !savedAnswer)}
-
                         >
                           <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                         </button>

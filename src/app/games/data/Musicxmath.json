@@ -4,7 +4,7 @@
     {
       "level": "Easy",
       "numberOfQuestions": {
-        "easy": 20
+        "easy": 10
       },
       "questions": [
         {
@@ -45,7 +45,7 @@
         {
           "questionText": "How many beats are shown here?",
           "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Easy/08question.svg",
-          "correctOption": "2"
+          "correctOption": "3"
         },
         {
           "questionText": "How many beats are shown here?",
@@ -112,7 +112,8 @@
     {
       "level": "Medium",
       "numberOfQuestions": {
-        "medium": 20
+        "easy": 10,
+        "medium": 10
       },
       "questions": [
         {
@@ -220,7 +221,9 @@
     {
       "level": "Hard",
       "numberOfQuestions": {
-        "hard": 30
+        "easy": 10,
+        "medium": 10,
+        "hard": 10
       },
       "questions": [
         {
@@ -237,11 +240,6 @@
           "questionText": "How many beats are shown here?",
           "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/03question.svg",
           "correctOption": "32"
-        },
-        {
-          "questionText": "How many beats are shown here?",
-          "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/04question.svg",
-          "correctOption": "6"
         },
         {
           "questionText": "How many beats are shown here?",
@@ -296,17 +294,12 @@
         {
           "questionText": "How many beats are shown here?",
           "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/15question.svg",
-          "correctOption": "9"
+          "correctOption": "11"
         },
         {
           "questionText": "How many beats are shown here?",
           "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/16question.svg",
           "correctOption": "13"
-        },
-        {
-          "questionText": "How many beats are shown here?",
-          "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/17question.svg",
-          "correctOption": "21"
         },
         {
           "questionText": "How many beats are shown here?",
@@ -317,11 +310,6 @@
           "questionText": "How many beats are shown here?",
           "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/19question.svg",
           "correctOption": "9"
-        },
-        {
-          "questionText": "How many beats are shown here?",
-          "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/20question.svg",
-          "correctOption": "4"
         },
         {
           "questionText": "How many beats are shown here?",
@@ -336,7 +324,7 @@
         {
           "questionText": "How many beats are shown here?",
           "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/23question.svg",
-          "correctOption": "48"
+          "correctOption": "20"
         },
         {
           "questionText": "How many beats are shown here?",
@@ -356,7 +344,7 @@
         {
           "questionText": "How many beats are shown here?",
           "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Music%20x%20Math/Hard/27question.svg",
-          "correctOption": "20"
+          "correctOption": "10"
         },
         {
           "questionText": "How many beats are shown here?",

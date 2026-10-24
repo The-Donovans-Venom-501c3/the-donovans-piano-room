@@ -9,6 +9,8 @@ export type GameType =
   | "reading"
   | "math";
 
+export type SelectGameHandler = (gameKey: GameType, title: string) => void;
+
 export type Level = "easy" | "medium" | "hard";
 
 export interface Question {
@@ -37,3 +39,13 @@ export type HighScores = Partial<Record<LevelKey, HighScore>>;
 
 // true once the level has been finished without running out of lives
 export type CompletedLevels = Partial<Record<LevelKey, true>>;
+
+// How many times each game has been played to the end
+export type PlayCounts = Partial<Record<GameType, number>>;
+
+// The fastest finish (in seconds) for each level, counting only games finished with lives left
+export type FastestTimes = Partial<Record<LevelKey, number>>;
+
+// Every finished game's score added up, and how many games that is,
+// so the average is total / count
+export type ScoreSummary = { total: number; count: number };
