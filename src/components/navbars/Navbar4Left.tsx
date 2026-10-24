@@ -89,6 +89,15 @@ export default function Navbar4Left({
       alt: "C",
       disabled: false,
     },
+    {
+      href: "/admin",
+      label: "ADMIN",
+      key: nav4leftLinks.admin,
+      icon: "/navbar/NavBar4Left/Contact.svg",
+      alt: "A",
+      disabled: false,
+    },
+
   ];
 
   return (
@@ -191,12 +200,14 @@ export default function Navbar4Left({
           )}
 
           {/* Navigation Items */}
+         
           <div className="mt-[1vh] flex flex-col gap-[1vh]">
             {navItems.map((item) => {
               const isActive = openedLink === item.key;
+                {/* ar: height changed from 8vh to 7vh as test to fit admin item */}
               const linkContent = (
                 <div
-                  className={`flex h-[8vh] w-full items-center rounded-2xl border transition-all ${
+                  className={`flex h-[7vh] w-full items-center rounded-2xl border transition-all ${
                     item.disabled ? "opacity-50 cursor-not-allowed bg-white" : "cursor-pointer bg-white"
                   }`}
                   style={{

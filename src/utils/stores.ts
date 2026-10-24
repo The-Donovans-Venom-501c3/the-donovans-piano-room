@@ -102,6 +102,7 @@ export const nav4leftLinks = {
     musicTools: "music-tools",
     planner: "planner",
     contactUs: "contact-us",
+    admin: "admin"
 } as const;
 
 export const hasUnreadAtom = atomWithStorage<boolean>("user_has_unread_notifications", false);
