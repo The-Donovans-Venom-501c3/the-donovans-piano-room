@@ -95,7 +95,7 @@ export default function Navbar4Left({
       key: nav4leftLinks.admin,
       icon: "/navbar/NavBar4Left/Contact.svg",
       alt: "A",
-      disabled: true,
+      disabled: false,
     },
 
   ];
