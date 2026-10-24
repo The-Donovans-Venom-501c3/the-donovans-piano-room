@@ -62,6 +62,7 @@ export const authorizedWrapperTitles = {
     AccountAndSettings: "Account & Settings",
     Lessons: "Lessons",
     Dashboard: "Dashboard",
+    Admin: "Admin",
 };
 
 /*******************/

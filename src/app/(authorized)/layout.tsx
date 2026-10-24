@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { profileAtom } from "@/utils/stores";
 import { getUser } from "@/lib/api/userService";
+import "./globals.css";
 
 export default function AuthorizedLayout({
   children,
