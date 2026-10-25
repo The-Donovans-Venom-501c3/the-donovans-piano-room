@@ -131,7 +131,7 @@ function AdminPageContent() {
   return (
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Admin}
-      openedLink={nav4leftLinks.lessons}
+      openedLink={nav4leftLinks.admin}
     >
       <div ref={topRef} />
 
