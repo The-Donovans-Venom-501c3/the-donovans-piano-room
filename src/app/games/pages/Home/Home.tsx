@@ -860,6 +860,22 @@ export default function Home() {
                         </div>
                       )}
 
+                      {/* Music is Reading: the sentence with a blank for each note on the staff */}
+                      {selectedGameKey === "reading" && currentQuestion?.sentence && (
+                        <p className="reading-sentence">
+                          {currentQuestion.sentence.split("_").map((part, index, parts) => (
+                            <React.Fragment key={index}>
+                              {part}
+                              {index < parts.length - 1 && (
+                                <span className="reading-blank">
+                                  <span className="sr-only">blank</span>
+                                </span>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </p>
+                      )}
+
                       <p className={`question-prompt ${selectedGameKey} ${selectedLevel}`}>
                         {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
                       </p>
