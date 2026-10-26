@@ -1098,6 +1098,32 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
           color: #438342;
           background-color: rgba(#438342, 0.15);
         }
+        // A filled blank's letter is a button, so clicking it (or Tab then Enter) takes the letter out.
+        // It looks like plain text in the blank.
+        .reading-blank-letter {
+          width: 100%;
+          padding: 0;
+          border: none;
+          background: none;
+          font: inherit;
+          letter-spacing: inherit;
+          color: inherit;
+          cursor: pointer;
+          &:active {
+            // Cancel the global `button:active` press style from QuizScreen.scss
+            background: none;
+            box-shadow: none;
+            transform: none;
+          }
+          &:disabled {
+            cursor: default;
+          }
+          &:focus-visible {
+            outline: 2px solid #6F219E;
+            outline-offset: 2px;
+            border-radius: 0.15em;
+          }
+        }
       }
     }
     .question-image-container {
@@ -1188,7 +1214,13 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         &:has(#{$blank}:is(:hover, .is-over)),
         &:has(#{$blank}):has(.question-image-container rect[data-blank="#{$i}"]:hover) {
           .question-image-container path[data-blank="#{$i}"] {
-            fill: $color;
+            // undo the purple note: a wrong note stays black (the SVG's own #1C1A1A), only its circle turns red;
+            // a correct note turns green
+            @if $state == correct {
+              fill: $color;
+            } @else {
+              fill: #1C1A1A;
+            }
           }
           .question-image-container rect[data-blank="#{$i}"] {
             fill: rgba($color, 0.3);

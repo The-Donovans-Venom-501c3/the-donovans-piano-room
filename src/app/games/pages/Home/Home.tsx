@@ -430,6 +430,18 @@ export default function Home() {
     readingLetters[index] === lastWrongLetters[index] &&
     readingLetters[index] !== readingCorrectLetters[index];
 
+  // Same as every game's `locked`: no changes once answered, in Review, or while the Wrong popover is up
+  const readingLocked = isReviewing || !!savedAnswer || answerStatus === "wrong";
+
+  // Clicking a filled blank takes its letter out
+  const removeBlankLetter = (index: number) => {
+    setBlankLetters((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+  };
+
   // TODO: remove once game testing is complete!
   // useEffect(() => {
   //   console.log('questions.length', questions.length)
@@ -966,7 +978,16 @@ export default function Home() {
                                     data-blank={index}
                                   >
                                     {blankLetters[index] ? (
-                                      blankLetters[index].toLowerCase()
+                                      <button
+                                        type="button"
+                                        className="reading-blank-letter"
+                                        onClick={() => removeBlankLetter(index)}
+                                        disabled={readingLocked}
+                                        title={readingLocked ? undefined : "Remove this letter"}
+                                      >
+                                        {blankLetters[index].toLowerCase()}
+                                        <span className="sr-only">, remove</span>
+                                      </button>
                                     ) : (
                                       <>
                                         {/* a space keeps the blank's text baseline, so the underline doesn't move once a letter lands */}
@@ -1062,7 +1083,7 @@ export default function Home() {
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={readingLocked}
                               answer={readingAnswer}
                               hasLetters={Object.keys(blankLetters).length > 0}
                               onClear={() => setBlankLetters({})}
