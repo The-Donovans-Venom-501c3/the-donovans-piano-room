@@ -5,11 +5,14 @@ import {CSS} from '@dnd-kit/utilities';
 interface DraggableProps {
   id: string;
   children: ReactNode;
+  // Can't be picked up while answers aren't accepted
+  disabled?: boolean;
 }
 
-export function Draggable({ id, children }: DraggableProps) {
+export function Draggable({ id, children, disabled = false }: DraggableProps) {
   const {attributes, listeners, setNodeRef, transform} = useDraggable({
     id,
+    disabled,
   });
   const style = {
     // Outputs `translate3d(x, y, 0)`

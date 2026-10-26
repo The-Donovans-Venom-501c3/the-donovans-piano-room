@@ -32,6 +32,7 @@ import LedgerOptions from "../../components/QuizSection/Options/LedgerOptions/Le
 import MajorMinorOptions from "../../components/QuizSection/Options/MajorMinorOptions/MajorMinorOptions";
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
 import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
+import ReadingOptions from "../../components/QuizSection/Options/ReadingOptions/ReadingOptions";
 import ScaleOptions from "../../components/QuizSection/Options/ScaleOptions/ScaleOptions";
 
 import "./Home.scss";
@@ -981,6 +982,14 @@ export default function Home() {
                           />
                         ) : selectedGameKey === "interval" ? (
                           <IntervalOptions
+                            handleOptionClick={handleAnswerSubmit}
+                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                          />
+                        ) : selectedGameKey === "reading" ? (
+                          <ReadingOptions
+                            key={`${restartCount}-${questionIndex}`}
                             handleOptionClick={handleAnswerSubmit}
                             wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                             correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}

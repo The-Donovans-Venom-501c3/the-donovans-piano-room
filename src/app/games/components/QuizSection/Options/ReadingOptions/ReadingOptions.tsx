@@ -1,17 +1,27 @@
-import { DndContext } from '@dnd-kit/core';
+import type { OptionClickHandler } from '../../../../types';
 import { Draggable } from './Draggable';
-import { Droppable } from './Droppable';
 
 const notes = ["C", "D", "E", "F", "G", "A", "B"];
 
 interface ReadingOptionsProps {
-    displayText?: string;
-    currQuestion?: { sentence: string };
+    handleOptionClick: OptionClickHandler;
+    wrongOptions?: string[];
+    // Set from a correct pick until the next question loads
+    correctOption?: string | null;
+    // Answers aren't accepted right now (question answered or Wrong popover up), so the letters can't be dragged
+    locked?: boolean;
 }
 
-export default function ReadingOptions({ displayText: _displayText, currQuestion: _currQuestion }: ReadingOptionsProps) {
-    const draggables = notes.map((note, index) => (
-        <Draggable key={note} id={`draggable-${note}`}>
+// Letters the player drags onto the blanks in the sentence.
+// The DndContext that connects them to the blanks lives in Home, around both.
+export default function ReadingOptions({
+    handleOptionClick: _handleOptionClick,
+    wrongOptions: _wrongOptions = [],
+    correctOption: _correctOption = null,
+    locked = false,
+}: ReadingOptionsProps) {
+    const draggables = notes.map((note) => (
+        <Draggable key={note} id={`draggable-${note}`} disabled={locked}>
             {note}
         </Draggable>
     ));
