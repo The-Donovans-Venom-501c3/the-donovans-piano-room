@@ -33,6 +33,14 @@ import MajorMinorOptions from "../../components/QuizSection/Options/MajorMinorOp
 import MathOptions from "../../components/QuizSection/Options/MathOptions/MathOptions";
 import NoteOptions from "../../components/QuizSection/Options/NoteOptions/NoteOptions";
 import ReadingOptions from "../../components/QuizSection/Options/ReadingOptions/ReadingOptions";
+import { Droppable } from "../../components/QuizSection/Options/ReadingOptions/Droppable";
+import {
+  DndContext,
+  pointerWithin,
+  rectIntersection,
+  type CollisionDetection,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import ScaleOptions from "../../components/QuizSection/Options/ScaleOptions/ScaleOptions";
 
 import "./Home.scss";
@@ -109,6 +117,13 @@ const FEEDBACK_MS = 1500;
 
 // How many upcoming question images to fetch ahead of the player
 const PRELOAD_AHEAD = 2;
+
+// Music is Reading: a letter lands on the blank under the mouse. If the mouse isn't over one
+// (or there's no mouse, as when dragging with the keyboard), it lands on the blank it overlaps most.
+const dropOnBlankUnderPointer: CollisionDetection = (args) => {
+  const underPointer = pointerWithin(args);
+  return underPointer.length > 0 ? underPointer : rectIntersection(args);
+};
 
 const FULL_NOTE_ROWS: string[][] = [
   ["C", "D", "E", "F", "G", "A", "B"],
@@ -380,6 +395,23 @@ export default function Home() {
   // Keep the same { __html } object between renders. This React rebuilds the SVG whenever it gets a new
   // object, even with the same markup, so a fresh one on every timer tick made the hovered note flash.
   const readingSvgMarkup = useMemo(() => (readingSvg ? { __html: readingSvg } : null), [readingSvg]);
+
+  // Music is Reading: the letter dropped into each blank, by the blank's index
+  const [blankLetters, setBlankLetters] = useState<Record<number, string>>({});
+
+  // Empty the blanks on every new question and on Restart
+  useEffect(() => {
+    setBlankLetters({});
+  }, [questionIndex, restartCount]);
+
+  // A letter (id "draggable-C") was dropped. If it landed on a blank (id "blank-2"), put it there.
+  // Letters aren't used up, so the same one can fill several blanks.
+  const handleLetterDrop = ({ active, over }: DragEndEvent) => {
+    if (!over || !String(over.id).startsWith("blank-")) return;
+    const blank = Number(String(over.id).replace("blank-", ""));
+    const letter = String(active.id).replace("draggable-", "");
+    setBlankLetters((prev) => ({ ...prev, [blank]: letter }));
+  };
 
   // TODO: remove once game testing is complete!
   // useEffect(() => {
@@ -855,196 +887,211 @@ export default function Home() {
                   {/* Game Body */}
                   <div className="game-screen-body">
                     <div className="game-screen-left">
-                      {/* Dynamic SVG / Staff Question Display */}
-                      {currentQuestion?.questionImage && readingSvgMarkup ? (
-                        // Our own SVG from svg-image-server, so it's safe to insert as markup
-                        <div
-                          className={`question-image-container ${selectedGameKey} ${selectedLevel}`}
-                          role="img"
-                          aria-label="Treble staff with a note for each missing letter"
-                          dangerouslySetInnerHTML={readingSvgMarkup}
-                        />
-                      ) : currentQuestion?.questionImage ? (
-                        <div className={`question-image-container ${selectedGameKey} ${selectedLevel}`}>
-                          <img
-                            key={currentQuestion.questionImage}
-                            src={currentQuestion.questionImage}
-                            alt="Question SVG"
-                            className="question-svg-image"
-                          />
-                        </div>
-                      ) : (
-                        <div className="music-staff-container">
-                          <div className="treble-clef-wrapper">
-                            <img src={trebleClefIcon} alt="Treble Clef" />
-                          </div>
-                          <div className="staff-lines">
-                            <span className="line" />
-                            <span className="line" />
-                            <span className="line" />
-                            <span className="line" />
-                            <span className="line" />
-                          </div>
-                          {currentQuestion?.notePosition && (
-                            <div className={`note-marker position-${currentQuestion.notePosition}`}>
-                              <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
-                                <ellipse cx="12" cy="9" rx="10" ry="7" fill="#2B1236" transform="rotate(-15 12 9)" />
-                                <ellipse cx="12" cy="9" rx="5" ry="3" fill="#FFFFFF" transform="rotate(-35 12 9)" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Music is Reading: the sentence with a blank for each note on the staff */}
-                      {selectedGameKey === "reading" && currentQuestion?.sentence && (
-                        <p className="reading-sentence">
-                          {currentQuestion.sentence.split("_").map((part, index, parts) => (
-                            <React.Fragment key={index}>
-                              {part}
-                              {index < parts.length - 1 && (
-                                <span className="reading-blank" data-blank={index}>
-                                  <span className="sr-only">blank</span>
-                                </span>
-                              )}
-                            </React.Fragment>
-                          ))}
-                        </p>
-                      )}
-
-                      <p className={`question-prompt ${selectedGameKey} ${selectedLevel}`}>
-                        {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
-                      </p>
-
-                      {/* Options Matrix */}
-                      <div className="keyboard-matrix-wrapper">
-                        {
-                          /*
-                            Use each game's Options components if present,
-                            else use JSON Multiple Choice Options if present,
-                            else fallback to full keyboard
-                          */
-                        }
-                        {selectedGameKey === "math" ? (
-                          <MathOptions
-                            key={`${restartCount}-${questionIndex}`}
-                            handleOptionClick={handleAnswerSubmit}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                          />
-                        ) : selectedGameKey === "note" ? (
-                          <NoteOptions
-                            handleOptionClick={handleAnswerSubmit}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                            level={selectedLevel ?? "easy"}
-                          />
-                        ) : selectedGameKey === "chord" ? (
-                          <ChordOptions
-                            handleOptionClick={handleAnswerSubmit}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                            level={selectedLevel ?? "easy"}
-                          />
-                        ) : selectedGameKey === "key" ? (
-                          <KeyOptions
-                            handleOptionClick={handleAnswerSubmit}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                          />
-                        ) : selectedGameKey === "major-minor" ? (
-                          <MajorMinorOptions
-                            handleOptionClick={handleAnswerSubmit}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                          />
-                        ) : selectedGameKey === "ledger" ? (
-                          <LedgerOptions
-                            handleOptionClick={handleAnswerSubmit}
-                            level={selectedLevel ?? "easy"}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                          />
-                        ) : selectedGameKey === "scale" ? (
-                          <ScaleOptions
-                            key={`${restartCount}-${questionIndex}`}
-                            handleOptionClick={handleAnswerSubmit}
-                            level={selectedLevel ?? "easy"}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                          />
-                        ) : selectedGameKey === "interval" ? (
-                          <IntervalOptions
-                            handleOptionClick={handleAnswerSubmit}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                          />
-                        ) : selectedGameKey === "reading" ? (
-                          <ReadingOptions
-                            key={`${restartCount}-${questionIndex}`}
-                            handleOptionClick={handleAnswerSubmit}
-                            wrongOptions={savedAnswer?.wrong ?? wrongOptions}
-                            correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                            locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
-                          />
-                        ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
+                      {/* Lets the letters in ReadingOptions be dropped on the sentence's blanks; the id keeps its generated ids stable between server and browser */}
+                      <DndContext
+                        id="reading-letters"
+                        collisionDetection={dropOnBlankUnderPointer}
+                        onDragEnd={handleLetterDrop}
+                      >
+                        {/* Dynamic SVG / Staff Question Display */}
+                        {currentQuestion?.questionImage && readingSvgMarkup ? (
+                          // Our own SVG from svg-image-server, so it's safe to insert as markup
                           <div
-                            className="options-grid"
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "repeat(2, 1fr)",
-                              gap: "10px",
-                              width: "100%",
-                            }}
-                          >
-                            {currentQuestion.options.map((option) => {
-                              const isSelected = selectedAnswer === option;
-                              let btnClass = "grid-note-btn";
-                              if (isSelected) {
-                                btnClass += answerStatus === "correct" ? " correct" : " wrong";
-                              }
-                              return (
-                                <button
-                                  key={option}
-                                  className={btnClass}
-                                  onClick={() => handleAnswerSubmit(option)}
-                                >
-                                  {option}
-                                </button>
-                              );
-                            })}
+                            className={`question-image-container ${selectedGameKey} ${selectedLevel}`}
+                            role="img"
+                            aria-label="Treble staff with a note for each missing letter"
+                            dangerouslySetInnerHTML={readingSvgMarkup}
+                          />
+                        ) : currentQuestion?.questionImage ? (
+                          <div className={`question-image-container ${selectedGameKey} ${selectedLevel}`}>
+                            <img
+                              key={currentQuestion.questionImage}
+                              src={currentQuestion.questionImage}
+                              alt="Question SVG"
+                              className="question-svg-image"
+                            />
                           </div>
                         ) : (
-                          <div className="keyboard-grid">
-                            {FULL_NOTE_ROWS.map((row) =>
-                              row.map((note) => {
-                                const isSelected = selectedAnswer === note;
+                          <div className="music-staff-container">
+                            <div className="treble-clef-wrapper">
+                              <img src={trebleClefIcon} alt="Treble Clef" />
+                            </div>
+                            <div className="staff-lines">
+                              <span className="line" />
+                              <span className="line" />
+                              <span className="line" />
+                              <span className="line" />
+                              <span className="line" />
+                            </div>
+                            {currentQuestion?.notePosition && (
+                              <div className={`note-marker position-${currentQuestion.notePosition}`}>
+                                <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
+                                  <ellipse cx="12" cy="9" rx="10" ry="7" fill="#2B1236" transform="rotate(-15 12 9)" />
+                                  <ellipse cx="12" cy="9" rx="5" ry="3" fill="#FFFFFF" transform="rotate(-35 12 9)" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Music is Reading: the sentence with a blank for each note on the staff */}
+                        {selectedGameKey === "reading" && currentQuestion?.sentence && (
+                          <p className="reading-sentence">
+                            {currentQuestion.sentence.split("_").map((part, index, parts) => (
+                              <React.Fragment key={index}>
+                                {part}
+                                {index < parts.length - 1 && (
+                                  <Droppable id={`blank-${index}`} className="reading-blank" data-blank={index}>
+                                    {blankLetters[index] ? (
+                                      blankLetters[index].toLowerCase()
+                                    ) : (
+                                      <>
+                                        {/* a space keeps the blank's text baseline, so the underline doesn't move once a letter lands */}
+                                        <span aria-hidden="true">{" "}</span>
+                                        <span className="sr-only">blank</span>
+                                      </>
+                                    )}
+                                  </Droppable>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </p>
+                        )}
+
+                        <p className={`question-prompt ${selectedGameKey} ${selectedLevel}`}>
+                          {currentQuestion?.title || currentQuestion?.questionText || "What is shown?"}
+                        </p>
+
+                        {/* Options Matrix */}
+                        <div className="keyboard-matrix-wrapper">
+                          {
+                            /*
+                              Use each game's Options components if present,
+                              else use JSON Multiple Choice Options if present,
+                              else fallback to full keyboard
+                            */
+                          }
+                          {selectedGameKey === "math" ? (
+                            <MathOptions
+                              key={`${restartCount}-${questionIndex}`}
+                              handleOptionClick={handleAnswerSubmit}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            />
+                          ) : selectedGameKey === "note" ? (
+                            <NoteOptions
+                              handleOptionClick={handleAnswerSubmit}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              level={selectedLevel ?? "easy"}
+                            />
+                          ) : selectedGameKey === "chord" ? (
+                            <ChordOptions
+                              handleOptionClick={handleAnswerSubmit}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              level={selectedLevel ?? "easy"}
+                            />
+                          ) : selectedGameKey === "key" ? (
+                            <KeyOptions
+                              handleOptionClick={handleAnswerSubmit}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            />
+                          ) : selectedGameKey === "major-minor" ? (
+                            <MajorMinorOptions
+                              handleOptionClick={handleAnswerSubmit}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            />
+                          ) : selectedGameKey === "ledger" ? (
+                            <LedgerOptions
+                              handleOptionClick={handleAnswerSubmit}
+                              level={selectedLevel ?? "easy"}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            />
+                          ) : selectedGameKey === "scale" ? (
+                            <ScaleOptions
+                              key={`${restartCount}-${questionIndex}`}
+                              handleOptionClick={handleAnswerSubmit}
+                              level={selectedLevel ?? "easy"}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            />
+                          ) : selectedGameKey === "interval" ? (
+                            <IntervalOptions
+                              handleOptionClick={handleAnswerSubmit}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            />
+                          ) : selectedGameKey === "reading" ? (
+                            <ReadingOptions
+                              key={`${restartCount}-${questionIndex}`}
+                              handleOptionClick={handleAnswerSubmit}
+                              wrongOptions={savedAnswer?.wrong ?? wrongOptions}
+                              correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
+                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                            />
+                          ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
+                            <div
+                              className="options-grid"
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(2, 1fr)",
+                                gap: "10px",
+                                width: "100%",
+                              }}
+                            >
+                              {currentQuestion.options.map((option) => {
+                                const isSelected = selectedAnswer === option;
                                 let btnClass = "grid-note-btn";
                                 if (isSelected) {
                                   btnClass += answerStatus === "correct" ? " correct" : " wrong";
                                 }
                                 return (
                                   <button
-                                    key={note}
+                                    key={option}
                                     className={btnClass}
-                                    onClick={() => handleAnswerSubmit(note)}
+                                    onClick={() => handleAnswerSubmit(option)}
                                   >
-                                    {formatNoteLabel(note)}
+                                    {option}
                                   </button>
                                 );
-                              })
-                            )}
-                          </div>
-                        )}
-                      </div>
+                              })}
+                            </div>
+                          ) : (
+                            <div className="keyboard-grid">
+                              {FULL_NOTE_ROWS.map((row) =>
+                                row.map((note) => {
+                                  const isSelected = selectedAnswer === note;
+                                  let btnClass = "grid-note-btn";
+                                  if (isSelected) {
+                                    btnClass += answerStatus === "correct" ? " correct" : " wrong";
+                                  }
+                                  return (
+                                    <button
+                                      key={note}
+                                      className={btnClass}
+                                      onClick={() => handleAnswerSubmit(note)}
+                                    >
+                                      {formatNoteLabel(note)}
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </DndContext>
                     </div>
 
                     {/* Right Side Controls & Stats Panel */}

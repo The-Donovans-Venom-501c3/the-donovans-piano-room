@@ -17,6 +17,9 @@ export function Draggable({ id, children, disabled = false }: DraggableProps) {
   const style = {
     // Outputs `translate3d(x, y, 0)`
     transform: CSS.Translate.toString(transform),
+    // While dragged, stay above the sentence and the staff
+    position: 'relative' as const,
+    zIndex: transform ? 10 : undefined,
     border: '1px solid #e5e5e5',
     padding: '0.5rem 1rem',
     margin: '0.2rem',
