@@ -413,6 +413,23 @@ export default function Home() {
     setBlankLetters((prev) => ({ ...prev, [blank]: letter }));
   };
 
+  // Music is Reading answers are the missing letters, lowercase and comma-separated, e.g. "a,f,e"
+  const readingBlankCount =
+    selectedGameKey === "reading" && currentQuestion?.sentence ? currentQuestion.sentence.split("_").length - 1 : 0;
+  const readingLetters = Array.from({ length: readingBlankCount }, (_, index) => blankLetters[index]?.toLowerCase());
+  // What the Check button submits: null until every blank has a letter
+  const readingAnswer =
+    readingBlankCount > 0 && readingLetters.every(Boolean) ? readingLetters.join(",") : null;
+  const readingCorrectLetters = (currentQuestion?.correctOption ?? "").split(",");
+  // The latest wrong answer's letters. A blank is marked wrong while it still holds the wrong letter it had
+  // then, so the mark goes away as soon as the player changes it.
+  const readingWrongs = savedAnswer?.wrong ?? wrongOptions;
+  const lastWrongLetters = readingWrongs.length > 0 ? readingWrongs[readingWrongs.length - 1].split(",") : [];
+  const isBlankWrong = (index: number) =>
+    !!readingLetters[index] &&
+    readingLetters[index] === lastWrongLetters[index] &&
+    readingLetters[index] !== readingCorrectLetters[index];
+
   // TODO: remove once game testing is complete!
   // useEffect(() => {
   //   console.log('questions.length', questions.length)
@@ -941,7 +958,13 @@ export default function Home() {
                               <React.Fragment key={index}>
                                 {part}
                                 {index < parts.length - 1 && (
-                                  <Droppable id={`blank-${index}`} className="reading-blank" data-blank={index}>
+                                  <Droppable
+                                    id={`blank-${index}`}
+                                    className={`reading-blank${
+                                      answerStatus === "correct" ? " correct" : isBlankWrong(index) ? " wrong" : ""
+                                    }`}
+                                    data-blank={index}
+                                  >
                                     {blankLetters[index] ? (
                                       blankLetters[index].toLowerCase()
                                     ) : (
@@ -1040,6 +1063,9 @@ export default function Home() {
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
                               locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              answer={readingAnswer}
+                              hasLetters={Object.keys(blankLetters).length > 0}
+                              onClear={() => setBlankLetters({})}
                             />
                           ) : currentQuestion?.options && currentQuestion.options.length > 0 ? (
                             <div

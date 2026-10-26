@@ -160,6 +160,13 @@ $correct-bg: #438342;
       }
     }
   }
+  &.reading {
+    margin-top: 20px;
+
+    .large-btn {
+      height: 45px;
+    }
+  }
 
   .large-btn {
     border-radius: 12px;

@@ -1089,6 +1089,15 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         border-radius: 0.15em 0.15em 0 0; // rounds the highlight's top corners; the underline stays straight
         // the underline uses currentColor, so it fades to purple with its note
         transition: color 0.15s, background-color 0.15s;
+        // After Check: same red and green as the other games' answer buttons ($wrong-bg and $correct-bg in Options.scss)
+        &.wrong {
+          border-bottom-color: #FF7A7A;
+          background-color: rgba(#FF7A7A, 0.3);
+        }
+        &.correct {
+          color: #438342;
+          background-color: rgba(#438342, 0.15);
+        }
       }
     }
     .question-image-container {
@@ -1168,6 +1177,31 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         .reading-blank[data-blank="#{$i}"] {
           color: #6F219E;
           background-color: rgba(#6F219E, 0.15); // same see-through purple as the note's circle
+        }
+      }
+
+      // After Check, a red (wrong) or green (correct) blank highlights in its own color instead of purple:
+      // the blank's background, the note and the circle behind it. These selectors are more specific than
+      // the purple ones above, so they win.
+      @each $state, $color in (wrong: #FF7A7A, correct: #438342) {
+        $blank: '.reading-blank[data-blank="#{$i}"].#{$state}';
+        &:has(#{$blank}:is(:hover, .is-over)),
+        &:has(#{$blank}):has(.question-image-container rect[data-blank="#{$i}"]:hover) {
+          .question-image-container path[data-blank="#{$i}"] {
+            fill: $color;
+          }
+          .question-image-container rect[data-blank="#{$i}"] {
+            fill: rgba($color, 0.3);
+          }
+          .reading-blank[data-blank="#{$i}"] {
+            // undo the purple text: a red blank keeps its dark letter (inherited from the sentence), a green one its green
+            @if $state == correct {
+              color: $color;
+            } @else {
+              color: inherit;
+            }
+            background-color: rgba($color, 0.45);
+          }
         }
       }
     }
