@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useSetAtom, useAtom } from "jotai";
 import { Button } from "./button";
 import Report from "../Report/Report";
@@ -352,6 +352,33 @@ export default function Home() {
   const isReviewing = flowStage === "reviewing";
   // In Review, questions never answered correctly still show their right answer
   const reviewCorrectAnswer = isReviewing ? currentQuestion?.correctOption || currentQuestion?.answer || null : null;
+
+  // Music is Reading draws its SVG inline, so hovering a blank can highlight the note tagged with the same data-blank
+  const [readingSvg, setReadingSvg] = useState<string | null>(null);
+  const readingImage = selectedGameKey === "reading" ? currentQuestion?.questionImage : undefined;
+
+  useEffect(() => {
+    setReadingSvg(null); // don't show the last question's notes while this one loads
+    if (!readingImage) return;
+
+    let cancelled = false; // set when the question changes before this fetch finishes
+    fetch(readingImage)
+      .then((response) => (response.ok ? response.text() : Promise.reject(response.status)))
+      .then((svg) => {
+        if (!cancelled) setReadingSvg(svg);
+      })
+      .catch(() => {
+        // Falls back to the <img>: the notes still show, they just don't highlight
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [readingImage]);
+
+  // Keep the same { __html } object between renders. This React rebuilds the SVG whenever it gets a new
+  // object, even with the same markup, so a fresh one on every timer tick made the hovered note flash.
+  const readingSvgMarkup = useMemo(() => (readingSvg ? { __html: readingSvg } : null), [readingSvg]);
 
   // TODO: remove once game testing is complete!
   // useEffect(() => {
@@ -828,7 +855,15 @@ export default function Home() {
                   <div className="game-screen-body">
                     <div className="game-screen-left">
                       {/* Dynamic SVG / Staff Question Display */}
-                      {currentQuestion?.questionImage ? (
+                      {currentQuestion?.questionImage && readingSvgMarkup ? (
+                        // Our own SVG from svg-image-server, so it's safe to insert as markup
+                        <div
+                          className={`question-image-container ${selectedGameKey} ${selectedLevel}`}
+                          role="img"
+                          aria-label="Treble staff with a note for each missing letter"
+                          dangerouslySetInnerHTML={readingSvgMarkup}
+                        />
+                      ) : currentQuestion?.questionImage ? (
                         <div className={`question-image-container ${selectedGameKey} ${selectedLevel}`}>
                           <img
                             key={currentQuestion.questionImage}
@@ -867,7 +902,7 @@ export default function Home() {
                             <React.Fragment key={index}>
                               {part}
                               {index < parts.length - 1 && (
-                                <span className="reading-blank">
+                                <span className="reading-blank" data-blank={index}>
                                   <span className="sr-only">blank</span>
                                 </span>
                               )}

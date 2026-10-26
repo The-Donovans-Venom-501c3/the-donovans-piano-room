@@ -1080,8 +1080,10 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       .reading-blank {
         display: inline-block;
         width: 0.9em;
+        height: 0.9em; // letter height, so the whole space above the underline can be hovered, not just the 3px line
         margin: 0 0.08em;
         border-bottom: 3px solid currentColor;
+        transition: color 0.15s; // the underline uses currentColor, so it fades to purple with its note
       }
     }
     .question-image-container {
@@ -1127,6 +1129,39 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         display: block;
         width: 100%;
         height: auto;
+      }
+      // Music is Reading draws its SVG inline instead of in an <img>
+      > svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      path[data-blank] {
+        transition: fill 0.15s;
+        pointer-events: none; // let the hover reach the circle behind the note
+      }
+      rect[data-blank] {
+        transition: fill 0.15s;
+      }
+    }
+    // Music is Reading: hovering a blank or its note highlights both. Each note has an invisible
+    // circle (a <rect> with rx) behind it that catches the hover, so its hollow center counts
+    // too, and turns light purple when highlighted.
+    // The longest sentence has 21 blanks (0–20).
+    @for $i from 0 through 20 {
+      $blank-hovered: ':has(.reading-blank[data-blank="#{$i}"]:hover)';
+      $note-hovered: ':has(.question-image-container rect[data-blank="#{$i}"]:hover)';
+      &#{$blank-hovered},
+      &#{$note-hovered} {
+        .question-image-container path[data-blank="#{$i}"] {
+          fill: #6F219E;
+        }
+        .question-image-container rect[data-blank="#{$i}"] {
+          fill: rgba(111, 33, 158, 0.15); // #6F219E, see-through so the staff lines still show
+        }
+        .reading-blank[data-blank="#{$i}"] {
+          color: #6F219E;
+        }
       }
     }
     .keyboard-matrix-wrapper {
