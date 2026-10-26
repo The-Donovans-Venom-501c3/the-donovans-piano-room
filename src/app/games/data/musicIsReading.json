@@ -4,7 +4,7 @@
     "levels": [
         {
             "level": "Easy",
-            "numberOfQuestions": { "easy": 15 },
+            "numberOfQuestions": { "easy": 10 },
             "questions": [
                 {
                     "questionText": "Can you find the missing letters?",
@@ -106,7 +106,7 @@
         },
         {
             "level": "Medium",
-            "numberOfQuestions": { "easy": 15, "medium": 22 },
+            "numberOfQuestions": { "easy": 10, "medium": 10 },
             "questions": [
                 {
                     "questionText": "Can you find the missing letters?",
@@ -244,7 +244,7 @@
         },
         {
             "level": "Hard",
-            "numberOfQuestions": { "easy": 15, "medium": 22, "hard": 22 },
+            "numberOfQuestions": { "easy": 10, "medium": 10, "hard": 10 },
             "questions": [
                 {
                     "questionText": "Can you find the missing letters?",
