@@ -1,5 +1,6 @@
 import type { OptionClickHandler } from '../../../../types';
 import { Draggable } from './Draggable';
+import './ReadingOptions.scss';
 
 const notes = ["C", "D", "E", "F", "G", "A", "B"];
 
@@ -21,7 +22,12 @@ export default function ReadingOptions({
     locked = false,
 }: ReadingOptionsProps) {
     const draggables = notes.map((note) => (
-        <Draggable key={note} id={`draggable-${note}`} disabled={locked}>
+        <Draggable
+            key={note}
+            id={`draggable-${note}`}
+            className="option-btn small-btn reading-letter"
+            disabled={locked}
+        >
             {note}
         </Draggable>
     ));

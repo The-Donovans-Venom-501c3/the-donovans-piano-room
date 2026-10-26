@@ -1063,7 +1063,8 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       flex-shrink: 0;
       &.key,
       &.math,
-      &.interval {
+      &.interval,
+      &.reading {
         margin-top: 28px;
       }
     }

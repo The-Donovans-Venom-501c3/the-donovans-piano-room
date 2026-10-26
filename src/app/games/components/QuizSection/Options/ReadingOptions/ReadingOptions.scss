@@ -1,0 +1,10 @@
+// The letters look like the other games' buttons (option-btn small-btn in Options.scss);
+// these rules only cover what's different about dragging them
+.reading-letter {
+  cursor: grab;
+  // Stops the page scrolling instead of the letter moving when it's dragged on a touch screen
+  touch-action: none;
+  &.is-dragging {
+    cursor: grabbing;
+  }
+}
