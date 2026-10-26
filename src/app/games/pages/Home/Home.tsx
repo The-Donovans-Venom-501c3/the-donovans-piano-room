@@ -416,7 +416,17 @@ export default function Home() {
   // Music is Reading answers are the missing letters, lowercase and comma-separated, e.g. "a,f,e"
   const readingBlankCount =
     selectedGameKey === "reading" && currentQuestion?.sentence ? currentQuestion.sentence.split("_").length - 1 : 0;
-  const readingLetters = Array.from({ length: readingBlankCount }, (_, index) => blankLetters[index]?.toLowerCase());
+  // A question that can't be changed anymore shows saved letters instead of the player's (which reset on every
+  // question): answered right → that answer; in Review → the right answer
+  const savedReadingAnswer = savedAnswer?.correct ?? reviewCorrectAnswer ?? null;
+  const savedReadingLetters = savedReadingAnswer?.split(",");
+  // The letter showing in each blank, lowercase (undefined while empty)
+  const readingLetters = Array.from({ length: readingBlankCount }, (_, index) =>
+    savedReadingLetters ? savedReadingLetters[index] : blankLetters[index]?.toLowerCase()
+  );
+  // Every blank turns green: just answered right, or showing a saved right answer
+  const readingShowsCorrect =
+    answerStatus === "correct" || (!!savedReadingAnswer && savedReadingAnswer === currentQuestion?.correctOption);
   // What the Check button submits: null until every blank has a letter
   const readingAnswer =
     readingBlankCount > 0 && readingLetters.every(Boolean) ? readingLetters.join(",") : null;
@@ -973,11 +983,11 @@ export default function Home() {
                                   <Droppable
                                     id={`blank-${index}`}
                                     className={`reading-blank${
-                                      answerStatus === "correct" ? " correct" : isBlankWrong(index) ? " wrong" : ""
+                                      readingShowsCorrect ? " correct" : isBlankWrong(index) ? " wrong" : ""
                                     }`}
                                     data-blank={index}
                                   >
-                                    {blankLetters[index] ? (
+                                    {readingLetters[index] ? (
                                       <button
                                         type="button"
                                         className="reading-blank-letter"
@@ -985,7 +995,7 @@ export default function Home() {
                                         disabled={readingLocked}
                                         title={readingLocked ? undefined : "Remove this letter"}
                                       >
-                                        {blankLetters[index].toLowerCase()}
+                                        {readingLetters[index]}
                                         <span className="sr-only">, remove</span>
                                       </button>
                                     ) : (
