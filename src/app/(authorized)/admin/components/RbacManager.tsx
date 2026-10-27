@@ -649,11 +649,11 @@ function UsersSection({ catalog, run, busy }: SectionProps) {
             <div className="form-content">
               <p className="form-intro">{selected.email}</p>
               <Field label={`PERSONAS (${draftPersonaIds.length})`}>
-                <div className="check-grid">
+                <div className="check-grid persona-assignment-grid">
                   {catalog.personas.map((p) => (
-                    <label key={p.id} className="check-item">
+                    <label key={p.id} className="check-item persona-assignment-item">
                       <input type="checkbox" checked={draftPersonaIds.includes(p.id)} onChange={() => toggle(p.id)} />
-                      <span>{p.name} <small style={{ color: "var(--muted)" }}>({p.code})</small></span>
+                      <span className="persona-assignment-label">{p.name} <small style={{ color: "var(--muted)" }}>({p.code})</small></span>
                     </label>
                   ))}
                 </div>
