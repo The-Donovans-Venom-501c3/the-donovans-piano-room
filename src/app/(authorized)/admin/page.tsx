@@ -16,23 +16,25 @@ interface NavItem {
   id: string;
 }
 
+type SectionId = "calendar" | "coupons" | "notifications" | "rbacviewer" | "rbacmanager";
+
 const sections: NavItem[] = [
   { name: "Calendar", id: "calendar" },
   { name: "Coupons", id: "coupons" },
   { name: "Notifications", id: "notifications" },
   { name: "RBAC Viewer", id: "rbacviewer" },
   { name: "RBAC Manager", id: "rbacmanager" },
- ];
+];
 
 function AdminPageContent() {
-  const [activeSection, setActiveSection] = useState<string>("calendar");
+  const [activeSection, setActiveSection] = useState<SectionId>("calendar");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const searchParams = useSearchParams();
   const tabFromURL = searchParams ? searchParams.get("tab") : null;
 
   useEffect(() => {
-    if (tabFromURL && sections.some((sec) => sec.id === tabFromURL)) {
-      setActiveSection(tabFromURL);
+    if (tabFromURL && sections.some((section) => section.id === tabFromURL)) {
+      setActiveSection(tabFromURL as SectionId);
     }
   }, [tabFromURL]);
 
@@ -58,7 +60,7 @@ function AdminPageContent() {
   };
 
   const currentTabName =
-    sections.find((s) => s.id === activeSection)?.name || "lessons";
+    sections.find((s) => s.id === activeSection)?.name || "admin";
 
   return (
     <AuthorizedWrapper2
@@ -72,7 +74,7 @@ function AdminPageContent() {
           searchQuery={searchQuery}
           //onSearchChange={handleSearchChange}
           onItemClick={(id) => {
-            setActiveSection(id);
+            setActiveSection(id as SectionId);
            // setSelectedVideo(null);
             setSearchQuery("");
             scrollToTopAnchor();

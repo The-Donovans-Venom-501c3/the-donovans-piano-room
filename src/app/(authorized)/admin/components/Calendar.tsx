@@ -260,8 +260,6 @@ export default function Calendar({
     }
   }, [range.from, range.to]);
 
-  useEffect(() => { void loadItems(); }, [loadItems]);
-
   useEffect(() => {
     // Personal calendar access is authenticated ownership, not a persona grant.
     if (personalEditsOnly) return;
@@ -269,13 +267,39 @@ export default function Calendar({
     apiRequest<CalendarPermissions>("/rbac/me/permissions/calendar", { cache: "no-store" })
       .then((result) => { if (active) setPermissions(result.actions); })
       .catch((permissionError) => {
-        if (active) setError(permissionError instanceof Error ? permissionError.message : "Unable to load calendar permissions.");
+        if (active) {
+          setPermissions({ view: false, create: false, edit: false, delete: false, publish: false });
+          setError(permissionError instanceof Error ? permissionError.message : "Unable to load calendar permissions.");
+        }
       });
     return () => { active = false; };
   }, [personalEditsOnly]);
 
+  useEffect(() => {
+    if (!personalEditsOnly && !adminPermissions) return;
+    if (!personalEditsOnly && !adminPermissions?.view) {
+      setEvents([]);
+      setStandaloneReminders([]);
+      setLoading(false);
+      return;
+    }
+    void loadItems();
+  }, [adminPermissions, loadItems, personalEditsOnly]);
+
   const canEditItem = (scope: CalendarScope) => !!permissions?.edit && (!personalEditsOnly || scope === "user") && (scope !== "organization" || !!permissions?.publish);
   const canCreateItem = !!permissions?.create && (personalEditsOnly || !!permissions.publish);
+
+  if (!personalEditsOnly && permissions && !permissions.view) {
+    return (
+      <div className="content">
+        <section className="panel">
+          <div className="empty-state">
+            {error || "You don't have permission to view the admin calendar."}
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   const move = (direction: number) => {
     const next = new Date(date);

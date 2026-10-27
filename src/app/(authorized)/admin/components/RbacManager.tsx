@@ -51,11 +51,12 @@ export default function RbacManager() {
   const loadCatalog = useCallback(async () => {
     setError("");
     try {
-      setCatalog(await apiRequest<Catalog>("/rbac/admin/catalog"));
+      setCatalog(await apiRequest<Catalog>("/rbac/admin/manager/catalog", { cache: "no-store" }));
       setForbidden(false);
     } catch (err) {
-      if (err instanceof Error && "status" in err && (err as { status: number }).status === 403) {
+      if (err instanceof Error && "status" in err && [403, 404].includes((err as { status: number }).status)) {
         setForbidden(true);
+        setCatalog(null);
       } else {
         setError(recordError(err));
       }

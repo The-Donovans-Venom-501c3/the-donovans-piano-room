@@ -45,14 +45,19 @@ export default function NotificationsAdmin() {
   const refresh = useCallback(async () => {
     setError("");
     try {
-      const [rows, typeRows, access] = await Promise.all([
+      const access = await apiRequest<PermissionResponse>("/rbac/me/permissions/notifications", { cache: "no-store" });
+      setPermissions(access.actions);
+      if (!access.actions.view) {
+        setNotifications([]);
+        setTypes([]);
+        return;
+      }
+      const [rows, typeRows] = await Promise.all([
         apiRequest<AdminNotification[]>("/notificationMgr/notifications", { tags: ["notifications"] }),
         apiRequest<NotificationType[]>("/notificationMgr/notification-types", { tags: ["notifications"] }),
-        apiRequest<PermissionResponse>("/rbac/me/permissions/notifications", { tags: ["notifications"] }),
       ]);
       setNotifications(rows);
       setTypes(typeRows);
-      setPermissions(access.actions);
       setDraft((current) => ({
         ...current,
         notificationTypeId: current.notificationTypeId || typeRows[0]?.id || "",

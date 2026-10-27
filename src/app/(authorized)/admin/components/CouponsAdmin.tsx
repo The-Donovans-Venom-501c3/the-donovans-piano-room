@@ -86,12 +86,14 @@ export default function CouponsAdmin() {
   const refresh = useCallback(async () => {
     setError("");
     try {
-      const [rows, access] = await Promise.all([
-        apiRequest<Coupon[]>("/couponMgr/coupons", { tags: ["coupons"] }),
-        apiRequest<PermissionResponse>("/rbac/me/permissions/coupons", { tags: ["coupons"] }),
-      ]);
-      setCoupons(rows);
+      const access = await apiRequest<PermissionResponse>("/rbac/me/permissions/coupons", { cache: "no-store" });
       setPermissions(access.actions);
+      if (!access.actions.view) {
+        setCoupons([]);
+        return;
+      }
+      const rows = await apiRequest<Coupon[]>("/couponMgr/coupons", { tags: ["coupons"] });
+      setCoupons(rows);
     } catch (err) {
       setError(recordError(err));
     } finally {
