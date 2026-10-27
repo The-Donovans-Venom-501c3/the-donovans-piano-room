@@ -1,6 +1,7 @@
 "use client";
 
 import { apiRequest } from "@/lib/api/api";
+import { CALENDAR_COLOR_CATEGORIES, CALENDAR_PALETTE_STORAGE_KEY, DEFAULT_CALENDAR_PALETTE, calendarColorKey, parseCalendarPalette, type CalendarPalette } from "@/lib/calendarColors";
 import { CSSProperties, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 type CalendarScope = "organization" | "user";
@@ -70,6 +71,7 @@ const EVENT_TYPES: { value: EventType; label: string }[] = [
 
 const DEFAULT_EVENT_COLOR = "#24694e";
 const DEFAULT_REMINDER_COLOR = "#e98255";
+const PERSONAL_CALENDAR_ACTIONS = { view: true, create: true, edit: true, delete: true, publish: false };
 
 function startOfDay(value: Date) {
   const date = new Date(value);
@@ -187,12 +189,29 @@ function formatOffset(reminder: { daysBefore: number; hoursBefore: number; minut
   return parts.length ? `${parts.join(" ")} before` : "At event time";
 }
 
-export default function Calendar() {
-  const [view, setView] = useState<CalendarView>("month");
+export type CalendarProps = {
+  title?: string;
+  eyebrow?: string;
+  description?: string;
+  initialView?: CalendarView;
+  showPermissionBadges?: boolean;
+  personalEditsOnly?: boolean;
+};
+
+export default function Calendar({
+  title = "Calendar",
+  eyebrow = "Plan your practice",
+  description = "Organization events appear for everyone; your events and reminders stay private to you.",
+  initialView = "month",
+  showPermissionBadges = true,
+  personalEditsOnly: personalEditsOnly = false,
+}: CalendarProps = {}) {
+  const [view, setView] = useState<CalendarView>(initialView);
   const [date, setDate] = useState(() => new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [standaloneReminders, setStandaloneReminders] = useState<CalendarReminder[]>([]);
-  const [permissions, setPermissions] = useState<CalendarPermissions["actions"] | null>(null);
+  const [adminPermissions, setPermissions] = useState<CalendarPermissions["actions"] | null>(null);
+  const permissions = personalEditsOnly ? PERSONAL_CALENDAR_ACTIONS : adminPermissions;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [eventDraft, setEventDraft] = useState<EventDraft | null>(null);
@@ -200,6 +219,25 @@ export default function Calendar() {
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [palette, setPalette] = useState<CalendarPalette>(DEFAULT_CALENDAR_PALETTE);
+
+  useEffect(() => {
+    try {
+      setPalette(parseCalendarPalette(JSON.parse(localStorage.getItem(CALENDAR_PALETTE_STORAGE_KEY) ?? "null")));
+    } catch { /* Defaults still work when storage is unavailable or invalid. */ }
+    const syncPalette = (event: StorageEvent) => {
+      if (event.key === CALENDAR_PALETTE_STORAGE_KEY || event.key === null) {
+        try { setPalette(parseCalendarPalette(JSON.parse(event.newValue ?? "null"))); } catch { setPalette(DEFAULT_CALENDAR_PALETTE); }
+      }
+    };
+    window.addEventListener("storage", syncPalette);
+    return () => window.removeEventListener("storage", syncPalette);
+  }, []);
+
+  const updatePalette = (next: CalendarPalette) => {
+    setPalette(next);
+    try { localStorage.setItem(CALENDAR_PALETTE_STORAGE_KEY, JSON.stringify(next)); } catch { /* Keep session customization usable. */ }
+  };
 
   const range = useMemo(() => rangeForView(date, view), [date, view]);
   const loadItems = useCallback(async () => {
@@ -208,9 +246,11 @@ export default function Calendar() {
     try {
       const query = new URLSearchParams({ from: range.from.toISOString(), to: range.to.toISOString() });
       const [eventRows, reminderRows] = await Promise.all([
-        apiRequest<CalendarEvent[]>(`/calendar/events?${query.toString()}`),
-        apiRequest<CalendarReminder[]>(`/calendar/reminders?${query.toString()}`),
+        apiRequest<CalendarEvent[]>(`/calendar/events?${query.toString()}`, { cache: "no-store" }),
+        apiRequest<CalendarReminder[]>(`/calendar/reminders?${query.toString()}`, { cache: "no-store" }),
       ]);
+      // The backend returns organization items plus the authenticated user's own
+      // items. Planner keeps the shared items visible, but read-only.
       setEvents(eventRows);
       setStandaloneReminders(reminderRows.filter((reminder) => !reminder.eventId));
     } catch (loadError) {
@@ -223,16 +263,18 @@ export default function Calendar() {
   useEffect(() => { void loadItems(); }, [loadItems]);
 
   useEffect(() => {
+    // Personal calendar access is authenticated ownership, not a persona grant.
+    if (personalEditsOnly) return;
     let active = true;
-    apiRequest<CalendarPermissions>("/rbac/me/permissions/calendar")
+    apiRequest<CalendarPermissions>("/rbac/me/permissions/calendar", { cache: "no-store" })
       .then((result) => { if (active) setPermissions(result.actions); })
       .catch((permissionError) => {
         if (active) setError(permissionError instanceof Error ? permissionError.message : "Unable to load calendar permissions.");
       });
     return () => { active = false; };
-  }, []);
+  }, [personalEditsOnly]);
 
-  const canEditItem = (scope: CalendarScope) => !!permissions?.edit && (scope !== "organization" || !!permissions?.publish);
+  const canEditItem = (scope: CalendarScope) => !!permissions?.edit && (!personalEditsOnly || scope === "user") && (scope !== "organization" || !!permissions?.publish);
 
   const move = (direction: number) => {
     const next = new Date(date);
@@ -288,6 +330,7 @@ export default function Calendar() {
   const saveEvent = async (formEvent: FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
     if (!eventDraft) return;
+    if (personalEditsOnly && editingEventId && eventDraft.scope !== "user") return;
     if (editingEventId ? !permissions?.edit : !permissions?.create) return;
     setSaving(true);
     setError("");
@@ -302,7 +345,7 @@ export default function Calendar() {
       const body = JSON.stringify({
         title: eventDraft.title.trim(),
         description: eventDraft.description,
-        scope: eventDraft.scope,
+        scope: personalEditsOnly ? "user" : eventDraft.scope,
         eventType: eventDraft.eventType,
         startAt: start.toISOString(),
         endAt: end.toISOString(),
@@ -327,6 +370,7 @@ export default function Calendar() {
   const saveReminder = async (formEvent: FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
     if (!reminderDraft) return;
+    if (personalEditsOnly && editingReminderId && reminderDraft.scope !== "user") return;
     if (editingReminderId ? !permissions?.edit : !permissions?.create) return;
     setSaving(true);
     setError("");
@@ -336,7 +380,7 @@ export default function Calendar() {
       const body = JSON.stringify({
         title: reminderDraft.title.trim(),
         description: reminderDraft.description,
-        scope: reminderDraft.scope,
+        scope: personalEditsOnly ? "user" : reminderDraft.scope,
         remindAt: remindAt.toISOString(),
         color: reminderDraft.color,
       });
@@ -355,6 +399,7 @@ export default function Calendar() {
   };
 
   const deleteEvent = async () => {
+    if (personalEditsOnly && eventDraft?.scope !== "user") return;
     if (!permissions?.delete || !editingEventId || !window.confirm("Delete this event and its reminders?")) return;
     setSaving(true);
     try {
@@ -370,6 +415,7 @@ export default function Calendar() {
   };
 
   const deleteReminder = async () => {
+    if (personalEditsOnly && reminderDraft?.scope !== "user") return;
     if (!permissions?.delete || !editingReminderId || !window.confirm("Delete this reminder?")) return;
     setSaving(true);
     try {
@@ -392,21 +438,21 @@ export default function Calendar() {
   const scopeBadge = (scope: CalendarScope) => scope === "organization" ? <span className="calendar-badge">Org</span> : null;
 
   const renderEvent = (item: CalendarEvent, compact = false) => (
-    <button type="button" disabled={!canEditItem(item.scope)} className={`calendar-event ${compact ? "compact" : ""}`} key={`event-${item.id}`} style={{ "--event-color": item.color } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openEditEvent(item); }} title={`${item.title} (${item.eventType})${item.description ? ` — ${item.description}` : ""}`}>
-      <span className="calendar-event-dot" />
+    <button type="button" disabled={!canEditItem(item.scope)} className={`calendar-event ${compact ? "compact" : ""}`} key={`event-${item.id}`} style={{ "--event-color": palette[calendarColorKey(item.scope, "event")] } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openEditEvent(item); }} title={`${item.title} (${item.eventType})${item.description ? ` — ${item.description}` : ""}`}>
+      <span className="calendar-event-dot" style={{ backgroundColor: item.color }} />
       <span className="calendar-event-title">{item.title}</span>
       {(item.reminders?.length ?? 0) > 0 && <span className="calendar-bell" title={item.reminders!.map(formatOffset).join(", ")}>🔔</span>}
       {!compact && !item.allDay && <time>{new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(item.startAt))}</time>}
-      {!compact && scopeBadge(item.scope)}
+      {scopeBadge(item.scope)}
     </button>
   );
 
   const renderReminder = (reminder: CalendarReminder, compact = false) => (
-    <button type="button" disabled={!canEditItem(reminder.scope)} className={`calendar-event reminder ${compact ? "compact" : ""}`} key={`reminder-${reminder.id}`} style={{ "--event-color": reminder.color } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openEditReminder(reminder); }} title={`${reminder.title} (reminder)${reminder.description ? ` — ${reminder.description}` : ""}`}>
-      <span className="calendar-event-dot" />
+    <button type="button" disabled={!canEditItem(reminder.scope)} className={`calendar-event reminder ${compact ? "compact" : ""}`} key={`reminder-${reminder.id}`} style={{ "--event-color": palette[calendarColorKey(reminder.scope, "reminder")] } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openEditReminder(reminder); }} title={`${reminder.title} (reminder)${reminder.description ? ` — ${reminder.description}` : ""}`}>
+      <span className="calendar-event-dot" style={{ backgroundColor: reminder.color }} />
       <span className="calendar-event-title">{reminder.title}</span>
       {!compact && <time>{new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(reminder.remindAt))}</time>}
-      {!compact && scopeBadge(reminder.scope)}
+      {scopeBadge(reminder.scope)}
     </button>
   );
 
@@ -428,8 +474,9 @@ export default function Calendar() {
             <div className="year-days">
               {Array.from({ length: 42 }, (_, dayIndex) => {
                 const day = addDays(firstGridDay, dayIndex);
-                const count = itemsForDay(day).length;
-                return <span className={`${day.getMonth() === month ? "" : "outside"} ${sameDate(day, new Date()) ? "today" : ""} ${count ? "has-items" : ""}`} key={dayIndex} title={count ? `${count} calendar item${count > 1 ? "s" : ""}` : undefined}>{day.getDate()}</span>;
+                const items = itemsForDay(day);
+                const categories = [...new Set(items.map(({ item, kind }) => calendarColorKey(item.scope, kind)))];
+                return <span className={`${day.getMonth() === month ? "" : "outside"} ${sameDate(day, new Date()) ? "today" : ""}`} key={dayIndex} title={items.length ? items.map(({ item }) => item.title).join(", ") : undefined}>{day.getDate()}<i className="calendar-year-markers">{categories.map((key) => <i key={key} style={{ backgroundColor: palette[key] }} />)}</i></span>;
               })}
             </div>
           </button>
@@ -460,10 +507,10 @@ export default function Calendar() {
     <div className="content calendar-content">
       <div className="header-row calendar-header-row">
         <div>
-          <div className="eyebrow">Plan your practice</div>
-          <h1 className="page-title">Calendar</h1>
-          <p className="page-description">Organization events appear for everyone; your events and reminders stay private to you.</p>
-          {permissions && <div className="perm-badges" aria-label="Your calendar permissions">{(["view", "create", "edit", "delete", "publish"] as const).map((action) => <span className={`perm-badge ${permissions[action] ? "granted" : ""}`} key={action}>{action}</span>)}</div>}
+          <div className="eyebrow">{eyebrow}</div>
+          <h1 className="page-title">{title}</h1>
+          <p className="page-description">{description}</p>
+          {showPermissionBadges && permissions && <div className="perm-badges" aria-label="Your calendar permissions">{(["view", "create", "edit", "delete", "publish"] as const).map((action) => <span className={`perm-badge ${permissions[action] ? "granted" : ""}`} key={action}>{action}</span>)}</div>}
         </div>
         {permissions?.create && <div className="calendar-create-group"><button className="button primary calendar-create" onClick={() => openCreateEvent()}>＋ Add event</button><button className="button secondary calendar-create" onClick={() => openCreateReminder()}>＋ Add reminder</button></div>}
       </div>
@@ -483,7 +530,18 @@ export default function Calendar() {
             <button className="calendar-refresh" aria-label="Refresh calendar" title="Refresh calendar" onClick={() => void loadItems()}>↻</button>
           </div>
         </div>
-        <div className="calendar-legend"><span><i className="event-legend" />Events</span><span><i className="reminder-legend" />Reminders</span><span><span className="calendar-badge">Org</span>Shared with everyone</span><span className="calendar-cache-note">Calendar data refreshes automatically and is briefly cached.</span></div>
+        <div className="calendar-legend">
+          {CALENDAR_COLOR_CATEGORIES.map(({ key, label }) => <span key={key}><i className={`calendar-category-swatch ${key.endsWith("Reminder") ? "is-reminder" : ""}`} style={{ backgroundColor: palette[key] }} />{label}</span>)}
+          <span>{personalEditsOnly ? "Organization items · Read-only" : "Shared with everyone"}</span>
+        </div>
+        <details className="calendar-color-settings">
+          <summary>Customize highlight colors</summary>
+          <p>Highlights identify ownership and type. Small item dots keep their saved color. These display preferences apply to Planner and Admin on this browser only.</p>
+          <div className="calendar-color-options">
+            {CALENDAR_COLOR_CATEGORIES.map(({ key, label }) => <label key={key}><input type="color" aria-label={`${label} highlight color`} value={palette[key]} onChange={(event) => updatePalette({ ...palette, [key]: event.target.value })} />{label}</label>)}
+            <button type="button" className="button secondary" onClick={() => updatePalette({ ...DEFAULT_CALENDAR_PALETTE })}>Reset colors</button>
+          </div>
+        </details>
         {error && <div className="calendar-error" role="alert">{error}</div>}
         {loading ? <div className="calendar-loading"><i className="spinner" /> Loading your calendar…</div> : view === "year" ? renderYear() : renderDays()}
       </section>
@@ -495,7 +553,7 @@ export default function Calendar() {
             <div className="form-content">
               <div className="two-columns">
                 <div className="field"><label htmlFor="event-type">EVENT TYPE</label><select id="event-type" value={eventDraft.eventType} onChange={(changeEvent) => setEventDraft({ ...eventDraft, eventType: changeEvent.target.value as EventType })}>{EVENT_TYPES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
-                <div className="field"><label htmlFor="event-scope">VISIBILITY</label><select id="event-scope" value={eventDraft.scope} onChange={(changeEvent) => setEventDraft({ ...eventDraft, scope: changeEvent.target.value as CalendarScope })}><option value="user">Only me</option>{permissions?.publish && <option value="organization">Organization (everyone)</option>}</select></div>
+                <div className="field"><label htmlFor="event-scope">VISIBILITY</label><select id="event-scope" disabled={personalEditsOnly} value={personalEditsOnly ? "user" : eventDraft.scope} onChange={(changeEvent) => setEventDraft({ ...eventDraft, scope: changeEvent.target.value as CalendarScope })}><option value="user">Only me</option>{!personalEditsOnly && permissions?.publish && <option value="organization">Organization (everyone)</option>}</select></div>
               </div>
               <div className="field"><label htmlFor="event-title">TITLE</label><input id="event-title" autoFocus maxLength={160} value={eventDraft.title} onChange={(changeEvent) => setEventDraft({ ...eventDraft, title: changeEvent.target.value })} placeholder="Piano lesson" required /></div>
               <div className="field"><label htmlFor="event-description">NOTES</label><textarea id="event-description" maxLength={2000} value={eventDraft.description} onChange={(changeEvent) => setEventDraft({ ...eventDraft, description: changeEvent.target.value })} placeholder="Add details about this event…" /></div>
@@ -532,7 +590,7 @@ export default function Calendar() {
             <div className="form-content">
               <div className="two-columns">
                 <div className="field"><label htmlFor="reminder-at">REMIND AT</label><input id="reminder-at" type="datetime-local" value={reminderDraft.remindAt} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, remindAt: changeEvent.target.value })} required /></div>
-                <div className="field"><label htmlFor="reminder-scope">VISIBILITY</label><select id="reminder-scope" value={reminderDraft.scope} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, scope: changeEvent.target.value as CalendarScope })}><option value="user">Only me</option>{permissions?.publish && <option value="organization">Organization (everyone)</option>}</select></div>
+                <div className="field"><label htmlFor="reminder-scope">VISIBILITY</label><select id="reminder-scope" disabled={personalEditsOnly} value={personalEditsOnly ? "user" : reminderDraft.scope} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, scope: changeEvent.target.value as CalendarScope })}><option value="user">Only me</option>{!personalEditsOnly && permissions?.publish && <option value="organization">Organization (everyone)</option>}</select></div>
               </div>
               <div className="field"><label htmlFor="reminder-title">TITLE</label><input id="reminder-title" autoFocus maxLength={160} value={reminderDraft.title} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, title: changeEvent.target.value })} placeholder="Practice scales" required /></div>
               <div className="field"><label htmlFor="reminder-description">NOTES</label><textarea id="reminder-description" maxLength={2000} value={reminderDraft.description} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, description: changeEvent.target.value })} placeholder="Add a reminder note…" /></div>

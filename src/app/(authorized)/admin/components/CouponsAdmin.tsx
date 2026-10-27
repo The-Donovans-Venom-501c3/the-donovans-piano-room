@@ -184,7 +184,7 @@ export default function CouponsAdmin() {
     <div className="content">
       <div className="header-row">
         <div>
-          <div className="eyebrow">Data management · Local only</div>
+          <div className="eyebrow">Coupons management</div>
           <h1 className="page-title">Coupons</h1>
           <p className="page-description">Manage discount coupons.</p>
           {permissions && (

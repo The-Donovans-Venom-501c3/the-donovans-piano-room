@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api/api";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
 
 type NotificationType = { id: string; name: string; description: string | null };
 type AdminNotification = {
@@ -33,6 +34,8 @@ export default function NotificationsAdmin() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<AdminNotification | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   const notify = useCallback((text: string, isError = false) => {
     setToast({ text, error: isError });
@@ -103,16 +106,17 @@ export default function NotificationsAdmin() {
   }
 
   async function remove(item: AdminNotification) {
-    if (!permissions?.delete) return;
-    if (!window.confirm(`Permanently delete notification "${item.title}"?`)) return;
+    if (!permissions?.delete || busy) return;
+    setDeleteError("");
     setBusy(true);
     try {
       await apiRequest(`/notificationMgr/notifications/${encodeURIComponent(item.id)}`, { method: "DELETE", invalidateTags: ["notifications"]  });
+      setPendingDelete(null);
       await refresh();
       if (editingId === item.id) reset();
       notify("Notification deleted.");
     } catch (err) {
-      notify(recordError(err), true);
+      setDeleteError(recordError(err));
     } finally {
       setBusy(false);
     }
@@ -126,7 +130,7 @@ export default function NotificationsAdmin() {
     <div className="content">
       <div className="header-row">
         <div>
-          <div className="eyebrow">Data management · Local only</div>
+          <div className="eyebrow">Notifications management</div>
           <h1 className="page-title">Notifications</h1>
           <p className="page-description">Manage notifications.</p>
           {permissions && (
@@ -166,7 +170,7 @@ export default function NotificationsAdmin() {
                   </div>
                   <div className="row-actions">
                     {permissions?.edit && <button className="icon-button" title="Edit notification" aria-label={`Edit ${item.title}`} onClick={() => startEdit(item)}>✎</button>}
-                    {permissions?.delete && <button className="icon-button danger" title="Delete notification" aria-label={`Delete ${item.title}`} onClick={() => remove(item)}>×</button>}
+                    {permissions?.delete && <button type="button" className="icon-button danger" title="Delete notification" aria-label={`Delete ${item.title}`} disabled={busy} onClick={() => { setDeleteError(""); setPendingDelete(item); }}>×</button>}
                   </div>
                 </article>
               ))}
@@ -205,6 +209,26 @@ export default function NotificationsAdmin() {
         <section className="panel"><div className="empty-state">You don&apos;t have permission to view notifications.</div></section>
       )}
 
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+        aria-labelledby="delete-notification-title"
+        aria-describedby="delete-notification-description"
+      >
+        <DialogTitle id="delete-notification-title">Delete notification?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-notification-description">
+            Permanently delete &quot;{pendingDelete?.title}&quot; for all users? This also removes its recipient read and dismissal records and cannot be undone.
+          </DialogContentText>
+          {deleteError && <p role="alert" className="mt-4 text-red-700">{deleteError}</p>}
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)}>Cancel</Button>
+          <Button color="error" disabled={busy || !permissions?.delete} onClick={() => { if (pendingDelete) void remove(pendingDelete); }}>
+            {busy ? "Deleting…" : "Delete notification"}
+          </Button>
+        </DialogActions>
+      </Dialog>
       {toast && <div className={`toast ${toast.error ? "error" : ""}`} role="status">{toast.text}</div>}
     </div>
   );

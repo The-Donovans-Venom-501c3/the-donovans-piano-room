@@ -1,0 +1,10 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    { "name": "@tailwind", "description": "Insert Tailwind's base, components, or utilities styles." },
+    { "name": "@apply", "description": "Inline existing Tailwind utility classes." },
+    { "name": "@layer", "description": "Group styles into a CSS cascade layer." },
+    { "name": "@config", "description": "Select the Tailwind configuration for this stylesheet." },
+    { "name": "@screen", "description": "Apply styles at a configured Tailwind breakpoint." }
+  ]
+}

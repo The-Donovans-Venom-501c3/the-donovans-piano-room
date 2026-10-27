@@ -3,7 +3,7 @@
 import AuthorizedWrapper2 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper2";
 import { authorizedWrapperTitles } from "@/utils/general";
 import { nav4leftLinks } from "@/utils/stores";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Calendar from "./components/Calendar";
 import CouponsAdmin from "./components/CouponsAdmin";
@@ -26,17 +26,7 @@ const sections: NavItem[] = [
 
 function AdminPageContent() {
   const [activeSection, setActiveSection] = useState<string>("calendar");
- // const [selectedVideo, setSelectedVideo] = useState<Lesson | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  const topRef = useRef<HTMLDivElement>(null);
-
- // const idx = selectedVideo
- //   ? lessons.findIndex((l) => l.id === selectedVideo.id)
- //   : -1;
- // const prevLesson = idx > 0 ? lessons[idx - 1] : null;
- // const nextLesson = idx >= 0 && idx < lessons.length - 1 ? lessons[idx + 1] : null;
-
   const searchParams = useSearchParams();
   const tabFromURL = searchParams ? searchParams.get("tab") : null;
 
@@ -47,56 +37,13 @@ function AdminPageContent() {
   }, [tabFromURL]);
 
   const scrollToTopAnchor = () => {
-    if (topRef.current) {
-      topRef.current.scrollIntoView({ behavior: "instant", block: "start" });
-    }
-    if (typeof window !== "undefined") {
-      window.scrollTo(0, 0);
-    }
+    document.getElementById("wrapper-content-scroll")?.scrollTo({ top: 0, behavior: "instant" });
   };
-
-  /* const handleSelectVideo = (lesson: Lesson | null) => {
-    setSelectedVideo(lesson);
-    scrollToTopAnchor();
-  };
- */
-//   const handleSearchChange = (query: string) => {
-//     setSearchQuery(query);
-    
-//     // When the user types or edits the search input, 
-//     // close the detail player view to show the filtered grid instead!
-//     if (selectedVideo) {
-//       setSelectedVideo(null);
-//     }
-//   };
 
   const renderContent = () => {
     switch (activeSection) {
       case "calendar":
         return <Calendar />;
-/*         if (selectedVideo) {
-          return (
-            <VideoDetail
-              lesson={selectedVideo}
-              prevLesson={prevLesson}
-              nextLesson={nextLesson}
-              onBack={() => {
-                setSelectedVideo(null);
-                setSearchQuery(""); // Clear search on back
-              }}
-              onPrev={() => prevLesson && handleSelectVideo(prevLesson)}
-              onNext={() => nextLesson && handleSelectVideo(nextLesson)}
-            />
-          );
-        }
-        return (
-          <VideosComponent
-            lessons={lessons}
-            searchQuery={searchQuery}
-            onSelectLesson={(lesson) => handleSelectVideo(lesson)}
-          />
-        );
- */
       case "coupons":
         return <CouponsAdmin />;
       case "notifications":
@@ -105,21 +52,6 @@ function AdminPageContent() {
         return <RbacViewer />;
       case "rbacmanager":
         return <RbacManager />;
-
-    /*   case "audiobooks":
-        return (
-          <div className="p-6 text-[#3F3B3C] text-lg font-medium text-center py-12">
-            Audiobooks coming soon
-          </div>
-        );
-
-      case "ear-training":
-        return (
-          <div className="p-6 text-[#3F3B3C] text-lg font-medium text-center py-12">
-            Ear training coming soon
-          </div>
-        ); */
-
       default:
         return null;
     }
@@ -132,10 +64,7 @@ function AdminPageContent() {
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Admin}
       openedLink={nav4leftLinks.admin}
-    >
-      <div ref={topRef} />
-
-      <div className="w-full flex flex-col min-h-screen pb-32">
+      contentHeader={
         <NavBar
           items={sections}
           activeItem={activeSection}
@@ -149,7 +78,9 @@ function AdminPageContent() {
             scrollToTopAnchor();
           }}
         />
-
+      }
+    >
+      <div className="w-full flex flex-col min-h-screen pb-32">
         {renderContent()}
       </div>
     </AuthorizedWrapper2>
@@ -172,14 +103,16 @@ const NavBar = ({
   onItemClick: (id: string) => void;
 }) => {
   return (
-    <div className="w-full max-w-[1112px] mx-auto relative z-20 flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-[#ECD6FE] px-6 py-4 rounded-2xl shadow-xs">
+    <nav aria-label="Admin sections" className="w-full max-w-[1112px] mx-auto relative z-20 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#ECD6FE] px-6 py-4 rounded-2xl shadow-xs">
       {/* Navigation Tabs */}
-      <div className="flex items-center space-x-6 sm:space-x-8 overflow-x-auto w-full sm:w-auto scrollbar-none py-1">
+      <div className="flex min-w-0 sm:flex-1 items-center space-x-6 sm:space-x-8 overflow-x-auto w-full scrollbar-none py-1">
         {items.map((item) => {
           const isActive = activeItem === item.id;
           return (
             <button
               key={item.id}
+              type="button"
+              aria-current={isActive ? "page" : undefined}
               onClick={() => onItemClick(item.id)}
               className={`px-6 py-3 rounded-2xl text-lg md:text-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 isActive
@@ -213,7 +146,7 @@ const NavBar = ({
           </svg>
         </div>
       </div>
-    </div>
+    </nav>
   );
 };
 

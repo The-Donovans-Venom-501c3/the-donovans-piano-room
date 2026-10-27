@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Skeleton } from "@mui/material";
@@ -9,6 +9,8 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { logout } from "@/lib/api/authService";
 import { isNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
 import { profileInterface } from "@/interfaces/profileInterface";
+import { getMyRbac } from "@/lib/api/rbacService";
+import { hasAdministratorPersona } from "@/lib/auth/adminAccess";
 
 export default function Navbar4Left({
   openedLink = "",
@@ -18,6 +20,33 @@ export default function Navbar4Left({
   const [isNavOpen, setIsNavOpen] = useAtom(isNavOpenAtom);
   const profile = useAtomValue(profileAtom) as profileInterface | null;
   const setProfile = useSetAtom(profileAtom);
+  const [adminUserId, setAdminUserId] = useState<string | null>(null);
+  const userId = profile?.id;
+  const isAdministrator = Boolean(userId && adminUserId === userId);
+
+  useEffect(() => {
+    let active = true;
+    const verifyAdministrator = async () => {
+      setAdminUserId(null);
+      if (!userId) return;
+      try {
+        const authorization = await getMyRbac();
+        if (active && authorization.userId === userId && hasAdministratorPersona(authorization)) {
+          setAdminUserId(userId);
+        }
+      } catch {
+        // Keep the link hidden when authorization cannot be verified.
+      }
+    };
+    void verifyAdministrator();
+    window.addEventListener("focus", verifyAdministrator);
+    window.addEventListener("pageshow", verifyAdministrator);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", verifyAdministrator);
+      window.removeEventListener("pageshow", verifyAdministrator);
+    };
+  }, [userId]);
 
   const toggleOpenNav = () => setIsNavOpen((state: boolean) => !state);
 
@@ -202,7 +231,7 @@ export default function Navbar4Left({
           {/* Navigation Items */}
          
           <div className="mt-[1vh] flex flex-col gap-[1vh]">
-            {navItems.map((item) => {
+            {navItems.filter((item) => item.key !== nav4leftLinks.admin || isAdministrator).map((item) => {
               const isActive = openedLink === item.key;
                 {/* ar: height changed from 8vh to 7vh as test to fit admin item */}
               const linkContent = (

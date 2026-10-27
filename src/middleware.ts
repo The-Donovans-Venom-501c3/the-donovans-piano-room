@@ -1,34 +1,45 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { authorizeAdminRequest } from "./lib/auth/adminRoute";
 
 // Fix: Use VERCEL_ENV instead of NODE_ENV.
-// Vercel builds all preview deployments with NODE_ENV='production', 
+// Vercel builds all preview deployments with NODE_ENV='production',
 // which caused preview builds to evaluate to BE_PROD_BASE_URL.
 const BACKEND_BASE_URL =
-  process.env.VERCEL_ENV === 'production'
+  process.env.VERCEL_ENV === "production"
     ? process.env.BE_PROD_BASE_URL
     : process.env.BE_BASE_URL;
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Guard the entire admin subtree before static-file exclusions as well.
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    const baseUrl =
+      BACKEND_BASE_URL || process.env.BE_BASE_URL || "http://localhost:5000";
+    const normalizedUrl = (
+      baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`
+    ).replace(/\/$/, "");
+    return authorizeAdminRequest(request, normalizedUrl);
+  }
+
   // 1. Ignore static assets & Next.js system files
   if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon.ico') ||
-    pathname.endsWith('.svg') ||
-    pathname.endsWith('.ico') ||
-    pathname.endsWith('.png') ||
-    pathname.endsWith('.jpg') ||
-    pathname.endsWith('.woff') ||
-    pathname.endsWith('.woff2') ||
-    pathname.endsWith('.ttf')
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.endsWith(".svg") ||
+    pathname.endsWith(".ico") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg") ||
+    pathname.endsWith(".woff") ||
+    pathname.endsWith(".woff2") ||
+    pathname.endsWith(".ttf")
   ) {
     return NextResponse.next();
   }
 
-  const accessToken = request.cookies.get('access_token')?.value;
-  const refreshToken = request.cookies.get('refresh_token')?.value;
+  const accessToken = request.cookies.get("access_token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
 
   let isSessionValid = false;
   let newSetCookieHeader: string | null = null;
@@ -37,18 +48,18 @@ export async function middleware(request: NextRequest) {
   if (accessToken) {
     try {
       const verifyResponse = await fetch(`${BACKEND_BASE_URL}/api/user/`, {
-        method: 'GET',
+        method: "GET",
         headers: {
           Cookie: `access_token=${accessToken}`,
         },
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (verifyResponse.status === 200) {
         isSessionValid = true;
       }
     } catch (error) {
-      console.error('Error verifying session:', error);
+      console.error("Error verifying session:", error);
       isSessionValid = false;
     }
   }
@@ -56,35 +67,40 @@ export async function middleware(request: NextRequest) {
   // 3. Step 2: If access_token failed/expired, attempt refresh
   if (!isSessionValid && refreshToken) {
     try {
-      const refreshResponse = await fetch(`${BACKEND_BASE_URL}/api/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          Cookie: `refresh_token=${refreshToken}`,
+      const refreshResponse = await fetch(
+        `${BACKEND_BASE_URL}/api/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            Cookie: `refresh_token=${refreshToken}`,
+          },
+          credentials: "include",
         },
-        credentials: 'include',
-      });
+      );
 
       if (refreshResponse.status === 200) {
         isSessionValid = true;
         // Capture the new set-cookie header sent back by the backend refresh route
-        newSetCookieHeader = refreshResponse.headers.get('set-cookie');
+        newSetCookieHeader = refreshResponse.headers.get("set-cookie");
       }
     } catch (error) {
-      console.error('Error refreshing token in middleware:', error);
+      console.error("Error refreshing token in middleware:", error);
       isSessionValid = false;
     }
   }
 
   // --- SCENARIO A: User is trying to access Auth pages (/login, /signup) ---
-  if (pathname === '/login' || pathname === '/signup') {
+  if (pathname === "/login" || pathname === "/signup") {
     if (isSessionValid) {
-      const response = NextResponse.redirect(new URL('/dashboard', request.url));
+      const response = NextResponse.redirect(
+        new URL("/dashboard", request.url),
+      );
       response.headers.set(
-        'Cache-Control',
-        'no-store, no-cache, must-revalidate, proxy-revalidate'
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
       );
       if (newSetCookieHeader) {
-        response.headers.set('Set-Cookie', newSetCookieHeader);
+        response.headers.set("Set-Cookie", newSetCookieHeader);
       }
       return response;
     }
@@ -93,10 +109,10 @@ export async function middleware(request: NextRequest) {
 
   // --- SCENARIO B: User is trying to access Protected routes (/dashboard, /account) ---
   if (!isSessionValid) {
-    const response = NextResponse.redirect(new URL('/login', request.url));
+    const response = NextResponse.redirect(new URL("/login", request.url));
     response.headers.set(
-      'Cache-Control',
-      'no-store, no-cache, must-revalidate, proxy-revalidate'
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
     );
     return response;
   }
@@ -104,16 +120,23 @@ export async function middleware(request: NextRequest) {
   // Allow normal access, forwarding newly refreshed cookies if updated
   const response = NextResponse.next();
   response.headers.set(
-    'Cache-Control',
-    'no-store, no-cache, must-revalidate, proxy-revalidate'
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
   );
   if (newSetCookieHeader) {
-    response.headers.set('Set-Cookie', newSetCookieHeader);
+    response.headers.set("Set-Cookie", newSetCookieHeader);
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ['/login', '/signup', '/dashboard/:path*', '/account/:path*'],
+  matcher: [
+    "/login",
+    "/signup",
+    "/dashboard/:path*",
+    "/account/:path*",
+    "/planner/:path*",
+    "/admin/:path*",
+  ],
 };

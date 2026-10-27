@@ -58,23 +58,22 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
 }
  */
 
-export const apiBase =
-  process.env.NEXT_PUBLIC_BACKEND_URL ?? "/api";
+export const apiBase = process.env.NEXT_PUBLIC_BACKEND_URL ?? "/api";
 
 const GET_CACHE_TTL_MS = 20_000;
 
 // 1. EXTEND THE CACHE VALUE INTERFACE
 // We now store an array of string tags alongside the data.
 const responseCache = new Map<
-  string, 
+  string,
   { expiresAt: number; value: unknown; tags: string[] }
 >();
 
 // 2. DEFINE THE EXTENDED OPTIONS INTERFACE
 // This allows callers to pass tags to GET requests and tags to invalidate on mutations.
 export interface ExtendedRequestInit extends RequestInit {
-  tags?: string[];            // Applied to GET requests to categorize the data
-  invalidateTags?: string[];  // Applied to mutations (POST, PUT, DELETE) to bust the cache
+  tags?: string[]; // Applied to GET requests to categorize the data
+  invalidateTags?: string[]; // Applied to mutations (POST, PUT, DELETE) to bust the cache
 }
 
 export function clearApiCache() {
@@ -82,35 +81,40 @@ export function clearApiCache() {
 }
 
 export class ApiError extends Error {
-  constructor(message: string, public readonly status: number) {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
 export async function apiRequest<T>(
-  path: string, 
-  init: ExtendedRequestInit = {} // Uses the new ExtendedRequestInit type
+  path: string,
+  init: ExtendedRequestInit = {}, // Uses the new ExtendedRequestInit type
 ): Promise<T> {
   const method = (init.method ?? "GET").toUpperCase();
   const cacheKey = `${apiBase}${path}`;
+  const useCache =
+    method === "GET" && init.cache !== "no-store" && init.cache !== "reload";
 
   // --- CACHE READ LAYER ---
-  if (method === "GET") {
+  if (useCache) {
     const cached = responseCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) return cached.value as T;
     if (cached) responseCache.delete(cacheKey);
-  } 
-  
+  }
+
   // --- CACHE INVALIDATION LAYER ---
   // Replaces the hardcoded endpoints with dynamic tag checking
   else if (init.invalidateTags && init.invalidateTags.length > 0) {
     for (const [key, cachedItem] of responseCache.entries()) {
       // Check if the cached item has any tag that matches the invalidation list
-      const shouldInvalidate = cachedItem.tags.some(tag => 
-        init.invalidateTags!.includes(tag)
+      const shouldInvalidate = cachedItem.tags.some((tag) =>
+        init.invalidateTags!.includes(tag),
       );
-      
+
       if (shouldInvalidate) {
         responseCache.delete(key);
       }
@@ -122,7 +126,7 @@ export async function apiRequest<T>(
   try {
     // Strip our custom properties out before passing to native fetch
     const { tags, invalidateTags, ...nativeInit } = init;
-    
+
     response = await fetch(`${apiBase}${path}`, {
       ...nativeInit,
       credentials: "include",
@@ -132,27 +136,41 @@ export async function apiRequest<T>(
       },
     });
   } catch {
-    throw new ApiError(`Can't reach the backend at ${apiBase}. Start the local backend and try again.`, 0);
+    throw new ApiError(
+      `Can't reach the backend at ${apiBase}. Start the local backend and try again.`,
+      0,
+    );
   }
 
   const text = await response.text();
-  const payload = text ? (JSON.parse(text) as unknown) : undefined;
+  let payload: unknown;
+  try {
+    payload = text.trim() ? (JSON.parse(text) as unknown) : undefined;
+  } catch {
+    // Proxies and missing routes may return HTML or plain text, not JSON.
+    throw new ApiError(
+      response.ok
+        ? `The backend returned invalid JSON for ${path}.`
+        : `Request to ${path} failed with status ${response.status}${response.statusText ? ` (${response.statusText})` : ""}.`,
+      response.status,
+    );
+  }
   if (!response.ok) {
     const message =
       payload && typeof payload === "object" && "message" in payload
         ? String((payload as { message: unknown }).message)
-        : `Request failed with status ${response.status}`;
+        : `Request to ${path} failed with status ${response.status}`;
     throw new ApiError(message, response.status);
   }
 
   // --- CACHE WRITE LAYER ---
-  if (method === "GET") {
-    responseCache.set(cacheKey, { 
-      expiresAt: Date.now() + GET_CACHE_TTL_MS, 
+  if (useCache) {
+    responseCache.set(cacheKey, {
+      expiresAt: Date.now() + GET_CACHE_TTL_MS,
       value: payload,
-      tags: init.tags ?? [] // 3. TAGS ARE SAVED HERE WITH THE CACHE ENTRY
+      tags: init.tags ?? [], // 3. TAGS ARE SAVED HERE WITH THE CACHE ENTRY
     });
   }
-  
+
   return payload as T;
 }

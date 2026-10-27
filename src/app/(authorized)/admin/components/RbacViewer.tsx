@@ -1,38 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiRequest } from "@/lib/api/api";
-
-type UserSummary = {
-  id: string;
-  fullName: string;
-  displayName: string;
-  email: string;
-};
-
-type RolePermission = { code: string; resource: string; action: string };
-type RoleNode = { id: string; code: string; name: string; permissions: RolePermission[] };
-type PersonaNode = {
-  id: string;
-  code: string;
-  name: string;
-  profile: unknown;
-  roles: RoleNode[];
-};
-type RbacData = {
-  userId: string;
-  personas: PersonaNode[];
-  permissions: { resource: string; actions: string[] }[];
-};
-type FilterOptions = {
-  resources: { id: string; name: string }[];
-  actions: { id: string; name: string }[];
-};
-type BrowseResult = {
-  filter: { resource: string | null; action: string | null };
-  matchCount: number;
-  users: (UserSummary & { permissions: string[] })[];
-};
+import { useEffect, useMemo, useState } from "react";
+import {
+  getRbacCatalog, getUserRbac, getUsersByPermission,
+  type RbacCatalog, type RbacData, type BrowseResult,
+} from "@/lib/api/rbacService";
+import RbacTree from "./RbacTree";
 
 type Mode = "user" | "permission";
 
@@ -42,76 +15,80 @@ function recordError(error: unknown): string {
 
 export default function RbacViewer() {
   const [mode, setMode] = useState<Mode>("user");
-  const [users, setUsers] = useState<UserSummary[]>([]);
+  const [userView, setUserView] = useState<"tree" | "json">("tree");
+  const [users, setUsers] = useState<RbacCatalog["users"]>([]);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [rbacData, setRbacData] = useState<RbacData | null>(null);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingRbac, setLoadingRbac] = useState(false);
-  const [error, setError] = useState("");
+  const [usersError, setUsersError] = useState("");
+  const [rbacError, setRbacError] = useState("");
+  const [browseError, setBrowseError] = useState("");
 
-  const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
+  const [filterOptions, setFilterOptions] = useState<RbacCatalog | null>(null);
   const [filterResource, setFilterResource] = useState("");
   const [filterAction, setFilterAction] = useState("");
   const [browseResult, setBrowseResult] = useState<BrowseResult | null>(null);
   const [loadingBrowse, setLoadingBrowse] = useState(false);
 
   useEffect(() => {
-    apiRequest<UserSummary[]>("/dev/crud/users")
-      .then((rows) => {
-        setUsers(rows);
-        if (rows.length > 0) setSelectedUserId(rows[0].id);
+    let active = true;
+    getRbacCatalog()
+      .then((catalog) => {
+        if (!active) return;
+        setUsers(catalog.users);
+        setSelectedUserId(catalog.users[0]?.id ?? "");
+        setFilterOptions(catalog);
       })
-      .catch((err: unknown) => setError(recordError(err)))
-      .finally(() => setLoadingUsers(false));
-    apiRequest<FilterOptions>("/dev/crud/rbac/filters")
-      .then((options) => {
-        setFilterOptions(options);
-        if (options.resources.length > 0) setFilterResource(options.resources[0].id);
-        if (options.actions.length > 0) setFilterAction(options.actions[0].id);
+      .catch((err: unknown) => {
+        if (active) setUsersError(recordError(err));
       })
-      .catch(() => setFilterOptions(null));
+      .finally(() => {
+        if (active) setLoadingUsers(false);
+      });
+    return () => { active = false; };
   }, []);
 
-  const loadRbacData = useCallback(async (userId: string) => {
-    if (!userId) {
-      setRbacData(null);
-      return;
-    }
+  useEffect(() => {
+    if (mode !== "user") return;
+    let active = true;
+    setRbacData(null);
+    setRbacError("");
+    if (!selectedUserId) return;
     setLoadingRbac(true);
-    setError("");
-    try {
-      setRbacData(await apiRequest<RbacData>(`/dev/crud/users/${encodeURIComponent(userId)}/rbac`));
-    } catch (err) {
-      setRbacData(null);
-      setError(recordError(err));
-    } finally {
-      setLoadingRbac(false);
-    }
-  }, []);
+    getUserRbac(selectedUserId)
+      .then((data) => {
+        if (active) setRbacData(data);
+      })
+      .catch((err: unknown) => {
+        if (active) setRbacError(recordError(err));
+      })
+      .finally(() => {
+        if (active) setLoadingRbac(false);
+      });
+    return () => { active = false; };
+  }, [mode, selectedUserId]);
 
-  const loadBrowse = useCallback(async (resource: string, action: string) => {
+  useEffect(() => {
+    if (mode !== "permission" || !filterOptions) return;
+    let active = true;
+    setBrowseResult(null);
     setLoadingBrowse(true);
-    setError("");
-    try {
-      const params = new URLSearchParams();
-      if (resource) params.set("resource", resource);
-      if (action) params.set("action", action);
-      setBrowseResult(await apiRequest<BrowseResult>(`/dev/crud/rbac/users?${params.toString()}`));
-    } catch (err) {
-      setBrowseResult(null);
-      setError(recordError(err));
-    } finally {
-      setLoadingBrowse(false);
-    }
-  }, []);
+    setBrowseError("");
+    getUsersByPermission(filterResource, filterAction)
+      .then((data) => {
+        if (active) setBrowseResult(data);
+      })
+      .catch((err: unknown) => {
+        if (active) setBrowseError(recordError(err));
+      })
+      .finally(() => {
+        if (active) setLoadingBrowse(false);
+      });
+    return () => { active = false; };
+  }, [mode, filterOptions, filterResource, filterAction]);
 
-  useEffect(() => {
-    if (mode === "user") loadRbacData(selectedUserId);
-  }, [mode, selectedUserId, loadRbacData]);
-
-  useEffect(() => {
-    if (mode === "permission") loadBrowse(filterResource, filterAction);
-  }, [mode, filterResource, filterAction, loadBrowse]);
+  const error = usersError || (mode === "user" ? rbacError : browseError);
 
   const selectedUser = useMemo(
     () => users.find((user) => user.id === selectedUserId) ?? null,
@@ -136,10 +113,10 @@ export default function RbacViewer() {
     <div className="content">
       <div className="header-row">
         <div>
-          <div className="eyebrow">Access control · Local only</div>
+          <div className="eyebrow">Access control · Admin</div>
           <h1 className="page-title">RBAC viewer</h1>
           <p className="page-description">
-            Select a user to inspect their personas, roles, and effective permissions as raw JSON.
+            Select a user to explore their personas, roles, and effective permissions as a tree or raw JSON.
           </p>
         </div>
         <div className="stat-row">
@@ -175,7 +152,7 @@ export default function RbacViewer() {
           <div className="panel-head">
             <div>
               <h2 className="panel-title">User authorization data</h2>
-              <div className="panel-subtitle">GET /dev/crud/users/:id/rbac</div>
+              <div className="panel-subtitle">GET /rbac/admin/users/:id/rbac</div>
             </div>
             <div className="field rbac-user-picker">
               <label htmlFor="rbac-user">USER</label>
@@ -196,14 +173,37 @@ export default function RbacViewer() {
           </div>
 
           {error && <div className="empty-state">{error}</div>}
-          {!error && loadingRbac && <div className="empty-state"><i className="spinner" /> Loading RBAC data…</div>}
+          {!error && (loadingUsers || loadingRbac) && <div className="empty-state"><i className="spinner" /> Loading RBAC data…</div>}
           {!error && !loadingRbac && rbacData && (
-            <pre className="json-view" aria-label={`RBAC data for ${selectedUser?.fullName ?? selectedUserId}`}>
-              {JSON.stringify(rbacData, null, 2)}
-            </pre>
+            <>
+              <div className="flex gap-2 border-b border-purple-100 p-4" role="group" aria-label="User data display">
+                {(["tree", "json"] as const).map((view) => (
+                  <button
+                    key={view}
+                    type="button"
+                    aria-pressed={userView === view}
+                    onClick={() => setUserView(view)}
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-600 ${userView === view ? "bg-purple-800 text-white" : "bg-purple-50 text-purple-900 hover:bg-purple-100"}`}
+                  >
+                    {view === "tree" ? "Tree view" : "JSON view"}
+                  </button>
+                ))}
+              </div>
+              {userView === "tree" ? (
+                <RbacTree
+                  key={rbacData.userId}
+                  data={rbacData}
+                  userName={selectedUser?.fullName || selectedUser?.displayName || selectedUser?.email || selectedUserId}
+                />
+              ) : (
+                <pre className="json-view" aria-label={`RBAC data for ${selectedUser?.fullName || selectedUserId}`}>
+                  {JSON.stringify(rbacData, null, 2)}
+                </pre>
+              )}
+            </>
           )}
           {!error && !loadingRbac && !rbacData && !loadingUsers && (
-            <div className="empty-state">Select a user to view their RBAC data.</div>
+            <div className="empty-state">{users.length === 0 ? "No users available." : "Select a user to view their RBAC data."}</div>
           )}
         </section>
       ) : (
@@ -211,7 +211,7 @@ export default function RbacViewer() {
           <div className="panel-head">
             <div>
               <h2 className="panel-title">Users by permission</h2>
-              <div className="panel-subtitle">GET /dev/crud/rbac/users · user_effective_permissions view</div>
+              <div className="panel-subtitle">GET /rbac/admin/rbac/users · user_effective_permissions view</div>
             </div>
             <div className="rbac-filter-row">
               <div className="field">
@@ -222,7 +222,7 @@ export default function RbacViewer() {
                   onChange={(event) => setFilterResource(event.target.value)}
                   disabled={!filterOptions}
                 >
-                  {!filterOptions && <option value="">Loading…</option>}
+                  <option value="">{loadingUsers ? "Loading…" : "All resources"}</option>
                   {filterOptions?.resources.map((resource) => (
                     <option value={resource.id} key={resource.id}>{resource.name}</option>
                   ))}
@@ -236,7 +236,7 @@ export default function RbacViewer() {
                   onChange={(event) => setFilterAction(event.target.value)}
                   disabled={!filterOptions}
                 >
-                  {!filterOptions && <option value="">Loading…</option>}
+                  <option value="">{loadingUsers ? "Loading…" : "All actions"}</option>
                   {filterOptions?.actions.map((action) => (
                     <option value={action.id} key={action.id}>{action.name}</option>
                   ))}
@@ -246,7 +246,7 @@ export default function RbacViewer() {
           </div>
 
           {error && <div className="empty-state">{error}</div>}
-          {!error && loadingBrowse && <div className="empty-state"><i className="spinner" /> Querying view…</div>}
+          {!error && (loadingUsers || loadingBrowse) && <div className="empty-state"><i className="spinner" /> Querying view…</div>}
           {!error && !loadingBrowse && browseResult && browseResult.users.length === 0 && (
             <div className="empty-state">No users have this permission.</div>
           )}
