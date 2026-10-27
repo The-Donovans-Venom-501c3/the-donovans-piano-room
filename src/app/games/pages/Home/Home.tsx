@@ -427,7 +427,7 @@ export default function Home() {
   // Every blank turns green: just answered right, or showing a saved right answer
   const readingShowsCorrect =
     answerStatus === "correct" || (!!savedReadingAnswer && savedReadingAnswer === currentQuestion?.correctOption);
-  // What the Check button submits: null until every blank has a letter
+  // What the Submit button sends: null until every blank has a letter
   const readingAnswer =
     readingBlankCount > 0 && readingLetters.every(Boolean) ? readingLetters.join(",") : null;
   const readingCorrectLetters = (currentQuestion?.correctOption ?? "").split(",");

@@ -783,6 +783,9 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
             .option-output {
               font-size: 3.277rem;
               height: 85px;
+              &.reading-letter {
+                width: 85px;
+              }
             }
             .small-btn-wrapper {
               grid-row-gap: 15px;
@@ -1089,7 +1092,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         border-radius: 0.15em 0.15em 0 0; // rounds the highlight's top corners; the underline stays straight
         // the underline uses currentColor, so it fades to purple with its note
         transition: color 0.15s, background-color 0.15s;
-        // After Check: same red and green as the other games' answer buttons ($wrong-bg and $correct-bg in Options.scss)
+        // After Submit: same red and green as the other games' answer buttons ($wrong-bg and $correct-bg in Options.scss)
         &.wrong {
           border-bottom-color: #FF7A7A;
           background-color: rgba(#FF7A7A, 0.3);
@@ -1206,7 +1209,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         }
       }
 
-      // After Check, a red (wrong) or green (correct) blank highlights in its own color instead of purple:
+      // After Submit, a red (wrong) or green (correct) blank highlights in its own color instead of purple:
       // the blank's background, the note and the circle behind it. These selectors are more specific than
       // the purple ones above, so they win.
       @each $state, $color in (wrong: #FF7A7A, correct: #438342) {

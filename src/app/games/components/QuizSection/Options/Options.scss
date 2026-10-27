@@ -98,6 +98,9 @@ $correct-bg: #438342;
   grid-template-columns: repeat(7, 1fr);
   grid-column-gap: 15px;
   grid-row-gap: 10px;
+  &.reading {
+    justify-items: center;
+  }
   &.key {
     margin-top: 38px;
   }
@@ -113,6 +116,9 @@ $correct-bg: #438342;
     justify-content: center;
     border-radius: 10px;
     height: 45px;
+    &.reading-letter {
+      width: 45px;
+    }
 
     img {
       margin-left: 1px;

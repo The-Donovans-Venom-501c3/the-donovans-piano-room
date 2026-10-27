@@ -9,9 +9,9 @@
   }
 }
 
-// Clear and Check (laid out by `.large-btn-wrapper.reading` in Options.scss)
+// Clear and Submit (laid out by `.large-btn-wrapper.reading` in Options.scss)
 .reading-action {
-  // Faded while there's nothing to clear or check (a wrong or correct Check keeps its color)
+  // Faded while there's nothing to clear or submit (a wrong or correct Submit keeps its color)
   &:disabled:not(.wrong):not(.correct) {
     opacity: 0.5;
   }

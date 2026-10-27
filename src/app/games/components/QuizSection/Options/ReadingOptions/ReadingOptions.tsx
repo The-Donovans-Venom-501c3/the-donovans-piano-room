@@ -19,7 +19,7 @@ interface ReadingOptionsProps {
     onClear?: () => void;
 }
 
-// Letters the player drags onto the blanks in the sentence, and the Check button that submits them.
+// Letters the player drags onto the blanks in the sentence, and the Submit button that sends them.
 // The DndContext that connects the letters to the blanks lives in Home, around both.
 export default function ReadingOptions({
     handleOptionClick,
@@ -48,7 +48,7 @@ export default function ReadingOptions({
 
     return (
         <>
-            <div className="small-btn-wrapper">
+            <div className="small-btn-wrapper reading">
                 {draggables}
             </div>
             {/* Like ScaleOptions: a second, 2-column row of large buttons under the letters */}
@@ -65,7 +65,7 @@ export default function ReadingOptions({
                     onClick={() => answer && handleOptionClick(answer)}
                     disabled={locked || !answer || isWrong}
                 >
-                    Check
+                    Submit
                 </button>
             </div>
         </>
