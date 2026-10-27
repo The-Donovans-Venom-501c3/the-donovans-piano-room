@@ -275,6 +275,7 @@ export default function Calendar({
   }, [personalEditsOnly]);
 
   const canEditItem = (scope: CalendarScope) => !!permissions?.edit && (!personalEditsOnly || scope === "user") && (scope !== "organization" || !!permissions?.publish);
+  const canCreateItem = !!permissions?.create && (personalEditsOnly || !!permissions.publish);
 
   const move = (direction: number) => {
     const next = new Date(date);
@@ -286,9 +287,12 @@ export default function Calendar({
   };
 
   const openCreateEvent = (day = date) => {
-    if (!permissions?.create) return;
+    if (!canCreateItem) return;
     setEditingEventId(null);
-    setEventDraft(createEventDraft(day));
+    setEventDraft({
+      ...createEventDraft(day),
+      scope: personalEditsOnly ? "user" : "organization",
+    });
   };
 
   const openEditEvent = (item: CalendarEvent) => {
@@ -310,9 +314,12 @@ export default function Calendar({
   };
 
   const openCreateReminder = (day = date) => {
-    if (!permissions?.create) return;
+    if (!canCreateItem) return;
     setEditingReminderId(null);
-    setReminderDraft(createReminderDraft(day));
+    setReminderDraft({
+      ...createReminderDraft(day),
+      scope: personalEditsOnly ? "user" : "organization",
+    });
   };
 
   const openEditReminder = (reminder: CalendarReminder) => {
@@ -331,7 +338,7 @@ export default function Calendar({
     formEvent.preventDefault();
     if (!eventDraft) return;
     if (personalEditsOnly && editingEventId && eventDraft.scope !== "user") return;
-    if (editingEventId ? !permissions?.edit : !permissions?.create) return;
+    if (editingEventId ? !permissions?.edit : !canCreateItem) return;
     setSaving(true);
     setError("");
     try {
@@ -345,7 +352,11 @@ export default function Calendar({
       const body = JSON.stringify({
         title: eventDraft.title.trim(),
         description: eventDraft.description,
-        scope: personalEditsOnly ? "user" : eventDraft.scope,
+        scope: editingEventId
+          ? eventDraft.scope
+          : personalEditsOnly
+            ? "user"
+            : "organization",
         eventType: eventDraft.eventType,
         startAt: start.toISOString(),
         endAt: end.toISOString(),
@@ -371,7 +382,7 @@ export default function Calendar({
     formEvent.preventDefault();
     if (!reminderDraft) return;
     if (personalEditsOnly && editingReminderId && reminderDraft.scope !== "user") return;
-    if (editingReminderId ? !permissions?.edit : !permissions?.create) return;
+    if (editingReminderId ? !permissions?.edit : !canCreateItem) return;
     setSaving(true);
     setError("");
     try {
@@ -380,7 +391,11 @@ export default function Calendar({
       const body = JSON.stringify({
         title: reminderDraft.title.trim(),
         description: reminderDraft.description,
-        scope: personalEditsOnly ? "user" : reminderDraft.scope,
+        scope: editingReminderId
+          ? reminderDraft.scope
+          : personalEditsOnly
+            ? "user"
+            : "organization",
         remindAt: remindAt.toISOString(),
         color: reminderDraft.color,
       });
@@ -493,7 +508,7 @@ export default function Calendar({
           const dayItems = itemsForDay(day);
           const inCurrentMonth = day.getMonth() === date.getMonth();
           return (
-            <div className={`calendar-day ${view === "month" && !inCurrentMonth ? "outside" : ""} ${sameDate(day, new Date()) ? "today" : ""}`} key={day.toISOString()} role={permissions?.create ? "button" : undefined} tabIndex={permissions?.create ? 0 : -1} aria-label={permissions?.create ? `Create an event on ${new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(day)}` : new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(day)} onClick={() => permissions?.create && openCreateEvent(day)} onKeyDown={(keyEvent) => { if (permissions?.create && (keyEvent.key === "Enter" || keyEvent.key === " ")) { keyEvent.preventDefault(); openCreateEvent(day); } }}>
+            <div className={`calendar-day ${view === "month" && !inCurrentMonth ? "outside" : ""} ${sameDate(day, new Date()) ? "today" : ""}`} key={day.toISOString()} role={canCreateItem ? "button" : undefined} tabIndex={canCreateItem ? 0 : -1} aria-label={canCreateItem ? `Create an event on ${new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(day)}` : new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(day)} onClick={() => canCreateItem && openCreateEvent(day)} onKeyDown={(keyEvent) => { if (canCreateItem && (keyEvent.key === "Enter" || keyEvent.key === " ")) { keyEvent.preventDefault(); openCreateEvent(day); } }}>
               <span className="calendar-day-number">{view === "week" && <small>{weekdays[day.getDay()]}</small>}{day.getDate()}</span>
               <span className="calendar-day-items">{dayItems.slice(0, view === "month" ? 3 : 12).map((entry) => entry.kind === "event" ? renderEvent(entry.item as CalendarEvent, view === "month") : renderReminder(entry.item as CalendarReminder, view === "month"))}{dayItems.length > (view === "month" ? 3 : 12) && <span className="calendar-more">+{dayItems.length - (view === "month" ? 3 : 12)} more</span>}{dayItems.length === 0 && view !== "month" && <span className="calendar-empty-hint">No items planned</span>}</span>
             </div>
@@ -512,7 +527,7 @@ export default function Calendar({
           <p className="page-description">{description}</p>
           {showPermissionBadges && permissions && <div className="perm-badges" aria-label="Your calendar permissions">{(["view", "create", "edit", "delete", "publish"] as const).map((action) => <span className={`perm-badge ${permissions[action] ? "granted" : ""}`} key={action}>{action}</span>)}</div>}
         </div>
-        {permissions?.create && <div className="calendar-create-group"><button className="button primary calendar-create" onClick={() => openCreateEvent()}>＋ Add event</button><button className="button secondary calendar-create" onClick={() => openCreateReminder()}>＋ Add reminder</button></div>}
+        {canCreateItem && <div className="calendar-create-group"><button className="button primary calendar-create" onClick={() => openCreateEvent()}>＋ Add event</button><button className="button secondary calendar-create" onClick={() => openCreateReminder()}>＋ Add reminder</button></div>}
       </div>
 
       <section className="panel calendar-panel">
@@ -553,7 +568,7 @@ export default function Calendar({
             <div className="form-content">
               <div className="two-columns">
                 <div className="field"><label htmlFor="event-type">EVENT TYPE</label><select id="event-type" value={eventDraft.eventType} onChange={(changeEvent) => setEventDraft({ ...eventDraft, eventType: changeEvent.target.value as EventType })}>{EVENT_TYPES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
-                <div className="field"><label htmlFor="event-scope">VISIBILITY</label><select id="event-scope" disabled={personalEditsOnly} value={personalEditsOnly ? "user" : eventDraft.scope} onChange={(changeEvent) => setEventDraft({ ...eventDraft, scope: changeEvent.target.value as CalendarScope })}><option value="user">Only me</option>{!personalEditsOnly && permissions?.publish && <option value="organization">Organization (everyone)</option>}</select></div>
+                <div className="field"><label htmlFor="event-scope">VISIBILITY</label><select id="event-scope" disabled={personalEditsOnly || !editingEventId} value={personalEditsOnly ? "user" : !editingEventId ? "organization" : eventDraft.scope} onChange={(changeEvent) => setEventDraft({ ...eventDraft, scope: changeEvent.target.value as CalendarScope })}>{!personalEditsOnly && editingEventId && <option value="user">Only me</option>}{!personalEditsOnly && (permissions?.publish || !editingEventId) && <option value="organization">Organization (everyone)</option>}{personalEditsOnly && <option value="user">Only me</option>}</select></div>
               </div>
               <div className="field"><label htmlFor="event-title">TITLE</label><input id="event-title" autoFocus maxLength={160} value={eventDraft.title} onChange={(changeEvent) => setEventDraft({ ...eventDraft, title: changeEvent.target.value })} placeholder="Piano lesson" required /></div>
               <div className="field"><label htmlFor="event-description">NOTES</label><textarea id="event-description" maxLength={2000} value={eventDraft.description} onChange={(changeEvent) => setEventDraft({ ...eventDraft, description: changeEvent.target.value })} placeholder="Add details about this event…" /></div>
@@ -590,7 +605,7 @@ export default function Calendar({
             <div className="form-content">
               <div className="two-columns">
                 <div className="field"><label htmlFor="reminder-at">REMIND AT</label><input id="reminder-at" type="datetime-local" value={reminderDraft.remindAt} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, remindAt: changeEvent.target.value })} required /></div>
-                <div className="field"><label htmlFor="reminder-scope">VISIBILITY</label><select id="reminder-scope" disabled={personalEditsOnly} value={personalEditsOnly ? "user" : reminderDraft.scope} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, scope: changeEvent.target.value as CalendarScope })}><option value="user">Only me</option>{!personalEditsOnly && permissions?.publish && <option value="organization">Organization (everyone)</option>}</select></div>
+                <div className="field"><label htmlFor="reminder-scope">VISIBILITY</label><select id="reminder-scope" disabled={personalEditsOnly || !editingReminderId} value={personalEditsOnly ? "user" : !editingReminderId ? "organization" : reminderDraft.scope} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, scope: changeEvent.target.value as CalendarScope })}>{!personalEditsOnly && editingReminderId && <option value="user">Only me</option>}{!personalEditsOnly && (permissions?.publish || !editingReminderId) && <option value="organization">Organization (everyone)</option>}{personalEditsOnly && <option value="user">Only me</option>}</select></div>
               </div>
               <div className="field"><label htmlFor="reminder-title">TITLE</label><input id="reminder-title" autoFocus maxLength={160} value={reminderDraft.title} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, title: changeEvent.target.value })} placeholder="Practice scales" required /></div>
               <div className="field"><label htmlFor="reminder-description">NOTES</label><textarea id="reminder-description" maxLength={2000} value={reminderDraft.description} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, description: changeEvent.target.value })} placeholder="Add a reminder note…" /></div>

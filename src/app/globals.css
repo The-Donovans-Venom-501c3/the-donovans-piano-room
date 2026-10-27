@@ -268,7 +268,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .year-days span.outside { color: #c4cbc5; }
 .year-days span.today { color: white; background: var(--green); }
 .year-days span.has-items:not(.today) { box-shadow: inset 0 -2px #8bbb62; font-weight: 800; }
-.calendar-modal-backdrop { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 24px; background: rgba(17, 35, 27, .48); backdrop-filter: blur(3px); }
+.calendar-modal-backdrop { position: fixed; z-index: 60; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 24px; background: rgba(17, 35, 27, .48); backdrop-filter: blur(3px); }
 .calendar-modal { width: min(560px, 100%); max-height: min(92vh, 850px); overflow-y: auto; border: 1px solid rgba(255,255,255,.8); border-radius: 18px; background: white; box-shadow: 0 24px 80px rgba(15, 36, 26, .24); }
 .calendar-modal-heading { display: flex; align-items: center; justify-content: space-between; padding: 21px 23px 17px; border-bottom: 1px solid var(--line); }
 .calendar-modal-heading h2 { margin: 5px 0 0; font-family: Manrope, sans-serif; font-size: 21px; letter-spacing: -.04em; }
