@@ -1533,14 +1533,15 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 }
 
 @media (prefers-reduced-motion: reduce) {
+  // Each selector matches its animated rule's specificity so this one wins
   .games-enter-stage .music-stand-overlay .music-stand-img,
-  .enter-game-title,
-  .speech-bubble-box,
-  .welcome-cat-svg,
+  .stage-view-wrapper .enter-card-container .enter-game-title,
+  .mascot-speech-container .speech-bubble-box,
+  .mascot-speech-container .welcome-cat-svg,
   .difficulty-cards-container,
   .stage-view-wrapper .loading-card-container,
-  .loading-mascot-img,
-  .loading-mascot-shadow {
+  .stage-view-wrapper .loading-card-container .loading-mascot-wrapper .loading-mascot-img,
+  .stage-view-wrapper .loading-card-container .loading-mascot-wrapper .loading-mascot-shadow {
     animation: none;
   }
 }
