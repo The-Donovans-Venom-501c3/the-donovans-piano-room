@@ -936,13 +936,13 @@ export default function Home() {
                         {currentQuestion?.questionImage && readingSvgMarkup ? (
                           // Our own SVG from svg-image-server, so it's safe to insert as markup
                           <div
-                            className={`question-image-container ${selectedGameKey} ${selectedLevel}`}
+                            className={`question-image-container ${selectedGameKey} ${currentQuestion.level ?? selectedLevel}`}
                             role="img"
                             aria-label="Treble staff with a note for each missing letter"
                             dangerouslySetInnerHTML={readingSvgMarkup}
                           />
                         ) : currentQuestion?.questionImage ? (
-                          <div className={`question-image-container ${selectedGameKey} ${selectedLevel}`}>
+                          <div className={`question-image-container ${selectedGameKey} ${currentQuestion.level ?? selectedLevel}`}>
                             <img
                               key={currentQuestion.questionImage}
                               src={currentQuestion.questionImage}

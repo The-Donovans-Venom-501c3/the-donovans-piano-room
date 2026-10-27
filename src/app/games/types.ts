@@ -23,6 +23,8 @@ export interface Question {
   options?: string[];
   notePosition?: string | number;
   answer?: string;
+  // The pool the question was picked from (Medium and Hard games mix in easier questions)
+  level?: Level;
 }
 
 export type OptionClickHandler = (option: string) => void;
