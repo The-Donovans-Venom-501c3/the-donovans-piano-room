@@ -220,10 +220,10 @@ export default function Home() {
     let timer: ReturnType<typeof setTimeout>;
     switch (flowStage) {
       case "banner":
-        timer = setTimeout(() => setFlowStage("welcome"), 2500);
+        timer = setTimeout(() => setFlowStage("welcome"), 1000);
         break;
       case "welcome":
-        timer = setTimeout(() => setFlowStage("rockstar_msg"), 2000);
+        timer = setTimeout(() => setFlowStage("rockstar_msg"), 1000);
         break;
       case "rockstar_msg":
         timer = setTimeout(() => setFlowStage("levels"), 1500);

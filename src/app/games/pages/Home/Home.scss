@@ -260,6 +260,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
       letter-spacing: -0.01em;
       margin: 0 0 2.5rem 0;
       text-align: center;
+      animation: fadeIn 600ms 200ms ease-out both;
       .highlight-game-name {
         color: #e28639;
       }
@@ -277,6 +278,9 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
   .loading-card-container {
     position: relative;
     z-index: 2;
+    // Fades out once `.loading-progress-bar-fill` is full, ending with the
+    // `loading_screen` timer in Home.tsx (3300ms)
+    animation: fadeOut 300ms 3000ms ease-in forwards;
     background: #ffffff;
     width: 90%;
     max-width: 820px;
@@ -377,6 +381,8 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
     font-weight: 400;
     color: #1C1A1A;
     line-height: 1.4;
+    // Starts once `.welcome-cat-svg` has faded in
+    animation: fadeIn 600ms 600ms ease-out both;
     .speech-text {
       margin: 0 0 1rem 0;
     }
@@ -401,6 +407,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
     height: auto;
     margin-top: 16px;
     margin-left: 40px;
+    animation: fadeIn 600ms ease-out both;
   }
 }
 
@@ -410,6 +417,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
   display: flex;
   flex-direction: column;
   gap: 2.3rem 1.25rem;
+  animation: fadeIn 600ms ease-out both;
   .difficulty-card {
     display: flex;
     align-items: center;
@@ -1475,6 +1483,24 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes mascotBounce {
   0% {
     transform: translateY(0);
@@ -1507,9 +1533,15 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
 }
 
 @media (prefers-reduced-motion: reduce) {
+  // Each selector matches its animated rule's specificity so this one wins
   .games-enter-stage .music-stand-overlay .music-stand-img,
-  .loading-mascot-img,
-  .loading-mascot-shadow {
+  .stage-view-wrapper .enter-card-container .enter-game-title,
+  .mascot-speech-container .speech-bubble-box,
+  .mascot-speech-container .welcome-cat-svg,
+  .difficulty-cards-container,
+  .stage-view-wrapper .loading-card-container,
+  .stage-view-wrapper .loading-card-container .loading-mascot-wrapper .loading-mascot-img,
+  .stage-view-wrapper .loading-card-container .loading-mascot-wrapper .loading-mascot-shadow {
     animation: none;
   }
 }
