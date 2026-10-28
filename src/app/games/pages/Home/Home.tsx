@@ -895,6 +895,8 @@ export default function Home() {
                         value={volume}
                         onChange={(e) => setVolume(Number(e.target.value))}
                         className="volume-slider-input"
+                        // Tells the CSS how much of the track to fill
+                        style={{ "--volume": `${volume}%` } as React.CSSProperties}
                       />
                     </div>
                     <div className="right-controls">
