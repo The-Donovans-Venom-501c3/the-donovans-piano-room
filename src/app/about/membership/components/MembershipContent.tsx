@@ -54,7 +54,7 @@ export default function MembershipContent() {
               className="px-auto mt-10 flex w-[100%] items-center justify-center self-center rounded-l-full rounded-r-full bg-primary-purple py-3 text-xl font-bold text-white"
               href=""
             >
-              Choose plan
+              Choose plan. (Place holder. No functionality)
             </Link>
           </div>
           <div className=" h-[280px] w-[220px] rounded-3xl bg-[#D8BCFD] lg:w-[250px]"></div>
@@ -104,7 +104,7 @@ export default function MembershipContent() {
               className="px-auto mt-10 flex w-[100%] items-center justify-center self-center rounded-l-full rounded-r-full bg-primary-purple py-3 text-xl font-bold text-white"
               href=""
             >
-              Choose plan
+              Choose plan. (Place holder. No functionality)
             </Link>
           </div>
           <div className=" h-[280px] w-[220px] rounded-3xl bg-[#D8BCFD] lg:w-[250px]"></div>
@@ -154,7 +154,7 @@ export default function MembershipContent() {
               className="px-auto mt-10 flex w-[100%] items-center justify-center self-center rounded-l-full rounded-r-full bg-primary-purple py-3 text-xl font-bold text-white"
               href=""
             >
-              Choose plan
+              Choose plan. (Place holder. No functionality)
             </Link>
           </div>
           <div className=" h-[280px] w-[220px] rounded-3xl bg-[#D8BCFD] lg:w-[250px]"></div>

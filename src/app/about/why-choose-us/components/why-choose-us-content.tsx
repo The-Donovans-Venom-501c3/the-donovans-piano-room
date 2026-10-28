@@ -21,13 +21,13 @@ export default function WhyChooseUsContent() {
               className="rounded-l-full rounded-r-full bg-primary-purple px-8 py-4 text-xl font-bold text-white"
               href="#"
             >
-              Book a demo
+              Book a Demo. (Place holder. No functionality)
             </Link>
             <Link
               className="rounded-l-full rounded-r-full border border-primary-purple px-8 py-4 text-xl font-bold text-primary-purple"
               href="#"
             >
-              Sign up free
+              Sign Up for free (Place holder. No functionality)
             </Link>
           </div>
         </div>

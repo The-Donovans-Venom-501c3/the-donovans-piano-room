@@ -95,13 +95,23 @@ export default function Page() {
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
-      try {
+     (async () => {
+        try {
         setLoading(true);
         const userMembership = await getUserMembership().catch(() => null);
         if (!isMounted) return;
         setMembership(userMembership);
-      } finally {
+        // ar: DYNAMIC CONDITION: Change view if a valid membership is returned
+        // (Adjust this condition based on your exact API response structure)
+        if (userMembership && userMembership.levelId) {
+          setShowPlanSelection(false); // Show Dashboard (View 2) instead of the Selection grid
+        } else {
+          setShowPlanSelection(true);  // Keep Selection Grid (View 1) open for non-members
+        }
+      } catch (error) {
+          console.error("Failed to load membership status", error);
+      }
+      finally {
         if (isMounted) setLoading(false);
       }
     })();
@@ -118,7 +128,6 @@ export default function Page() {
     >
       <div className="h-full overflow-y-auto primary-purple-scrollbar pb-8 bg-[#FFEBD5]">
         <AccountAndSettingsNav currentPage={settingsNavigation.membership} />
-
         <div className="w-full max-w-[1112px] mx-auto px-4 sm:px-6 mt-6">
           {showPlanSelection ? (
             /* VIEW 1: SELECT YOUR PLAN GRID */
@@ -145,7 +154,6 @@ export default function Page() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
                 {availablePlans.map((planItem) => {
                   const isScholarshipPlan = planItem.levelId === MembershipLevelId.FREE;
-
                   return (
                     <div
                       key={planItem.name}
@@ -180,7 +188,6 @@ export default function Page() {
                   />
                 </div>
               </div>
-
               {/* Right Column: Management Options */}
               <div className="lg:col-span-7 flex flex-col gap-6 justify-between">
                 {/* RENEW MEMBERSHIP BOX */}
@@ -193,7 +200,6 @@ export default function Page() {
                     Renew Membership
                   </button>
                 </div>
-
                 {/* CHANGE PLAN BOX */}
                 <div className="bg-[#FFEBD5] p-6 sm:p-8 rounded-2xl border border-[#FDE2C6] flex-1 flex flex-col justify-center">
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Change Plan</h3>
