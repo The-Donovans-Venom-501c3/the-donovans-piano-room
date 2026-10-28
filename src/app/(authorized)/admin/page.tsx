@@ -10,13 +10,15 @@ import CouponsAdmin from "./components/CouponsAdmin";
 import NotificationsAdmin from "./components/NotificationsAdmin";
 import RbacViewer from "./components/RbacViewer";
 import RbacManager from "./components/RbacManager";
+import SchoolsAdmin from "./components/SchoolsAdmin";
+import ClassesAdmin from "./components/ClassesAdmin";
 
 interface NavItem {
   name: string;
   id: string;
 }
 
-type SectionId = "calendar" | "coupons" | "notifications" | "rbacviewer" | "rbacmanager";
+type SectionId = "calendar" | "coupons" | "notifications" | "rbacviewer" | "rbacmanager" | "schools" | "classes";
 
 const sections: NavItem[] = [
   { name: "Calendar", id: "calendar" },
@@ -24,6 +26,8 @@ const sections: NavItem[] = [
   { name: "Notifications", id: "notifications" },
   { name: "RBAC Viewer", id: "rbacviewer" },
   { name: "RBAC Manager", id: "rbacmanager" },
+  { name: "Schools", id: "schools" },
+  { name: "Classes", id: "classes" },
 ];
 
 function AdminPageContent() {
@@ -54,6 +58,10 @@ function AdminPageContent() {
         return <RbacViewer />;
       case "rbacmanager":
         return <RbacManager />;
+      case "schools":
+        return <SchoolsAdmin />;
+      case "classes":
+        return <ClassesAdmin />;
       default:
         return null;
     }
