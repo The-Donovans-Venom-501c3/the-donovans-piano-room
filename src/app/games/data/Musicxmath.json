@@ -112,8 +112,7 @@
     {
       "level": "Medium",
       "numberOfQuestions": {
-        "easy": 10,
-        "medium": 10
+        "medium": 20
       },
       "questions": [
         {
@@ -221,9 +220,9 @@
     {
       "level": "Hard",
       "numberOfQuestions": {
-        "easy": 10,
-        "medium": 10,
-        "hard": 10
+        "easy": 1,
+        "medium": 2,
+        "hard": 27
       },
       "questions": [
         {
