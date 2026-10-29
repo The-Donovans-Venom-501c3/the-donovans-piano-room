@@ -38,9 +38,7 @@ const OPTIONS_REGISTRY: Record<string, (props: OptionRendererProps) => JSX.Eleme
   ledger: ({ handleClick, level }) => <LedgerOptions handleOptionClick={handleClick} level={level} />,
   interval: ({ handleClick }) => <IntervalOptions handleOptionClick={handleClick} />,
   math: ({ handleClick }) => <MathOptions handleOptionClick={handleClick} />,
-  reading: ({ displayText, currQuestion }) => (
-    <ReadingOptions displayText={displayText} currQuestion={currQuestion} />
-  ),
+  reading: ({ handleClick }) => <ReadingOptions handleOptionClick={handleClick} />,
 };
 
 export default function Options({ handleOptionClick, displayText = "", currQuestion }: OptionsProps) {

@@ -96,7 +96,9 @@ export function getQuestions(rawGame: string, level: Level): Question[] {
     const targetPool = levelMap.get(diffKey.toLowerCase());
     if (targetPool && targetPool.questions && count > 0) {
       const randomized = shuffleArray(targetPool.questions);
-      selectedQuestions.push(...randomized.slice(0, count));
+      selectedQuestions.push(
+        ...randomized.slice(0, count).map((question) => ({ ...question, level: diffKey.toLowerCase() as Level }))
+      );
     }
   });
 
