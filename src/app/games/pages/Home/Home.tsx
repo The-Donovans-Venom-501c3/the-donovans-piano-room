@@ -202,6 +202,10 @@ export default function Home() {
   const [answers, setAnswers] = useState<Record<number, { correct: string | null; wrong: string[] }>>({});
   // Pending popover timer (correct: advance, wrong: hide or game over); cleared whenever the question changes
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // What the pending popover timer will do and when, so Pause can stop it and Resume restart it with the time left
+  // (while paused, feedbackEndsAtRef holds the time left instead of the end time)
+  const feedbackActionRef = useRef<(() => void) | null>(null);
+  const feedbackEndsAtRef = useRef<number>(0);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -441,7 +445,7 @@ export default function Home() {
     readingLetters[index] !== readingCorrectLetters[index];
 
   // Same for every game: no changes once answered, in Review, while the Wrong popover is up, or while paused
-const optionsLocked = isReviewing || !!savedAnswer || answerStatus === "wrong" || isPaused;
+  const optionsLocked = isReviewing || !!savedAnswer || answerStatus === "wrong" || isPaused;
 
   // Clicking a filled blank takes its letter out
   const removeBlankLetter = (index: number) => {
@@ -472,6 +476,31 @@ const optionsLocked = isReviewing || !!savedAnswer || answerStatus === "wrong" |
       clearTimeout(feedbackTimeoutRef.current);
       feedbackTimeoutRef.current = null;
     }
+    // Also forget the action, so Resume can't bring back a cancelled timer (e.g. Restart while paused)
+    feedbackActionRef.current = null;
+  };
+
+  const startFeedbackTimer = (action: () => void, ms = FEEDBACK_MS) => {
+    feedbackActionRef.current = action;
+    feedbackEndsAtRef.current = Date.now() + ms;
+    feedbackTimeoutRef.current = setTimeout(() => {
+      feedbackTimeoutRef.current = null;
+      feedbackActionRef.current = null;
+      action();
+    }, ms);
+  };
+
+  // Pausing stops the popover timer too; resuming restarts it with whatever time it had left
+  const togglePause = () => {
+    if (!isPaused && feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+      // Keep the action; save the time left where the end time was
+      feedbackEndsAtRef.current = Math.max(0, feedbackEndsAtRef.current - Date.now());
+    } else if (isPaused && feedbackActionRef.current) {
+      startFeedbackTimer(feedbackActionRef.current, feedbackEndsAtRef.current);
+    }
+    setIsPaused((prev) => !prev);
   };
 
   // Every question change goes through here so per-question state never carries over
@@ -500,9 +529,8 @@ const optionsLocked = isReviewing || !!savedAnswer || answerStatus === "wrong" |
         Object.values(answers).filter((answer) => answer.wrong.length === 0).length +
         (wrongOptions.length === 0 ? 1 : 0);
       setScore(questions.length > 0 ? Math.round((firstTryCount / questions.length) * 100) : 0);
-      // questionIndex can't be stale here: any navigation cancels this timer first
-      feedbackTimeoutRef.current = setTimeout(() => {
-        feedbackTimeoutRef.current = null;
+      // questionIndex can't be stale here: any navigation cancels this timer first, and pausing blocks navigation
+      startFeedbackTimer(() => {
         if (questionIndex >= (questions.length || 8)) {
           setFlowStage("game_finished");
         } else {
@@ -517,8 +545,7 @@ const optionsLocked = isReviewing || !!savedAnswer || answerStatus === "wrong" |
       const nextLives = Math.max(0, lives - 1);
       setLives(nextLives);
       // Hide the popover on its own; nextLives because lives is still the old value here
-      feedbackTimeoutRef.current = setTimeout(() => {
-        feedbackTimeoutRef.current = null;
+      startFeedbackTimer(() => {
         setSelectedAnswer(null);
         setAnswerStatus(null);
         if (nextLives <= 0) {
@@ -1199,7 +1226,7 @@ const optionsLocked = isReviewing || !!savedAnswer || answerStatus === "wrong" |
                         </div>
                       ) : (
                         <div className="game-action-buttons">
-                          <button className="action-circle-btn" onClick={() => setIsPaused((prev) => !prev)}>
+                          <button className="action-circle-btn" onClick={togglePause}>
                             <img
                               src={isPaused ? resumeIcon : pauseIcon}
                               alt={isPaused ? "Resume" : "Pause"}
