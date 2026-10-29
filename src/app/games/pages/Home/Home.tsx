@@ -440,8 +440,8 @@ export default function Home() {
     readingLetters[index] === lastWrongLetters[index] &&
     readingLetters[index] !== readingCorrectLetters[index];
 
-  // Same as every game's `locked`: no changes once answered, in Review, or while the Wrong popover is up
-  const readingLocked = isReviewing || !!savedAnswer || answerStatus === "wrong";
+  // Same for every game: no changes once answered, in Review, while the Wrong popover is up, or while paused
+const optionsLocked = isReviewing || !!savedAnswer || answerStatus === "wrong" || isPaused;
 
   // Clicking a filled blank takes its letter out
   const removeBlankLetter = (index: number) => {
@@ -484,7 +484,7 @@ export default function Home() {
   };
 
   const handleAnswerSubmit = (selectedOption: string) => {
-    if (answerStatus !== null || !currentQuestion || savedAnswer || isReviewing) return;
+    if (answerStatus !== null || !currentQuestion || savedAnswer || isReviewing || isPaused) return;
 
     const expectedAnswer = currentQuestion.correctOption || currentQuestion.answer;
     setSelectedAnswer(selectedOption);
@@ -994,8 +994,8 @@ export default function Home() {
                                         type="button"
                                         className="reading-blank-letter"
                                         onClick={() => removeBlankLetter(index)}
-                                        disabled={readingLocked}
-                                        title={readingLocked ? undefined : "Remove this letter"}
+                                        disabled={optionsLocked}
+                                        title={optionsLocked ? undefined : "Remove this letter"}
                                       >
                                         {readingLetters[index]}
                                         <span className="sr-only">, remove</span>
@@ -1033,14 +1033,14 @@ export default function Home() {
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                             />
                           ) : selectedGameKey === "note" ? (
                             <NoteOptions
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                               level={selectedLevel ?? "easy"}
                             />
                           ) : selectedGameKey === "chord" ? (
@@ -1048,7 +1048,7 @@ export default function Home() {
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                               level={selectedLevel ?? "easy"}
                             />
                           ) : selectedGameKey === "key" ? (
@@ -1056,14 +1056,14 @@ export default function Home() {
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                             />
                           ) : selectedGameKey === "major-minor" ? (
                             <MajorMinorOptions
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                             />
                           ) : selectedGameKey === "ledger" ? (
                             <LedgerOptions
@@ -1071,7 +1071,7 @@ export default function Home() {
                               level={selectedLevel ?? "easy"}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                             />
                           ) : selectedGameKey === "scale" ? (
                             <ScaleOptions
@@ -1080,14 +1080,14 @@ export default function Home() {
                               level={selectedLevel ?? "easy"}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                             />
                           ) : selectedGameKey === "interval" ? (
                             <IntervalOptions
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={isReviewing || !!savedAnswer || answerStatus === "wrong"}
+                              locked={optionsLocked}
                             />
                           ) : selectedGameKey === "reading" ? (
                             <ReadingOptions
@@ -1095,7 +1095,7 @@ export default function Home() {
                               handleOptionClick={handleAnswerSubmit}
                               wrongOptions={savedAnswer?.wrong ?? wrongOptions}
                               correctOption={savedAnswer?.correct ?? reviewCorrectAnswer ?? (answerStatus === "correct" ? selectedAnswer : null)}
-                              locked={readingLocked}
+                              locked={optionsLocked}
                               answer={readingAnswer}
                               hasLetters={Object.keys(blankLetters).length > 0}
                               onClear={() => setBlankLetters({})}
@@ -1221,7 +1221,7 @@ export default function Home() {
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.max(1, questionIndex - 1))}
-                          disabled={questionIndex <= 1 || wrongOptions.length > 0}
+                          disabled={questionIndex <= 1 || wrongOptions.length > 0 || isPaused}
                         >
                           <img src={prevIcon} alt="Previous Page" className="nav-icon prev" />
                         </button>
@@ -1232,7 +1232,7 @@ export default function Home() {
                         <button
                           className="nav-arrow"
                           onClick={() => goToQuestion(Math.min(questions.length || 8, questionIndex + 1))}
-                          disabled={questionIndex >= (questions.length || 8) || (!isReviewing && !savedAnswer)}
+                          disabled={questionIndex >= (questions.length || 8) || (!isReviewing && !savedAnswer) || isPaused}
                         >
                           <img src={nextIcon} alt="Next Page" className="nav-icon next" />
                         </button>
