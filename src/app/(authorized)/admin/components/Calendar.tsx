@@ -60,6 +60,8 @@ type ReminderDraft = {
   color: string;
 };
 
+type ViewingItem = { kind: "event"; item: CalendarEvent } | { kind: "reminder"; item: CalendarReminder };
+
 const EVENT_TYPES: { value: EventType; label: string }[] = [
   { value: "lesson", label: "Lesson" },
   { value: "concert", label: "Concert" },
@@ -189,6 +191,21 @@ function formatOffset(reminder: { daysBefore: number; hoursBefore: number; minut
   return parts.length ? `${parts.join(" ")} before` : "At event time";
 }
 
+const fullDayFormat = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+const shortDateFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
+const timeFormat = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+
+function formatEventWhen(item: CalendarEvent) {
+  const start = new Date(item.startAt);
+  const end = new Date(item.endAt);
+  if (item.allDay) {
+    return sameDate(start, end) ? `${fullDayFormat.format(start)} · All day` : `${shortDateFormat.format(start)} – ${shortDateFormat.format(end)} · All day`;
+  }
+  return sameDate(start, end)
+    ? `${fullDayFormat.format(start)} · ${timeFormat.format(start)} – ${timeFormat.format(end)}`
+    : `${shortDateFormat.format(start)} ${timeFormat.format(start)} – ${shortDateFormat.format(end)} ${timeFormat.format(end)}`;
+}
+
 export type CalendarProps = {
   title?: string;
   eyebrow?: string;
@@ -220,6 +237,9 @@ export default function Calendar({
   const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [palette, setPalette] = useState<CalendarPalette>(DEFAULT_CALENDAR_PALETTE);
+  // New state stays below the existing useState calls: tests mock hooks positionally.
+  const [selectedDay, setSelectedDay] = useState<Date>(() => startOfDay(new Date()));
+  const [viewingItem, setViewingItem] = useState<ViewingItem | null>(null);
 
   useEffect(() => {
     try {
@@ -308,9 +328,16 @@ export default function Calendar({
     else if (view === "month") next.setMonth(next.getMonth() + direction);
     else next.setFullYear(next.getFullYear() + direction);
     setDate(next);
+    setSelectedDay(startOfDay(next));
   };
 
-  const openCreateEvent = (day = date) => {
+  const goToday = () => {
+    const today = new Date();
+    setDate(today);
+    setSelectedDay(startOfDay(today));
+  };
+
+  const openCreateEvent = (day = selectedDay) => {
     if (!canCreateItem) return;
     setEditingEventId(null);
     setEventDraft({
@@ -337,7 +364,7 @@ export default function Calendar({
     });
   };
 
-  const openCreateReminder = (day = date) => {
+  const openCreateReminder = (day = selectedDay) => {
     if (!canCreateItem) return;
     setEditingReminderId(null);
     setReminderDraft({
@@ -356,6 +383,17 @@ export default function Calendar({
       remindAt: toLocalInput(new Date(reminder.remindAt)),
       color: reminder.color,
     });
+  };
+
+  // Items the user cannot edit still open a read-only detail view on click.
+  const openEvent = (item: CalendarEvent) => {
+    if (canEditItem(item.scope)) openEditEvent(item);
+    else setViewingItem({ kind: "event", item });
+  };
+
+  const openReminderItem = (reminder: CalendarReminder) => {
+    if (canEditItem(reminder.scope)) openEditReminder(reminder);
+    else setViewingItem({ kind: "reminder", item: reminder });
   };
 
   const saveEvent = async (formEvent: FormEvent<HTMLFormElement>) => {
@@ -476,24 +514,63 @@ export default function Calendar({
 
   const scopeBadge = (scope: CalendarScope) => scope === "organization" ? <span className="calendar-badge">Org</span> : null;
 
-  const renderEvent = (item: CalendarEvent, compact = false) => (
-    <button type="button" disabled={!canEditItem(item.scope)} className={`calendar-event ${compact ? "compact" : ""}`} key={`event-${item.id}`} style={{ "--event-color": palette[calendarColorKey(item.scope, "event")] } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openEditEvent(item); }} title={`${item.title} (${item.eventType})${item.description ? ` — ${item.description}` : ""}`}>
-      <span className="calendar-event-dot" style={{ backgroundColor: item.color }} />
-      <span className="calendar-event-title">{item.title}</span>
-      {(item.reminders?.length ?? 0) > 0 && <span className="calendar-bell" title={item.reminders!.map(formatOffset).join(", ")}>🔔</span>}
-      {!compact && !item.allDay && <time>{new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(item.startAt))}</time>}
-      {scopeBadge(item.scope)}
-    </button>
-  );
+  const renderEvent = (item: CalendarEvent, compact = false) => {
+    const editable = canEditItem(item.scope);
+    return (
+      <button type="button" className={`calendar-event ${compact ? "compact" : ""} ${editable ? "" : "view-only"}`} key={`event-${item.id}`} style={{ "--event-color": palette[calendarColorKey(item.scope, "event")] } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openEvent(item); }} title={`${item.title} (${item.eventType})${item.description ? ` — ${item.description}` : ""}`}>
+        <span className="calendar-event-dot" style={{ backgroundColor: item.color }} />
+        <span className="calendar-event-title">{item.title}</span>
+        {(item.reminders?.length ?? 0) > 0 && <span className="calendar-bell" title={item.reminders!.map(formatOffset).join(", ")}>🔔</span>}
+        {!compact && !item.allDay && <time>{timeFormat.format(new Date(item.startAt))}</time>}
+        {scopeBadge(item.scope)}
+      </button>
+    );
+  };
 
-  const renderReminder = (reminder: CalendarReminder, compact = false) => (
-    <button type="button" disabled={!canEditItem(reminder.scope)} className={`calendar-event reminder ${compact ? "compact" : ""}`} key={`reminder-${reminder.id}`} style={{ "--event-color": palette[calendarColorKey(reminder.scope, "reminder")] } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openEditReminder(reminder); }} title={`${reminder.title} (reminder)${reminder.description ? ` — ${reminder.description}` : ""}`}>
-      <span className="calendar-event-dot" style={{ backgroundColor: reminder.color }} />
-      <span className="calendar-event-title">{reminder.title}</span>
-      {!compact && <time>{new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(reminder.remindAt))}</time>}
-      {scopeBadge(reminder.scope)}
-    </button>
-  );
+  const renderReminder = (reminder: CalendarReminder, compact = false) => {
+    const editable = canEditItem(reminder.scope);
+    return (
+      <button type="button" className={`calendar-event reminder ${compact ? "compact" : ""} ${editable ? "" : "view-only"}`} key={`reminder-${reminder.id}`} style={{ "--event-color": palette[calendarColorKey(reminder.scope, "reminder")] } as CSSProperties} onClick={(clickEvent) => { clickEvent.stopPropagation(); openReminderItem(reminder); }} title={`${reminder.title} (reminder)${reminder.description ? ` — ${reminder.description}` : ""}`}>
+        <span className="calendar-event-dot" style={{ backgroundColor: reminder.color }} />
+        <span className="calendar-event-title">{reminder.title}</span>
+        {!compact && <time>{timeFormat.format(new Date(reminder.remindAt))}</time>}
+        {scopeBadge(reminder.scope)}
+      </button>
+    );
+  };
+
+  const renderSideEvent = (item: CalendarEvent) => {
+    const editable = canEditItem(item.scope);
+    const start = new Date(item.startAt);
+    const end = new Date(item.endAt);
+    return (
+      <button type="button" key={`side-event-${item.id}`} className={`calendar-side-item ${editable ? "" : "view-only"}`} style={{ "--event-color": palette[calendarColorKey(item.scope, "event")] } as CSSProperties} onClick={() => openEvent(item)}>
+        <span className="calendar-event-dot" style={{ backgroundColor: item.color }} />
+        <span className="calendar-side-item-body">
+          <span className="calendar-side-item-title">{item.title}{scopeBadge(item.scope)}</span>
+          <span className="calendar-side-item-meta">
+            {EVENT_TYPES.find((option) => option.value === item.eventType)?.label ?? "Event"} · {item.allDay ? "All day" : sameDate(start, end) ? `${timeFormat.format(start)} – ${timeFormat.format(end)}` : `${shortDateFormat.format(start)} – ${shortDateFormat.format(end)}`}
+            {(item.reminders?.length ?? 0) > 0 && ` · 🔔 ${item.reminders!.map(formatOffset).join(", ")}`}
+          </span>
+          {item.description && <span className="calendar-side-item-desc">{item.description}</span>}
+        </span>
+      </button>
+    );
+  };
+
+  const renderSideReminder = (reminder: CalendarReminder) => {
+    const editable = canEditItem(reminder.scope);
+    return (
+      <button type="button" key={`side-reminder-${reminder.id}`} className={`calendar-side-item is-reminder ${editable ? "" : "view-only"}`} style={{ "--event-color": palette[calendarColorKey(reminder.scope, "reminder")] } as CSSProperties} onClick={() => openReminderItem(reminder)}>
+        <span className="calendar-event-dot" style={{ backgroundColor: reminder.color }} />
+        <span className="calendar-side-item-body">
+          <span className="calendar-side-item-title">{reminder.title}{scopeBadge(reminder.scope)}</span>
+          <span className="calendar-side-item-meta">Reminder · {timeFormat.format(new Date(reminder.remindAt))}</span>
+          {reminder.description && <span className="calendar-side-item-desc">{reminder.description}</span>}
+        </span>
+      </button>
+    );
+  };
 
   const itemsForDay = (day: Date) => {
     const dayEvents = events.filter((item) => eventVisibleOnDate(item, day)).map((item) => ({ kind: "event" as const, item, sortKey: new Date(item.startAt).getTime() }));
@@ -501,13 +578,17 @@ export default function Calendar({
     return [...dayEvents, ...dayReminders].sort((left, right) => left.sortKey - right.sortKey);
   };
 
+  const selectedDayItems = itemsForDay(selectedDay);
+  const viewingEvent = viewingItem?.kind === "event" ? viewingItem.item : null;
+  const viewingReminder = viewingItem?.kind === "reminder" ? viewingItem.item : null;
+
   const renderYear = () => (
     <div className="year-grid">
       {Array.from({ length: 12 }, (_, month) => {
         const first = new Date(date.getFullYear(), month, 1);
         const firstGridDay = startOfWeek(first);
         return (
-          <button className="year-month" key={month} onClick={() => { setDate(first); setView("month"); }}>
+          <button className="year-month" key={month} onClick={() => { setDate(first); setSelectedDay(startOfDay(first)); setView("month"); }}>
             <strong>{new Intl.DateTimeFormat(undefined, { month: "long" }).format(first)}</strong>
             <div className="year-weekdays">{weekdays.map((day) => <span key={day}>{day[0]}</span>)}</div>
             <div className="year-days">
@@ -531,9 +612,13 @@ export default function Calendar({
         {daysInView.map((day) => {
           const dayItems = itemsForDay(day);
           const inCurrentMonth = day.getMonth() === date.getMonth();
+          const dayLabel = fullDayFormat.format(day);
           return (
-            <div className={`calendar-day ${view === "month" && !inCurrentMonth ? "outside" : ""} ${sameDate(day, new Date()) ? "today" : ""}`} key={day.toISOString()} role={canCreateItem ? "button" : undefined} tabIndex={canCreateItem ? 0 : -1} aria-label={canCreateItem ? `Create an event on ${new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(day)}` : new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(day)} onClick={() => canCreateItem && openCreateEvent(day)} onKeyDown={(keyEvent) => { if (canCreateItem && (keyEvent.key === "Enter" || keyEvent.key === " ")) { keyEvent.preventDefault(); openCreateEvent(day); } }}>
-              <span className="calendar-day-number">{view === "week" && <small>{weekdays[day.getDay()]}</small>}{day.getDate()}</span>
+            <div className={`calendar-day ${view === "month" && !inCurrentMonth ? "outside" : ""} ${sameDate(day, new Date()) ? "today" : ""} ${sameDate(day, selectedDay) ? "selected" : ""}`} key={day.toISOString()} role="button" tabIndex={0} aria-label={`Show events and reminders for ${dayLabel}`} onClick={() => setSelectedDay(startOfDay(day))} onKeyDown={(keyEvent) => { if (keyEvent.key === "Enter" || keyEvent.key === " ") { keyEvent.preventDefault(); setSelectedDay(startOfDay(day)); } }}>
+              <span className="calendar-day-top">
+                {canCreateItem && <button type="button" className="calendar-day-add" title={`Add an event on ${dayLabel}`} aria-label={`Add an event on ${dayLabel}`} onClick={(clickEvent) => { clickEvent.stopPropagation(); openCreateEvent(day); }}>＋</button>}
+                <span className="calendar-day-number">{view === "week" && <small>{weekdays[day.getDay()]}</small>}{day.getDate()}</span>
+              </span>
               <span className="calendar-day-items">{dayItems.slice(0, view === "month" ? 3 : 12).map((entry) => entry.kind === "event" ? renderEvent(entry.item as CalendarEvent, view === "month") : renderReminder(entry.item as CalendarReminder, view === "month"))}{dayItems.length > (view === "month" ? 3 : 12) && <span className="calendar-more">+{dayItems.length - (view === "month" ? 3 : 12)} more</span>}{dayItems.length === 0 && view !== "month" && <span className="calendar-empty-hint">No items planned</span>}</span>
             </div>
           );
@@ -554,11 +639,12 @@ export default function Calendar({
         {canCreateItem && <div className="calendar-create-group"><button className="button primary calendar-create" onClick={() => openCreateEvent()}>＋ Add event</button><button className="button secondary calendar-create" onClick={() => openCreateReminder()}>＋ Add reminder</button></div>}
       </div>
 
+      <div className="calendar-body">
       <section className="panel calendar-panel">
         <div className="calendar-toolbar">
           <div className="calendar-date-navigation">
             <button className="calendar-arrow" aria-label="Previous period" onClick={() => move(-1)}>‹</button>
-            <button className="calendar-today-button" onClick={() => setDate(new Date())}>Today</button>
+            <button className="calendar-today-button" onClick={goToday}>Today</button>
             <button className="calendar-arrow" aria-label="Next period" onClick={() => move(1)}>›</button>
             <h2>{formatHeading(date, view)}</h2>
           </div>
@@ -584,6 +670,36 @@ export default function Calendar({
         {error && <div className="calendar-error" role="alert">{error}</div>}
         {loading ? <div className="calendar-loading"><i className="spinner" /> Loading your calendar…</div> : view === "year" ? renderYear() : renderDays()}
       </section>
+
+      <aside className="panel calendar-side-panel" aria-label="Events and reminders for the selected day">
+        <div className="calendar-side-heading">
+          <div className="eyebrow">Selected day</div>
+          <h2>{fullDayFormat.format(selectedDay)}</h2>
+        </div>
+        {selectedDayItems.length === 0 ? (
+          <p className="calendar-side-empty">No events or reminders for this day.</p>
+        ) : (
+          <div className="calendar-side-list">
+            {selectedDayItems.map((entry) => entry.kind === "event" ? renderSideEvent(entry.item as CalendarEvent) : renderSideReminder(entry.item as CalendarReminder))}
+          </div>
+        )}
+        {canCreateItem && <div className="calendar-side-actions"><button type="button" className="button secondary" onClick={() => openCreateEvent(selectedDay)}>＋ Event</button><button type="button" className="button secondary" onClick={() => openCreateReminder(selectedDay)}>＋ Reminder</button></div>}
+      </aside>
+      </div>
+
+      {viewingItem && <div className="calendar-modal-backdrop" role="presentation" onMouseDown={(mouseEvent) => { if (mouseEvent.target === mouseEvent.currentTarget) setViewingItem(null); }}>
+        <section className="calendar-modal calendar-view-modal" role="dialog" aria-modal="true" aria-labelledby="view-item-title">
+          <div className="calendar-modal-heading"><div><div className="eyebrow">{viewingItem.item.scope === "organization" ? "Organization" : "Personal"} {viewingItem.kind} · Read-only</div><h2 id="view-item-title">{viewingItem.item.title}</h2></div><button className="icon-button" aria-label="Close dialog" onClick={() => setViewingItem(null)}>×</button></div>
+          <div className="calendar-view-body">
+            <div className="calendar-view-row"><span className="calendar-view-label">When</span><span>{viewingEvent ? formatEventWhen(viewingEvent) : viewingReminder ? `${fullDayFormat.format(new Date(viewingReminder.remindAt))} · ${timeFormat.format(new Date(viewingReminder.remindAt))}` : ""}</span></div>
+            {viewingEvent && <div className="calendar-view-row"><span className="calendar-view-label">Type</span><span>{EVENT_TYPES.find((option) => option.value === viewingEvent.eventType)?.label ?? viewingEvent.eventType}</span></div>}
+            {viewingEvent && (viewingEvent.reminders?.length ?? 0) > 0 && <div className="calendar-view-row"><span className="calendar-view-label">Reminders</span><span>{viewingEvent.reminders!.map(formatOffset).join("; ")}</span></div>}
+            <div className="calendar-view-row"><span className="calendar-view-label">Color</span><span><i className="calendar-view-swatch" style={{ backgroundColor: viewingItem.item.color }} />{viewingItem.item.color}</span></div>
+            {viewingItem.item.description && <div className="calendar-view-row"><span className="calendar-view-label">Notes</span><span className="calendar-view-notes">{viewingItem.item.description}</span></div>}
+          </div>
+          <div className="calendar-form-footer"><div className="calendar-form-spacer" /><button className="button secondary" type="button" onClick={() => setViewingItem(null)}>Close</button></div>
+        </section>
+      </div>}
 
       {eventDraft && <div className="calendar-modal-backdrop" role="presentation" onMouseDown={(mouseEvent) => { if (mouseEvent.target === mouseEvent.currentTarget && !saving) setEventDraft(null); }}>
         <section className="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="event-form-title">
