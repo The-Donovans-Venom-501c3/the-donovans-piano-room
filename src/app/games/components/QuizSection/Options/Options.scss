@@ -33,6 +33,9 @@ $correct-bg: #438342;
     background-color: $wrong-bg;
     border-color: $wrong-bg;
     box-shadow: 0px 5px 0px 0px rgba($wrong-bg, 0.8);
+    &:disabled {
+      opacity: 1; // override the global.css `button:disabled`
+    }
     &:hover,
     &:active {
       background-color: $wrong-bg;
@@ -45,6 +48,9 @@ $correct-bg: #438342;
     border-color: $correct-bg;
     box-shadow: 0px 5px 0px 0px rgba($correct-bg, 0.8);
     color: #fff;
+    &:disabled {
+      opacity: 1; // override the global.css `button:disabled`
+    }
     &:hover,
     &:active {
       background-color: $correct-bg;
