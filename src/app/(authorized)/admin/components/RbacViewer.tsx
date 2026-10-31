@@ -114,7 +114,7 @@ export default function RbacViewer() {
       <div className="header-row">
         <div>
           <div className="eyebrow">Access control · Admin</div>
-          <h1 className="page-title">RBAC viewer</h1>
+          <h1 className="page-title">View Roles</h1>
           <p className="page-description">
             Select a user to explore their personas, roles, and effective permissions as a tree or raw JSON.
           </p>
@@ -152,7 +152,8 @@ export default function RbacViewer() {
           <div className="panel-head">
             <div>
               <h2 className="panel-title">User authorization data</h2>
-              <div className="panel-subtitle">GET /rbac/admin/users/:id/rbac</div>
+              <div className="panel-subtitle"></div>
+              {/*<div className="panel-subtitle">GET /rbac/admin/users/:id/rbac</div>*/}
             </div>
             <div className="field rbac-user-picker">
               <label htmlFor="rbac-user">USER</label>
@@ -211,7 +212,8 @@ export default function RbacViewer() {
           <div className="panel-head">
             <div>
               <h2 className="panel-title">Users by permission</h2>
-              <div className="panel-subtitle">GET /rbac/admin/rbac/users · user_effective_permissions view</div>
+              <div className="panel-subtitle"></div>
+              {/* <div className="panel-subtitle">GET /rbac/admin/rbac/users · user_effective_permissions view</div> */}
             </div>
             <div className="rbac-filter-row">
               <div className="field">

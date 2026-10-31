@@ -10,11 +10,12 @@ export default function PlannerPage() {
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Planner}
       openedLink={nav4leftLinks.planner}
+      contentClassName="admin-ui"
     >
       <Calendar
         title="My planner"
         eyebrow="Make time for music"
-        description="Create and manage your own private events and reminders. Organization events and reminders are visible here as read-only and are managed from Admin."
+        description="Create and manage your own private events and reminders. Organization events and reminders are visible here."
         showPermissionBadges={false}
         personalEditsOnly
       />

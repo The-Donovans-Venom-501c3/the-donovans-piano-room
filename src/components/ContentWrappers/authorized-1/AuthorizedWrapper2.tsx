@@ -10,11 +10,14 @@ export default function AuthorizedWrapper2({
   pageTitle,
   openedLink = "",
   contentHeader,
+  contentClassName,
 }: {
   children: React.ReactNode;
   pageTitle: string;
   openedLink?: string;
   contentHeader?: React.ReactNode;
+  /** Extra classes for the inner content column (e.g. route-scoped styles). */
+  contentClassName?: string;
 }) {
   return (
     <div className="flex w-[100vw] h-[100vh] bg-[#F5E8FF] overflow-hidden">
@@ -45,7 +48,9 @@ export default function AuthorizedWrapper2({
             ? "min-h-0 flex-1 flex justify-center overflow-y-auto scroll-smooth"
             : "h-[80.8vh] flex justify-center overflow-y-auto scroll-smooth"}
         >
-          <div className="w-[84.7%] relative py-6">{children}</div>
+          <div className={`w-[84.7%] relative py-6 ${contentClassName ?? ""}`}>
+            {children}
+          </div>
         </div>
 
         {/* Fixed Footer */}
