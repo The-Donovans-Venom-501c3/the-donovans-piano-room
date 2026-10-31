@@ -24,8 +24,8 @@ const sections: NavItem[] = [
   { name: "Calendar", id: "calendar" },
   { name: "Coupons", id: "coupons" },
   { name: "Notifications", id: "notifications" },
-  { name: "RBAC Viewer", id: "rbacviewer" },
-  { name: "RBAC Manager", id: "rbacmanager" },
+  { name: "View Roles", id: "rbacviewer" },
+  { name: "Manage Roles", id: "rbacmanager" },
   { name: "Schools", id: "schools" },
   { name: "Classes", id: "classes" },
 ];
@@ -89,6 +89,7 @@ function AdminPageContent() {
           }}
         />
       }
+      contentClassName="admin-ui"
     >
       <div className="w-full flex flex-col min-h-screen pb-32">
         {renderContent()}
@@ -137,14 +138,14 @@ const NavBar = ({
       </div>
 
       {/* Dynamic Search Box */}
-      <div className="relative w-full sm:w-72 md:w-88 shrink-0">
-        <input
+{/*       <div className="relative w-full sm:w-72 md:w-88 shrink-0">
+         <input
           type="text"
           value={searchQuery}
           //onChange={(e) => onSearchChange(e.target.value)}
           placeholder={`Search ${activeTabName.toLowerCase()}...`}
           className="w-full bg-[#FFFDF7] border border-[#3F3B3C]/25 text-[#3F3B3C] placeholder-[#7A6E82] text-base md:text-lg font-medium px-5 py-3 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6F219E]/40 transition-all shadow-xs"
-        />
+        /> 
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#6F219E]">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -155,7 +156,7 @@ const NavBar = ({
             />
           </svg>
         </div>
-      </div>
+      </div> */}
     </nav>
   );
 };

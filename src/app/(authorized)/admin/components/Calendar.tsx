@@ -2,6 +2,7 @@
 
 import { apiRequest } from "@/lib/api/api";
 import { CALENDAR_COLOR_CATEGORIES, CALENDAR_PALETTE_STORAGE_KEY, DEFAULT_CALENDAR_PALETTE, calendarColorKey, parseCalendarPalette, type CalendarPalette } from "@/lib/calendarColors";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { CSSProperties, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 type CalendarScope = "organization" | "user";
@@ -71,8 +72,8 @@ const EVENT_TYPES: { value: EventType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-const DEFAULT_EVENT_COLOR = "#24694e";
-const DEFAULT_REMINDER_COLOR = "#e98255";
+const DEFAULT_EVENT_COLOR = "#6f219e";
+const DEFAULT_REMINDER_COLOR = "#e98427";
 const PERSONAL_CALENDAR_ACTIONS = { view: true, create: true, edit: true, delete: true, publish: false };
 
 function startOfDay(value: Date) {
@@ -240,6 +241,8 @@ export default function Calendar({
   // New state stays below the existing useState calls: tests mock hooks positionally.
   const [selectedDay, setSelectedDay] = useState<Date>(() => startOfDay(new Date()));
   const [viewingItem, setViewingItem] = useState<ViewingItem | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<"event" | "reminder" | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     try {
@@ -477,15 +480,17 @@ export default function Calendar({
 
   const deleteEvent = async () => {
     if (personalEditsOnly && eventDraft?.scope !== "user") return;
-    if (!permissions?.delete || !editingEventId || !window.confirm("Delete this event and its reminders?")) return;
+    if (!permissions?.delete || !editingEventId) return;
     setSaving(true);
+    setDeleteError("");
     try {
       await apiRequest(`/calendar/events/${encodeURIComponent(editingEventId)}`, { method: "DELETE" });
       setEventDraft(null);
       setEditingEventId(null);
+      setPendingDelete(null);
       await loadItems();
-    } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Unable to delete this event.");
+    } catch (requestError) {
+      setDeleteError(requestError instanceof Error ? requestError.message : "Unable to delete this event.");
     } finally {
       setSaving(false);
     }
@@ -493,15 +498,17 @@ export default function Calendar({
 
   const deleteReminder = async () => {
     if (personalEditsOnly && reminderDraft?.scope !== "user") return;
-    if (!permissions?.delete || !editingReminderId || !window.confirm("Delete this reminder?")) return;
+    if (!permissions?.delete || !editingReminderId) return;
     setSaving(true);
+    setDeleteError("");
     try {
       await apiRequest(`/calendar/reminders/${encodeURIComponent(editingReminderId)}`, { method: "DELETE" });
       setReminderDraft(null);
       setEditingReminderId(null);
+      setPendingDelete(null);
       await loadItems();
-    } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Unable to delete this reminder.");
+    } catch (requestError) {
+      setDeleteError(requestError instanceof Error ? requestError.message : "Unable to delete this reminder.");
     } finally {
       setSaving(false);
     }
@@ -636,7 +643,7 @@ export default function Calendar({
           <p className="page-description">{description}</p>
           {showPermissionBadges && permissions && <div className="perm-badges" aria-label="Your calendar permissions">{(["view", "create", "edit", "delete", "publish"] as const).map((action) => <span className={`perm-badge ${permissions[action] ? "granted" : ""}`} key={action}>{action}</span>)}</div>}
         </div>
-        {canCreateItem && <div className="calendar-create-group"><button className="button primary calendar-create" onClick={() => openCreateEvent()}>＋ Add event</button><button className="button secondary calendar-create" onClick={() => openCreateReminder()}>＋ Add reminder</button></div>}
+        {canCreateItem && <div className="calendar-create-group"><button className="button primary calendar-create" onClick={() => openCreateEvent()}>＋ Add event</button><button className="button primary calendar-create" onClick={() => openCreateReminder()}>Add reminder</button></div>}
       </div>
 
       <div className="calendar-body">
@@ -683,7 +690,7 @@ export default function Calendar({
             {selectedDayItems.map((entry) => entry.kind === "event" ? renderSideEvent(entry.item as CalendarEvent) : renderSideReminder(entry.item as CalendarReminder))}
           </div>
         )}
-        {canCreateItem && <div className="calendar-side-actions"><button type="button" className="button secondary" onClick={() => openCreateEvent(selectedDay)}>＋ Event</button><button type="button" className="button secondary" onClick={() => openCreateReminder(selectedDay)}>＋ Reminder</button></div>}
+        {canCreateItem && <div className="calendar-side-actions"><button type="button" className="button primary" onClick={() => openCreateEvent(selectedDay)}>＋ Event</button><button type="button" className="button primary" onClick={() => openCreateReminder(selectedDay)}>＋ Reminder</button></div>}
       </aside>
       </div>
 
@@ -733,7 +740,7 @@ export default function Calendar({
                 </div>
               </div>
             </div>
-            <div className="calendar-form-footer">{editingEventId && permissions?.delete && <button className="button danger" type="button" onClick={() => void deleteEvent()} disabled={saving}>Delete</button>}<div className="calendar-form-spacer" /><button className="button secondary" type="button" onClick={() => setEventDraft(null)} disabled={saving}>Cancel</button><button className="button primary" type="submit" disabled={saving || (editingEventId ? !permissions?.edit : !permissions?.create)}>{saving ? "Saving…" : editingEventId ? "Save changes" : "Create event"}</button></div>
+            <div className="calendar-form-footer">{editingEventId && permissions?.delete && <button className="button danger" type="button" onClick={() => { setDeleteError(""); setPendingDelete("event"); }} disabled={saving}>Delete</button>}<div className="calendar-form-spacer" /><button className="button secondary" type="button" onClick={() => setEventDraft(null)} disabled={saving}>Cancel</button><button className="button primary" type="submit" disabled={saving || (editingEventId ? !permissions?.edit : !permissions?.create)}>{saving ? "Saving…" : editingEventId ? "Save changes" : "Create event"}</button></div>
           </form>
         </section>
       </div>}
@@ -751,10 +758,33 @@ export default function Calendar({
               <div className="field"><label htmlFor="reminder-description">NOTES</label><textarea id="reminder-description" maxLength={2000} value={reminderDraft.description} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, description: changeEvent.target.value })} placeholder="Add a reminder note…" /></div>
               <div className="field"><label htmlFor="reminder-color">COLOR</label><input id="reminder-color" type="color" value={reminderDraft.color} onChange={(changeEvent) => setReminderDraft({ ...reminderDraft, color: changeEvent.target.value })} /></div>
             </div>
-            <div className="calendar-form-footer">{editingReminderId && permissions?.delete && <button className="button danger" type="button" onClick={() => void deleteReminder()} disabled={saving}>Delete</button>}<div className="calendar-form-spacer" /><button className="button secondary" type="button" onClick={() => setReminderDraft(null)} disabled={saving}>Cancel</button><button className="button primary" type="submit" disabled={saving || (editingReminderId ? !permissions?.edit : !permissions?.create)}>{saving ? "Saving…" : editingReminderId ? "Save changes" : "Create reminder"}</button></div>
+            <div className="calendar-form-footer">{editingReminderId && permissions?.delete && <button className="button danger" type="button" onClick={() => { setDeleteError(""); setPendingDelete("reminder"); }} disabled={saving}>Delete</button>}<div className="calendar-form-spacer" /><button className="button secondary" type="button" onClick={() => setReminderDraft(null)} disabled={saving}>Cancel</button><button className="button primary" type="submit" disabled={saving || (editingReminderId ? !permissions?.edit : !permissions?.create)}>{saving ? "Saving…" : editingReminderId ? "Save changes" : "Create reminder"}</button></div>
           </form>
         </section>
       </div>}
+
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!saving) setPendingDelete(null); }}
+        aria-labelledby="delete-calendar-item-title"
+        aria-describedby="delete-calendar-item-description"
+      >
+        <DialogTitle id="delete-calendar-item-title">{pendingDelete === "event" ? "Delete event?" : "Delete reminder?"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-calendar-item-description">
+            {pendingDelete === "event"
+              ? "Permanently delete this event and its reminders? This cannot be undone."
+              : "Permanently delete this reminder? This cannot be undone."}
+          </DialogContentText>
+          {deleteError && <p role="alert" className="mt-4 text-red-700">{deleteError}</p>}
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={saving} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
+          <Button color="error" disabled={saving} onClick={() => { if (pendingDelete === "event") void deleteEvent(); else if (pendingDelete === "reminder") void deleteReminder(); }}>
+            {saving ? "Deleting…" : pendingDelete === "event" ? "Delete event" : "Delete reminder"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api/api";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 
 // ---- Types matching the /rbac/admin/catalog response ----------------------
 type ResourceRow = { id: string; name: string; description: string };
@@ -133,7 +134,7 @@ export default function RbacManager() {
       <div className="header-row">
         <div>
           <div className="eyebrow">Access control · Admin</div>
-          <h1 className="page-title">RBAC manager</h1>
+          <h1 className="page-title">Manage Roles</h1>
           <p className="page-description">
             Create and manage resources, actions, permissions, roles, personas, and user assignments.
           </p>
@@ -192,6 +193,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function ResourcesSection({ catalog, run, busy }: SectionProps) {
   const [draft, setDraft] = useState({ id: "", name: "", description: "" });
   const [editing, setEditing] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ResourceRow | null>(null);
 
   function startEdit(row: ResourceRow) {
     setEditing(row.id);
@@ -215,11 +217,20 @@ function ResourcesSection({ catalog, run, busy }: SectionProps) {
     if (ok) reset();
   }
 
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const ok = await run(
+      () => apiRequest(`/rbac/admin/resources/${encodeURIComponent(pendingDelete.id)}`, { method: "DELETE" }),
+      "Resource deleted.",
+    );
+    if (ok) setPendingDelete(null);
+  }
+
   return (
     <div className="workspace-grid">
       <section className="panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">Resources</h2><div className="panel-subtitle">GET · PUT · DELETE /rbac/admin/resources</div></div>
+          <div><h2 className="panel-title">Resources</h2><div className="panel-subtitle"></div></div>
         </div>
         <div className="record-list">
           {catalog.resources.map((row) => (
@@ -231,10 +242,7 @@ function ResourcesSection({ catalog, run, busy }: SectionProps) {
               </div>
               <div className="row-actions">
                 <button className="icon-button" title="Edit" onClick={() => startEdit(row)}>✎</button>
-                <button className="icon-button danger" title="Delete" onClick={() => {
-                  if (window.confirm(`Delete resource "${row.id}"? Its permissions will also be removed.`))
-                    run(() => apiRequest(`/rbac/admin/resources/${encodeURIComponent(row.id)}`, { method: "DELETE" }), "Resource deleted.");
-                }}>×</button>
+                <button className="icon-button danger" title="Delete" onClick={() => setPendingDelete(row)}>×</button>
               </div>
             </article>
           ))}
@@ -258,6 +266,26 @@ function ResourcesSection({ catalog, run, busy }: SectionProps) {
           </div>
         </form>
       </section>
+
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+        aria-labelledby="delete-resource-title"
+        aria-describedby="delete-resource-description"
+      >
+        <DialogTitle id="delete-resource-title">Delete resource?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-resource-description">
+            Permanently delete resource &quot;{pendingDelete?.id}&quot;? Its permissions will also be removed. This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
+          <Button color="error" disabled={busy} onClick={() => void confirmDelete()}>
+            {busy ? "Deleting…" : "Delete resource"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -266,6 +294,7 @@ function ResourcesSection({ catalog, run, busy }: SectionProps) {
 function ActionsSection({ catalog, run, busy }: SectionProps) {
   const [draft, setDraft] = useState({ id: "", name: "", description: "" });
   const [editing, setEditing] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ActionRow | null>(null);
 
   function startEdit(row: ActionRow) {
     setEditing(row.id);
@@ -289,11 +318,20 @@ function ActionsSection({ catalog, run, busy }: SectionProps) {
     if (ok) reset();
   }
 
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const ok = await run(
+      () => apiRequest(`/rbac/admin/actions/${encodeURIComponent(pendingDelete.id)}`, { method: "DELETE" }),
+      "Action deleted.",
+    );
+    if (ok) setPendingDelete(null);
+  }
+
   return (
     <div className="workspace-grid">
       <section className="panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">Actions</h2><div className="panel-subtitle">GET · PUT · DELETE /rbac/admin/actions</div></div>
+          <div><h2 className="panel-title">Actions</h2><div className="panel-subtitle"></div></div>
         </div>
         <div className="record-list">
           {catalog.actions.map((row) => (
@@ -305,10 +343,7 @@ function ActionsSection({ catalog, run, busy }: SectionProps) {
               </div>
               <div className="row-actions">
                 <button className="icon-button" title="Edit" onClick={() => startEdit(row)}>✎</button>
-                <button className="icon-button danger" title="Delete" onClick={() => {
-                  if (window.confirm(`Delete action "${row.id}"? Related permissions will also be removed.`))
-                    run(() => apiRequest(`/rbac/admin/actions/${encodeURIComponent(row.id)}`, { method: "DELETE" }), "Action deleted.");
-                }}>×</button>
+                <button className="icon-button danger" title="Delete" onClick={() => setPendingDelete(row)}>×</button>
               </div>
             </article>
           ))}
@@ -332,6 +367,26 @@ function ActionsSection({ catalog, run, busy }: SectionProps) {
           </div>
         </form>
       </section>
+
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+        aria-labelledby="delete-action-title"
+        aria-describedby="delete-action-description"
+      >
+        <DialogTitle id="delete-action-title">Delete action?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-action-description">
+            Permanently delete action &quot;{pendingDelete?.id}&quot;? Related permissions will also be removed. This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
+          <Button color="error" disabled={busy} onClick={() => void confirmDelete()}>
+            {busy ? "Deleting…" : "Delete action"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -339,9 +394,21 @@ function ActionsSection({ catalog, run, busy }: SectionProps) {
 // ---- Permissions ----------------------------------------------------------
 function PermissionsSection({ catalog, run, busy }: SectionProps) {
   const [draft, setDraft] = useState({ resourceId: "", actionId: "", description: "" });
+  const [editing, setEditing] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PermissionRow | null>(null);
 
   const resourceName = useMemo(() => Object.fromEntries(catalog.resources.map((r) => [r.id, r.name])), [catalog.resources]);
   const actionName = useMemo(() => Object.fromEntries(catalog.actions.map((a) => [a.id, a.name])), [catalog.actions]);
+  const permissionCode = draft.resourceId && draft.actionId ? `${draft.resourceId}_${draft.actionId}` : "resource_action";
+
+  function startEdit(row: PermissionRow) {
+    setEditing(row.id);
+    setDraft({ resourceId: row.resourceId, actionId: row.actionId, description: row.description });
+  }
+  function reset() {
+    setEditing(null);
+    setDraft({ resourceId: catalog.resources[0]?.id || "", actionId: catalog.actions[0]?.id || "", description: "" });
+  }
 
   useEffect(() => {
     setDraft((d) => ({
@@ -353,18 +420,31 @@ function PermissionsSection({ catalog, run, busy }: SectionProps) {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    const body = { resourceId: draft.resourceId, actionId: draft.actionId, description: draft.description };
     const ok = await run(
-      () => apiRequest("/rbac/admin/permissions", { method: "POST", body: JSON.stringify(draft) }),
-      "Permission created.",
+      () =>
+        editing
+          ? apiRequest(`/rbac/admin/permissions/${encodeURIComponent(editing)}`, { method: "PUT", body: JSON.stringify(body) })
+          : apiRequest("/rbac/admin/permissions", { method: "POST", body: JSON.stringify(body) }),
+      editing ? "Permission updated." : "Permission created.",
     );
-    if (ok) setDraft({ resourceId: catalog.resources[0]?.id || "", actionId: catalog.actions[0]?.id || "", description: "" });
+    if (ok) reset();
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const ok = await run(
+      () => apiRequest(`/rbac/admin/permissions/${encodeURIComponent(pendingDelete.id)}`, { method: "DELETE" }),
+      "Permission deleted.",
+    );
+    if (ok) setPendingDelete(null);
   }
 
   return (
     <div className="workspace-grid">
       <section className="panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">Permissions</h2><div className="panel-subtitle">resource × action pairs · DELETE /rbac/admin/permissions/:id</div></div>
+          <div><h2 className="panel-title">Permissions</h2><div className="panel-subtitle">resource × action pairs </div></div>
         </div>
         <div className="record-list">
           {catalog.permissions.map((row) => (
@@ -375,10 +455,8 @@ function PermissionsSection({ catalog, run, busy }: SectionProps) {
                 <div className="record-meta"><span className="badge">{row.code}</span><span>{row.description}</span></div>
               </div>
               <div className="row-actions">
-                <button className="icon-button danger" title="Delete" onClick={() => {
-                  if (window.confirm(`Delete permission "${row.code}"?`))
-                    run(() => apiRequest(`/rbac/admin/permissions/${encodeURIComponent(row.id)}`, { method: "DELETE" }), "Permission deleted.");
-                }}>×</button>
+                <button className="icon-button" title="Edit" onClick={() => startEdit(row)}>✎</button>
+                <button className="icon-button danger" title="Delete" onClick={() => setPendingDelete(row)}>×</button>
               </div>
             </article>
           ))}
@@ -388,7 +466,8 @@ function PermissionsSection({ catalog, run, busy }: SectionProps) {
 
       <section className="panel form-panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">Create permission</h2><div className="panel-subtitle">POST · Pair a resource with an action</div></div>
+          <div><h2 className="panel-title">{editing ? "Edit permission" : "Create permission"}</h2><div className="panel-subtitle">{editing ? `Editing ${permissionCode}` : "POST · Pair a resource with an action"}</div></div>
+          {editing && <button className="button secondary" onClick={reset}>Cancel</button>}
         </div>
         <form onSubmit={submit}>
           <div className="form-content">
@@ -403,13 +482,37 @@ function PermissionsSection({ catalog, run, busy }: SectionProps) {
               </select>
             </Field>
             <Field label="DESCRIPTION"><textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder="Optional" /></Field>
-            <div className="callout">The permission code is generated as <code>resource_action</code>.</div>
+            <div className="callout">
+              {editing
+                ? <>Changing the resource or action updates the code to <code>{permissionCode}</code> and affects every role that includes this permission.</>
+                : <>The permission code is generated as <code>{permissionCode}</code>.</>}
+            </div>
           </div>
           <div className="form-actions">
-            <button className="button primary full" type="submit" disabled={busy}>+ Create permission</button>
+            <button className="button primary full" type="submit" disabled={busy}>{busy ? "Saving…" : editing ? "Save changes" : "+ Create permission"}</button>
           </div>
         </form>
       </section>
+
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+        aria-labelledby="delete-permission-title"
+        aria-describedby="delete-permission-description"
+      >
+        <DialogTitle id="delete-permission-title">Delete permission?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-permission-description">
+            Permanently delete permission &quot;{pendingDelete?.code}&quot;? This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
+          <Button color="error" disabled={busy} onClick={() => void confirmDelete()}>
+            {busy ? "Deleting…" : "Delete permission"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -419,6 +522,7 @@ function RolesSection({ catalog, run, busy }: SectionProps) {
   const empty = { code: "", name: "", description: "", permissionIds: [] as string[] };
   const [draft, setDraft] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<RoleRow | null>(null);
 
   function startEdit(row: RoleRow) {
     setEditing(row.id);
@@ -445,6 +549,15 @@ function RolesSection({ catalog, run, busy }: SectionProps) {
     if (ok) reset();
   }
 
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const ok = await run(
+      () => apiRequest(`/rbac/admin/roles/${encodeURIComponent(pendingDelete.id)}`, { method: "DELETE" }),
+      "Role deleted.",
+    );
+    if (ok) setPendingDelete(null);
+  }
+
   return (
     <div className="workspace-grid">
       <section className="panel">
@@ -461,10 +574,7 @@ function RolesSection({ catalog, run, busy }: SectionProps) {
               </div>
               <div className="row-actions">
                 <button className="icon-button" title="Edit" onClick={() => startEdit(row)}>✎</button>
-                <button className="icon-button danger" title="Delete" onClick={() => {
-                  if (window.confirm(`Delete role "${row.code}"?`))
-                    run(() => apiRequest(`/rbac/admin/roles/${encodeURIComponent(row.id)}`, { method: "DELETE" }), "Role deleted.");
-                }}>×</button>
+                <button className="icon-button danger" title="Delete" onClick={() => setPendingDelete(row)}>×</button>
               </div>
             </article>
           ))}
@@ -498,6 +608,26 @@ function RolesSection({ catalog, run, busy }: SectionProps) {
           </div>
         </form>
       </section>
+
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+        aria-labelledby="delete-role-title"
+        aria-describedby="delete-role-description"
+      >
+        <DialogTitle id="delete-role-title">Delete role?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-role-description">
+            Permanently delete role &quot;{pendingDelete?.code}&quot;? This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
+          <Button color="error" disabled={busy} onClick={() => void confirmDelete()}>
+            {busy ? "Deleting…" : "Delete role"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -507,6 +637,7 @@ function PersonasSection({ catalog, run, busy }: SectionProps) {
   const empty = { code: "", name: "", description: "", roleIds: [] as string[] };
   const [draft, setDraft] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PersonaRow | null>(null);
 
   function startEdit(row: PersonaRow) {
     setEditing(row.id);
@@ -533,6 +664,15 @@ function PersonasSection({ catalog, run, busy }: SectionProps) {
     if (ok) reset();
   }
 
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const ok = await run(
+      () => apiRequest(`/rbac/admin/personas/${encodeURIComponent(pendingDelete.id)}`, { method: "DELETE" }),
+      "Persona deleted.",
+    );
+    if (ok) setPendingDelete(null);
+  }
+
   return (
     <div className="workspace-grid">
       <section className="panel">
@@ -549,10 +689,7 @@ function PersonasSection({ catalog, run, busy }: SectionProps) {
               </div>
               <div className="row-actions">
                 <button className="icon-button" title="Edit" onClick={() => startEdit(row)}>✎</button>
-                <button className="icon-button danger" title="Delete" onClick={() => {
-                  if (window.confirm(`Delete persona "${row.code}"?`))
-                    run(() => apiRequest(`/rbac/admin/personas/${encodeURIComponent(row.id)}`, { method: "DELETE" }), "Persona deleted.");
-                }}>×</button>
+                <button className="icon-button danger" title="Delete" onClick={() => setPendingDelete(row)}>×</button>
               </div>
             </article>
           ))}
@@ -586,6 +723,26 @@ function PersonasSection({ catalog, run, busy }: SectionProps) {
           </div>
         </form>
       </section>
+
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+        aria-labelledby="delete-persona-title"
+        aria-describedby="delete-persona-description"
+      >
+        <DialogTitle id="delete-persona-title">Delete persona?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-persona-description">
+            Permanently delete persona &quot;{pendingDelete?.code}&quot;? This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
+          <Button color="error" disabled={busy} onClick={() => void confirmDelete()}>
+            {busy ? "Deleting…" : "Delete persona"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

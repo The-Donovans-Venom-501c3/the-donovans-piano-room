@@ -228,7 +228,7 @@ export default function NotificationsAdmin() {
           {deleteError && <p role="alert" className="mt-4 text-red-700">{deleteError}</p>}
         </DialogContent>
         <DialogActions>
-          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)}>Cancel</Button>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
           <Button color="error" disabled={busy || !permissions?.delete} onClick={() => { if (pendingDelete) void remove(pendingDelete); }}>
             {busy ? "Deleting…" : "Delete notification"}
           </Button>

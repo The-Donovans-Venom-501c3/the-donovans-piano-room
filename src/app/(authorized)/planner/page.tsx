@@ -10,6 +10,7 @@ export default function PlannerPage() {
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Planner}
       openedLink={nav4leftLinks.planner}
+      contentClassName="admin-ui"
     >
       <Calendar
         title="My planner"

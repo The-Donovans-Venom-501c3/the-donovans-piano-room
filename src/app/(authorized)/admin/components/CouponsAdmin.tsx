@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api/api";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
 
 type Coupon = {
   couponCode: string;
@@ -77,6 +78,8 @@ export default function CouponsAdmin() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Coupon | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   const notify = useCallback((text: string, isError = false) => {
     setToast({ text, error: isError });
@@ -162,17 +165,19 @@ export default function CouponsAdmin() {
 
   async function remove(coupon: Coupon) {
     if (!permissions?.delete) return;
-    if (!window.confirm(`Permanently delete coupon "${coupon.couponCode}"?`)) return;
+    if (busy) return;
+    setDeleteError("");
     setBusy(true);
     try {
       await apiRequest(`/couponMgr/coupons/${encodeURIComponent(coupon.couponCode)}`,
        { method: "DELETE", invalidateTags: ["coupons"] });
 
+      setPendingDelete(null);
       await refresh();
       if (editingCode === coupon.couponCode) reset();
       notify("Coupon deleted.");
     } catch (err) {
-      notify(recordError(err), true);
+      setDeleteError(recordError(err));
     } finally {
       setBusy(false);
     }
@@ -227,7 +232,7 @@ export default function CouponsAdmin() {
                   </div>
                   <div className="row-actions">
                     {permissions?.edit && <button className="icon-button" title="Edit coupon" aria-label={`Edit ${coupon.couponCode}`} onClick={() => startEdit(coupon)}>✎</button>}
-                    {permissions?.delete && <button className="icon-button danger" title="Delete coupon" aria-label={`Delete ${coupon.couponCode}`} onClick={() => remove(coupon)}>×</button>}
+                    {permissions?.delete && <button type="button" className="icon-button danger" title="Delete coupon" aria-label={`Delete ${coupon.couponCode}`} disabled={busy} onClick={() => { setDeleteError(""); setPendingDelete(coupon); }}>×</button>}
                   </div>
                 </article>
               ))}
@@ -276,6 +281,26 @@ export default function CouponsAdmin() {
         <section className="panel"><div className="empty-state">You don&apos;t have permission to view coupons.</div></section>
       )}
 
+      <Dialog
+        open={pendingDelete !== null}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+        aria-labelledby="delete-coupon-title"
+        aria-describedby="delete-coupon-description"
+      >
+        <DialogTitle id="delete-coupon-title">Delete coupon?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-coupon-description">
+            Permanently delete coupon &quot;{pendingDelete?.couponCode}&quot;? This cannot be undone.
+          </DialogContentText>
+          {deleteError && <p role="alert" className="mt-4 text-red-700">{deleteError}</p>}
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
+          <Button color="error" disabled={busy || !permissions?.delete} onClick={() => { if (pendingDelete) void remove(pendingDelete); }}>
+            {busy ? "Deleting…" : "Delete coupon"}
+          </Button>
+        </DialogActions>
+      </Dialog>
       {toast && <div className={`toast ${toast.error ? "error" : ""}`} role="status">{toast.text}</div>}
     </div>
   );

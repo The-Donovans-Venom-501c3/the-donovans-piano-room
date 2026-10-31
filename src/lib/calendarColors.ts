@@ -1,11 +1,11 @@
 export const CALENDAR_COLOR_CATEGORIES = [
-  { key: "userEvent", label: "My events", color: "#15803d" },
-  { key: "userReminder", label: "My reminders", color: "#b45309" },
+  { key: "userEvent", label: "My events", color: "#6f219e" },
+  { key: "userReminder", label: "My reminders", color: "#e98427" },
   { key: "organizationEvent", label: "Organization events", color: "#2563eb" },
   {
     key: "organizationReminder",
     label: "Organization reminders",
-    color: "#9333ea",
+    color: "#c026d3",
   },
 ] as const;
 
