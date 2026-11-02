@@ -41,9 +41,11 @@ const Page = loadTypeScript("src/app/(authorized)/admin/page.tsx", {
   "./components/NotificationsAdmin": component(empty),
   "./components/RbacViewer": component(empty),
   "./components/RbacManager": component(empty),
+  "./components/SchoolsAdmin": component(empty),
+  "./components/ClassesAdmin": component(empty),
 });
 
-test("admin navigation renders outside the independently scrolling panel", () => {
+test("all admin tabs remain visible while section content enforces its own permissions", () => {
   const html = renderToStaticMarkup(React.createElement(Page));
   const navStart = html.indexOf('<nav aria-label="Admin sections"');
   const navEnd = html.indexOf("</nav>", navStart);
@@ -51,10 +53,10 @@ test("admin navigation renders outside the independently scrolling panel", () =>
   assert.ok(navStart >= 0 && navEnd < scrollStart);
   assert.ok(html.indexOf("Panel content") > scrollStart);
   assert.match(html.slice(scrollStart), /min-h-0 flex-1/);
-  for (const label of ["Calendar", "Coupons", "Notifications", "RBAC Viewer", "RBAC Manager"]) {
+  for (const label of ["Calendar", "Coupons", "Notifications", "View Roles", "Manage Roles", "Schools", "Classes"]) {
     assert.ok(html.slice(navStart, navEnd).includes(`>${label}</button>`));
   }
-  assert.equal((html.slice(navStart, navEnd).match(/type="button"/g) ?? []).length, 5);
+  assert.equal((html.slice(navStart, navEnd).match(/type="button"/g) ?? []).length, 7);
 });
 
 test("other wrapper pages retain their existing scroll sizing without a header", () => {
@@ -161,14 +163,15 @@ test("Planner renders organization events and reminders read-only while personal
     "@/lib/api/api": { apiRequest: () => { throw new Error("SSR must not fetch"); } },
   });
   const html = renderToStaticMarkup(React.createElement(LoadedCalendar, { personalEditsOnly: true }));
-  for (const [title, color] of [["Shared lesson", "#2563eb"], ["Shared reminder", "#9333ea"], ["My practice", "#15803d"], ["My reminder", "#b45309"]]) {
+  for (const [title, color] of [["Shared lesson", "#2563eb"], ["Shared reminder", "#c026d3"], ["My practice", "#6f219e"], ["My reminder", "#e98427"]]) {
     assert.match(html, new RegExp(`<button[^>]*style="--event-color:${color}"[^>]*title="${title}`));
   }
+  // Organization items stay read-only: they are clickable but only open a detail view.
   for (const title of ["Shared lesson", "Shared reminder"]) {
-    assert.match(html, new RegExp(`<button[^>]*disabled=""[^>]*title="${title}`));
+    assert.match(html, new RegExp(`<button(?![^>]*disabled)[^>]*class="calendar-event[^"]*view-only[^"]*"[^>]*title="${title}`));
   }
   for (const title of ["My practice", "My reminder"]) {
-    assert.match(html, new RegExp(`<button(?![^>]*disabled)[^>]*title="${title}`));
+    assert.match(html, new RegExp(`<button(?![^>]*disabled)(?![^>]*view-only)[^>]*title="${title}`));
   }
   stateIndex = 0;
   const admin = renderToStaticMarkup(React.createElement(LoadedCalendar));
@@ -200,11 +203,11 @@ test("Planner skips the permission endpoint while Admin still requests calendar 
     "@/lib/api/api": { apiRequest: (url) => { calls.push(url); return Promise.resolve({ actions: {} }); } },
   });
   renderToStaticMarkup(React.createElement(EffectCalendar, { personalEditsOnly: true }));
-  effects.at(-1)();
+  effects[1]();
   assert.deepEqual(calls, []);
   effects.length = 0;
   renderToStaticMarkup(React.createElement(EffectCalendar));
-  const cleanup = effects.at(-1)();
+  const cleanup = effects[1]();
   assert.deepEqual(calls, ["/rbac/me/permissions/calendar"]);
   cleanup();
 });

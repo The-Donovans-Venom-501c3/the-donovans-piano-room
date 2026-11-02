@@ -251,7 +251,7 @@ export default function UpgradeConfirmationPage() {
 
   const paymentButtons: ButtonConfig[] = [
     {
-      onClick: () => router.push('/account/payments'),
+      onClick: () => router.push('/account/payment-methods'),
       text: 'Add payment method',
       disabled: false,
       loading: false,

@@ -14,7 +14,7 @@ import AddedToCartPopup from "./components/AddedToCartPopup";
 // =========================================================================
 // DEMO SWITCHES (Flip these booleans before/during your call)
 // =========================================================================
-const SHOW_TEASER_VIEW = true; // true = Mockup Teaser layout | false = Full Ecommerce Store
+const SHOW_TEASER_VIEW = false; // true = Mockup Teaser layout | false = Full Ecommerce Store
 const USE_HOMEPAGE_NAVBAR = false; // true = Home Navbar | false = Shop Navbar1
 // =========================================================================
 
