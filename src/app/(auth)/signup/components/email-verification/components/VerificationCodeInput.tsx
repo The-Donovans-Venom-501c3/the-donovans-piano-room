@@ -15,6 +15,7 @@ export default function VerificationCodeInput({
 
   const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
+    // Allow single digit entries
     if (/^\d?$/.test(value)) {
       const newVerificationCode = [...verificationCode];
       newVerificationCode[index] = value;
@@ -40,6 +41,27 @@ export default function VerificationCodeInput({
     }
   };
 
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+
+    // Extract numbers only from the clipboard data up to length 6
+    const pastedData = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pastedData) return;
+
+    const newVerificationCode = [...verificationCode];
+
+    // Populate each box with the corresponding pasted digit
+    pastedData.split("").forEach((char, i) => {
+      newVerificationCode[i] = char;
+    });
+
+    setVerificationCode(newVerificationCode);
+
+    // Shift focus to the next empty box or the final box
+    const focusIndex = Math.min(pastedData.length, 5);
+    inputRefs.current[focusIndex]?.focus();
+  };
+
   return (
     <div className="flex gap-3 sm:gap-4 w-full justify-between my-6">
       {verificationCode.map((code, index) => (
@@ -53,6 +75,7 @@ export default function VerificationCodeInput({
           value={code}
           onChange={(e) => handleChange(index, e)}
           onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={handlePaste}
           className="w-16 h-20 sm:w-20 sm:h-24 text-center text-3xl sm:text-4xl font-extrabold rounded-2xl bg-[#FEF8EE] border-2 border-[#391f0f] text-[#391f0f] outline-none focus:ring-4 focus:ring-yellow-400 focus:bg-white transition-all shadow-md"
         />
       ))}
