@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import SignupHeader from "./SignupHeader";
 import Button1 from "@/components/atoms/Button1";
 import { useSetAtom } from "jotai";
@@ -13,11 +12,15 @@ export default function SignupPayment() {
     setSignupStep(5);
   };
 
+  const handleBackStep = () => {
+    setSignupStep(3); // Navigates Jotai state directly back to Step 3 (Membership)
+  };
+
   return (
     <section className="w-[26vw] min-w-[420px] max-w-[560px] mx-auto py-6 flex flex-col justify-center">
       <SignupHeader
         navName="Membership"
-        navLink="#"
+        onBack={handleBackStep}
         stepNum={4}
         totalSteps={5}
         stepName="Add your payment method"
