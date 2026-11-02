@@ -158,7 +158,7 @@ export default function NotificationsAdmin() {
         <div className="workspace-grid">
           <section className="panel">
             <div className="panel-head">
-              <div><h2 className="panel-title">Published notifications</h2><div className="panel-subtitle">GET · PUT · DELETE / notifications</div></div>
+              <div><h2 className="panel-title">Published notifications</h2><div className="panel-subtitle"></div></div>
               <input className="search" type="search" placeholder="Search notifications…" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search notifications" />
             </div>
             <div className="record-list">
