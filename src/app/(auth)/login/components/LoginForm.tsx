@@ -151,14 +151,6 @@ export default function LoginForm() {
 
     return (
         <div className="w-[24vw] 3xl:w-[26vw]">
-            <Link
-                href="/"
-                className="text-primary-yellow text-xl font-bold flex relative w-[15%] mb-5 items-center gap-2"
-            >
-                <Image src="/YellowBackIcon.svg" width={30} height={30} alt="Back to Home" />
-                <span>Home</span>
-            </Link>
-
             <h1 className="text-7xl font-bold leading-tight tracking-tight text-white font-montserrat mb-3">
                 Log In
             </h1>
