@@ -12,6 +12,7 @@ export interface Lesson {
   thumbnailUrl: string;
   youtubeId: string;
   transcript?: TranscriptItem[];
+  isWatched?: boolean;
 }
 
 export const lessons: Lesson[] = [
