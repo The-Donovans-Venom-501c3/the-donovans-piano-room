@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { PaymentMethod } from "@/interfaces/membershipInterface";
 import { getPaymentMethodIcon } from "../config";
 
@@ -20,6 +21,7 @@ export default function PaymentMethodSelectionPopup({
   onPaymentMethodSelect,
   isBeta = false, // Set default to false for production
 }: PaymentMethodSelectionPopupProps) {
+  const router = useRouter();
   if (!isOpen) return null;
 
   const validMethods = paymentMethods ? paymentMethods.filter((method) => method && method.maskedDetails) : [];
@@ -48,8 +50,27 @@ export default function PaymentMethodSelectionPopup({
         <div className="space-y-4 mb-8">
           {isBeta || validMethods.length === 0 ? (
             <div className="py-8 text-center text-primary-gray text-xl bg-white/50 rounded-xl p-6 border border-[#F6E2D1]">
-              <p className="font-semibold text-primary-brown mb-1">No Saved Payment Methods</p>
-              <p className="text-lg">Payment methods are not collected or required during <span className="font-medium text-tertiary-orange">The Piano Room Beta</span>.</p>
+              {isBeta ? (
+                <>
+                  <p className="font-semibold text-primary-brown mb-1">No Saved Payment Methods</p>
+                  <p className="text-lg">Payment methods are not collected or required during <span className="font-medium text-tertiary-orange">The Piano Room Beta</span>.</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-primary-brown mb-1">No Saved Payment Methods</p>
+                  <p className="text-lg mb-4">Add a card or link your PayPal account to check out faster.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      router.push('/account/payment-methods');
+                    }}
+                    className="rounded-full bg-primary-purple px-6 py-3 text-white text-lg font-semibold hover:bg-[#601D86] transition-colors cursor-pointer"
+                  >
+                    Add payment method
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             validMethods.map((method) => (

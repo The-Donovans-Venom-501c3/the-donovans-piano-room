@@ -7,7 +7,8 @@ import {
   membershipTypes, 
   signupStepAtom, 
   signupFormDataAtom, 
-  profileAtom 
+  profileAtom,
+  signupPaymentMethodAtom
 } from "@/utils/stores";
 
 interface SignupSummaryProps {
@@ -17,7 +18,7 @@ interface SignupSummaryProps {
 const membershipDetails: Record<string, { label: string; price: number; id: number }> = {
   [membershipTypes["24-hours"]]: { label: "24-Hour Membership", price: 1.99, id: 1 },
   [membershipTypes["monthly-access"]]: { label: "Monthly Membership", price: 29.99, id: 2 },
-  [membershipTypes["scholarship"]]: { label: "Free Beta Membership", price: 0, id: 3 },
+  [membershipTypes["scholarship"]]: { label: "Scholarship Membership", price: 0, id: 3 },
   [membershipTypes["yearly-access"]]: { label: "Yearly Membership", price: 239.88, id: 4 },
   [membershipTypes["basic-access"]]: { label: "Basic Membership", price: 0, id: 5 },
 };
@@ -27,11 +28,20 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   const membershipChoice = useAtomValue(membershipChoiceAtom);
   const formData = useAtomValue(signupFormDataAtom);
   const profile = useAtomValue(profileAtom);
+  const paymentMethod = useAtomValue(signupPaymentMethodAtom);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selected = membershipChoice ? membershipDetails[membershipChoice] : null;
+  const needsPayment = !!selected && selected.price > 0;
+  const canFinish = !needsPayment || !!paymentMethod;
+
+  const paymentLabel = paymentMethod
+    ? paymentMethod.paymentMethodType === "paypal"
+      ? `PayPal (${paymentMethod.paypalEmail || "linked account"})`
+      : `${(paymentMethod.brand || "Card").toUpperCase()} •••• ${paymentMethod.last4}`
+    : "No payment method added";
 
   // Safely evaluate fields using optional chaining
   const userEmail = formData?.email || profile?.email || "";
@@ -54,6 +64,15 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
         body: JSON.stringify({
           email: userEmail,
           membershipId: membershipId,
+          // TODO(backend/payments): send the PSP vault token id, never raw card data.
+          paymentMethod: paymentMethod
+            ? {
+                paymentMethodType: paymentMethod.paymentMethodType,
+                vaultTokenId: paymentMethod.vaultTokenId,
+                brand: paymentMethod.brand,
+                last4: paymentMethod.last4,
+              }
+            : undefined,
         }),
       });
 
@@ -120,7 +139,7 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
               <div>
                 <p className="text-[#FACC15] font-extrabold text-xl sm:text-2xl">Membership</p>
                 <p className="text-white font-semibold text-lg sm:text-xl mt-1">
-                  {selected ? selected.label : "Free Beta Membership"}
+                  {selected ? selected.label : "Scholarship Membership"}
                 </p>
               </div>
               <button
@@ -131,6 +150,25 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
                 Edit
               </button>
             </div>
+
+            {/* Payment Method */}
+            {needsPayment && (
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[#FACC15] font-extrabold text-xl sm:text-2xl">Payment method</p>
+                  <p className={`font-semibold text-lg sm:text-xl mt-1 ${paymentMethod ? "text-white" : "text-red-300"}`}>
+                    {paymentLabel}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSignupStep(4)}
+                  className="text-white text-base sm:text-lg font-bold underline hover:opacity-80 transition-opacity shrink-0 mt-0.5 cursor-pointer"
+                >
+                  Edit
+                </button>
+              </div>
+            )}
 
             {/* Total & Fixed End Date */}
             <div>
@@ -151,15 +189,20 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
             <button
               type="button"
               onClick={handleFinish}
-              disabled={isLoading}
+              disabled={isLoading || !canFinish}
               className={`w-full py-4 px-6 rounded-full font-extrabold text-lg sm:text-xl transition-all shadow-md text-center ${
-                isLoading
+                isLoading || !canFinish
                   ? "bg-[#BBB5C6] text-gray-700 cursor-not-allowed"
                   : "bg-[#EAB308] hover:bg-[#d97706] text-black cursor-pointer"
               }`}
             >
               {isLoading ? "Setting up membership..." : "Complete Setting up Membership"}
             </button>
+            {!canFinish && (
+              <p className="text-center text-sm text-red-300 font-semibold">
+                Add a payment method (step 4) to complete a paid membership.
+              </p>
+            )}
             <button
               type="button"
               onClick={handleCancel}

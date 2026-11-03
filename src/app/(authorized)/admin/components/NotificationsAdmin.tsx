@@ -158,7 +158,7 @@ export default function NotificationsAdmin() {
         <div className="workspace-grid">
           <section className="panel">
             <div className="panel-head">
-              <div><h2 className="panel-title">Published notifications</h2><div className="panel-subtitle">GET · PUT · DELETE / notifications</div></div>
+              <div><h2 className="panel-title">Published notifications</h2><div className="panel-subtitle"></div></div>
               <input className="search" type="search" placeholder="Search notifications…" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search notifications" />
             </div>
             <div className="record-list">
@@ -228,7 +228,7 @@ export default function NotificationsAdmin() {
           {deleteError && <p role="alert" className="mt-4 text-red-700">{deleteError}</p>}
         </DialogContent>
         <DialogActions>
-          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)}>Cancel</Button>
+          <Button autoFocus disabled={busy} onClick={() => setPendingDelete(null)} sx={{ color: "#6f219e", fontWeight: 700, "&:hover": { backgroundColor: "#f3e8fd" } }}>Cancel</Button>
           <Button color="error" disabled={busy || !permissions?.delete} onClick={() => { if (pendingDelete) void remove(pendingDelete); }}>
             {busy ? "Deleting…" : "Delete notification"}
           </Button>

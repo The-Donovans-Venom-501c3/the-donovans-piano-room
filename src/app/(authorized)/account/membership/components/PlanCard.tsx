@@ -79,12 +79,17 @@ export default function PlanCard({
   isScholarship: isScholarshipProp = false,
   showCurrentInHeader = true,
   showExpirationMessage = true,
+  showChooseButton = true,
   chooseButton,
   isBeta = false, // Set default to false for production
 }: PlanCardProps) {
   const router = useRouter();
   const isScholarship = isScholarshipProp || plan?.planName === "Scholarship";
-  const isCurrentPlan = isScholarship || plan?.isCurrent;
+  // "Current" must reflect the user's actual membership, not the card theme.
+  // isScholarshipProp is only a styling choice (orange theme) and must NOT
+  // force the current-plan state — otherwise clicking it bounces back to the
+  // current-plan dashboard instead of running the choose action.
+  const isCurrentPlan = Boolean(plan?.isCurrent);
 
   // Display annual total (\$239.88) for Yearly, otherwise fall back to price string
   const rawPrice =
@@ -259,19 +264,19 @@ export default function PlanCard({
                 </p>
               )}
             </div>
-          ) : (
+          ) : showChooseButton ? (
             <button
               disabled={isBeta || chooseButton?.disabled}
               onClick={isBeta ? undefined : chooseButton?.onClick}
               className={`w-full py-3 px-4 rounded-full text-sm sm:text-base font-black transition-all ${
                 isBeta
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 pointer-events-none shadow-none"
-                  : `active:scale-95 cursor-pointer shadow-md \${theme.buttonBg}`
+                  : `active:scale-95 cursor-pointer shadow-md ${theme.buttonBg}`
               }`}
             >
               {isBeta ? "Choose plan" : chooseButton?.text || "Choose plan"}
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 

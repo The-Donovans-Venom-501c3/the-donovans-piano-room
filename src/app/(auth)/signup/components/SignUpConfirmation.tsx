@@ -14,14 +14,15 @@ const membershipLabels: Record<string, string> = {
   [membershipTypes["monthly-access"]]: "Monthly access",
   [membershipTypes["yearly-access"]]: "Yearly access",
   [membershipTypes["basic-access"]]: "Basic access",
-  [membershipTypes["scholarship"]]: "Free Beta access",
+  [membershipTypes["scholarship"]]: "Scholarship access",
 };
 
 export default function SignUpConfirmation({ isBeta = false }: SignUpConfirmationProps) {
   const membershipChoice = useAtomValue(membershipChoiceAtom);
+  const freeLabel = isBeta ? "Free Beta access" : "Scholarship access";
   const activeAccessLabel = membershipChoice
-    ? membershipLabels[membershipChoice] || "Free Beta access"
-    : "Free Beta access";
+    ? membershipLabels[membershipChoice] || freeLabel
+    : freeLabel;
 
   return (
     <div className="w-full min-h-[calc(100vh-160px)] flex items-center justify-center py-12 px-4 relative overflow-hidden select-none">

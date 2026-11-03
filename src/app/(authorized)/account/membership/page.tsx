@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import {
@@ -13,13 +14,18 @@ import PlanCard from "./components/PlanCard";
 import "@/styles/primary-purple-scrollbar.css";
 
 export default function Page() {
+  const router = useRouter();
   const [membership, setMembership] = useState<UserMembership | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showPlanSelection, setShowPlanSelection] = useState<boolean>(true);
 
+  // Derive the user's current level from their membership (fallback: scholarship/free)
+  const currentLevelId = membership?.levelId || MembershipLevelId.FREE;
+
   const availablePlans = [
     {
       levelId: MembershipLevelId.YEAR,
+      slug: "yearly",
       name: "Yearly",
       planName: "Yearly",
       price: 19.99,
@@ -27,7 +33,7 @@ export default function Page() {
       period: "annually",
       yearlyPrice: "239.88",
       isPopular: true,
-      isCurrent: false,
+      isCurrent: currentLevelId === MembershipLevelId.YEAR,
       benefits: [
         "Best value, biggest savings",
         "Save $120 every year",
@@ -38,6 +44,7 @@ export default function Page() {
     },
     {
       levelId: MembershipLevelId.MONTH,
+      slug: "monthly",
       name: "Monthly",
       planName: "Monthly",
       price: 29.99,
@@ -45,7 +52,7 @@ export default function Page() {
       period: "monthly",
       yearlyPrice: "359.88",
       isRecommended: true,
-      isCurrent: false,
+      isCurrent: currentLevelId === MembershipLevelId.MONTH,
       benefits: [
         "No long-term commitment",
         "Save $29.70 vs daily pass",
@@ -56,13 +63,14 @@ export default function Page() {
     },
     {
       levelId: MembershipLevelId.DAY,
+      slug: "daily",
       name: "Day Pass",
       planName: "Day Pass",
       price: 1.99,
       formattedPrice: "1.99",
       period: "one day",
       yearlyPrice: "726.35",
-      isCurrent: false,
+      isCurrent: currentLevelId === MembershipLevelId.DAY,
       benefits: [
         "Try before you commit",
         "24 hours, full access",
@@ -73,12 +81,13 @@ export default function Page() {
     },
     {
       levelId: MembershipLevelId.FREE,
+      slug: "free",
       name: "Scholarship",
       planName: "Scholarship",
       price: 0,
       formattedPrice: "FREE",
       period: "Scholarship",
-      isCurrent: true,
+      isCurrent: currentLevelId === MembershipLevelId.FREE,
       benefits: [
         "100% cost covered",
         "For eligible low-income families",
@@ -163,10 +172,9 @@ export default function Page() {
                         plan={planItem as unknown as Plan}
                         isScholarship={isScholarshipPlan}
                         showCurrentInHeader={isScholarshipPlan}
-                        showChooseButton={!isScholarshipPlan}
                         chooseButton={{
                           text: isScholarshipPlan ? "Apply for Scholarship" : "Choose plan",
-                          onClick: () => console.log(`Selected ${planItem.name}`),
+                          onClick: () => router.push(`/account/membership/upgrade/${planItem.slug}`),
                         }}
                       />
                     </div>

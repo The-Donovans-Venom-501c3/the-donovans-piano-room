@@ -161,7 +161,7 @@ export default function Payment({
                 </div>
               </div>
 
-              <button type="button" className="inline-flex items-center gap-2 text-primary-purple cursor-pointer" onClick={onEditClick || (() => router.push('/account/payments'))}>
+              <button type="button" className="inline-flex items-center gap-2 text-primary-purple cursor-pointer" onClick={onEditClick || (() => router.push('/account/payment-methods'))}>
                 <span className="text-xl font-medium">Edit</span>
                 <Image
                   src="/memberships/Payment/pencil-outline.svg"
