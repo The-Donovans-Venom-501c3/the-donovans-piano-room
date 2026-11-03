@@ -4,24 +4,62 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import ReaderPortal from "./ReaderPortal";
 
-const ebooks = [
+interface EbookItem {
+  id: string;
+  title: string;
+  url: string | undefined;
+  imgsrc: string;
+  description: string;
+}
+
+const ebooks: EbookItem[] = [
   {
     id: "1",
     title: "Book I",
     url: process.env.NEXT_PUBLIC_EBOOK1,
     imgsrc: "/shop/books/book-1.svg",
+    description:
+      "Learn anytime, anywhere from your computer or mobile device with our interactive, digital copy of Book I. Start your journey into musical fundamentals!",
   },
   {
     id: "2",
     title: "Book II",
     url: process.env.NEXT_PUBLIC_EBOOK2,
     imgsrc: "/shop/books/book-2.svg",
+    description:
+      "Learn anytime, anywhere from your computer or mobile device with our interactive, digital copy of Book II. Learners dive deeper into musical mastery as they explore chords, inversions, complex rhythms, major & minor scales, fingering techniques, intervals, transcribing, writing music, and more!",
   },
   {
     id: "3",
     title: "Book III",
     url: process.env.NEXT_PUBLIC_EBOOK3,
     imgsrc: "/shop/books/book-3.svg",
+    description:
+      "Learn anytime, anywhere from your computer or mobile device with our interactive, digital copy of Book III. Master advanced musical concepts and compositions!",
+  },
+  {
+    id: "4",
+    title: "6 and Under Work Book",
+    url: "https://thedonovan.aflip.in/67d1df8a58.html",
+    imgsrc: "/shop/books/6undergamesbook.png",
+    description:
+      "Activity and coloring workbook designed specially for kids 6 and under to learn music through interactive and fun exercises!",
+  },
+  {
+    id: "5",
+    title: "Work Book I",
+    url: "https://thedonovan.aflip.in/6fb733a6e6.html",
+    imgsrc: "/shop/books/Workbook1.png",
+    description:
+      "The Donovan's Piano Room Work Book 1 for practical exercises, drills, and written music theory activities.",
+  },
+  {
+    id: "6",
+    title: "Work Book II",
+    url: "https://thedonovan.aflip.in/690a8e0723.html",
+    imgsrc: "/shop/books/Workbook2.png",
+    description:
+      "The Donovan's Piano Room Work Book II containing advanced practice problems, transcribing exercises, and theory work.",
   },
 ];
 
@@ -54,7 +92,7 @@ interface EbooksComponentProps {
 export default function EbooksComponent({ searchQuery = "" }: EbooksComponentProps) {
   const [selected, setSelected] = useState<number>(0);
   const [read, setRead] = useState<boolean>(false);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [, setCurrentPage] = useState<number>(1);
   const [readerSessionId, setReaderSessionId] = useState<number>(Date.now());
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -205,7 +243,7 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
                       <Image
                         className="object-contain w-[210px] h-[210px] transition-all duration-300"
                         src={book.imgsrc}
-                        alt="ebook image"
+                        alt={book.title}
                         width={210}
                         height={210}
                       />
@@ -214,7 +252,7 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
                     <Image
                       className="object-contain w-[210px] h-[210px] transition-all duration-300"
                       src={book.imgsrc}
-                      alt="ebook image"
+                      alt={book.title}
                       width={210}
                       height={210}
                     />
@@ -233,17 +271,13 @@ export default function EbooksComponent({ searchQuery = "" }: EbooksComponentPro
                 <h2 className="text-4xl font-medium text-primary-brown">
                   {ebooks[selected].title}
                 </h2>
-                <p className="text-2xl text-primary-gray leading-[24px]">
-                  Learn anytime, anywhere from your computer or mobile device with
-                  our interactive, digital copy of Book II. Learners dive deeper
-                  into musical mastery as they explore chords, inversions, complex
-                  rhythms, major & minor scales, fingering techniques, intervals,
-                  transcribing, writing music, and more!
+                <p className="text-2xl text-primary-gray leading-[24px] mt-2">
+                  {ebooks[selected].description}
                 </p>
               </div>
               <div className="flex-[1]">
                 <button
-                  className="bg-primary-purple text-white text-xl block mx-auto my-4 px-10 py-3 rounded-3xl"
+                  className="bg-primary-purple text-white text-xl block mx-auto my-4 px-10 py-3 rounded-3xl shadow-md hover:scale-105 transition-transform"
                   onClick={handleRead}
                 >
                   Read & Practice
