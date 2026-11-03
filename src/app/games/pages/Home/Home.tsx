@@ -283,9 +283,13 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
 
+  // true once this game's results are saved, so Review → back to results doesn't save them again
+  const resultsSavedRef = useRef<boolean>(false);
+
   // Save the play count, score summary, high score, completion and fastest time when a game finishes
   useEffect(() => {
-    if (flowStage !== "game_finished" || !selectedLevel) return;
+    if (flowStage !== "game_finished" || !selectedLevel || resultsSavedRef.current) return;
+    resultsSavedRef.current = true;
 
     setPlayCounts((all) => ({
       ...all,
@@ -353,6 +357,7 @@ export default function Home() {
     const loadedQuestions = getQuestions(selectedGameKey, level as Level) || [];
     setQuestions(loadedQuestions);
 
+    resultsSavedRef.current = false;
     setLevelState(level);
     setSelectedLevel(level);
     setLoadingState("loading");
@@ -593,6 +598,7 @@ export default function Home() {
 
   // Start the same level over from question 1 (Restart mid-game and Play Again on the end screen)
   const restartGame = () => {
+    resultsSavedRef.current = false;
     setRestartCount((count) => count + 1);
     setScore(0);
     setLives(3);
