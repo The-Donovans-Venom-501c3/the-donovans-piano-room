@@ -29,7 +29,44 @@ function LessonsPageContent() {
   const [selectedVideo, setSelectedVideo] = useState<Lesson | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  // Track watched lesson IDs across the app session
+  const [watchedLessonIds, setWatchedLessonIds] = useState<string[]>([]);
+
   const topRef = useRef<HTMLDivElement>(null);
+
+  // Load initial watched IDs from localStorage (or your database API)
+  useEffect(() => {
+    const saved = localStorage.getItem("watchedLessons");
+    if (saved) {
+      try {
+        setWatchedLessonIds(JSON.parse(saved));
+      } catch (err) {
+        console.error("Error loading watched lessons state:", err);
+      }
+    }
+  }, []);
+
+  // Handler to mark a video as watched and persist it
+  const handleMarkWatched = async (lessonId: string) => {
+    if (watchedLessonIds.includes(lessonId)) return;
+
+    const updated = [...watchedLessonIds, lessonId];
+    setWatchedLessonIds(updated);
+
+    // Save locally
+    localStorage.setItem("watchedLessons", JSON.stringify(updated));
+
+    // Optional: Sync to student account DB API endpoint
+    try {
+      await fetch("/api/user/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonId }),
+      });
+    } catch (err) {
+      console.error("Failed to sync progress to database:", err);
+    }
+  };
 
   const idx = selectedVideo
     ? lessons.findIndex((l) => l.id === selectedVideo.id)
@@ -63,8 +100,6 @@ function LessonsPageContent() {
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     
-    // When the user types or edits the search input, 
-    // close the detail player view to show the filtered grid instead!
     if (selectedVideo) {
       setSelectedVideo(null);
     }
@@ -85,6 +120,7 @@ function LessonsPageContent() {
               }}
               onPrev={() => prevLesson && handleSelectVideo(prevLesson)}
               onNext={() => nextLesson && handleSelectVideo(nextLesson)}
+              onMarkWatched={handleMarkWatched}
             />
           );
         }
@@ -93,6 +129,7 @@ function LessonsPageContent() {
             lessons={lessons}
             searchQuery={searchQuery}
             onSelectLesson={(lesson) => handleSelectVideo(lesson)}
+            watchedLessonIds={watchedLessonIds}
           />
         );
 

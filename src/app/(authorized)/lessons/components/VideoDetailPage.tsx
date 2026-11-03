@@ -28,6 +28,7 @@ interface VideoDetailProps {
   onBack: () => void;
   onPrev: () => void;
   onNext: () => void;
+  onMarkWatched?: (lessonId: string) => void;
 }
 
 export default function VideoDetail({
@@ -37,6 +38,7 @@ export default function VideoDetail({
   onBack,
   onPrev,
   onNext,
+  onMarkWatched,
 }: VideoDetailProps) {
   // Set default to false so transcript opens ONLY on click
   const [showTranscript, setShowTranscript] = useState(false);
@@ -47,14 +49,14 @@ export default function VideoDetail({
 
   const cleanYoutubeId = lesson.youtubeId ? lesson.youtubeId.split("?")[0] : "";
 
-  // ✅ Wrap transcriptData in useMemo to stabilize reference for useEffect
+  // Wrap transcriptData in useMemo to stabilize reference for useEffect
   const transcriptData = useMemo(() => {
     return lesson.transcript && lesson.transcript.length > 0
       ? lesson.transcript
       : DEFAULT_TRANSCRIPT;
   }, [lesson.transcript]);
 
-  // Initialize YouTube IFrame API and track playback time
+  // Initialize YouTube IFrame API, track playback time, and mark video as watched
   useEffect(() => {
     if (!cleanYoutubeId) return;
 
@@ -74,6 +76,14 @@ export default function VideoDetail({
           rel: 0,
           modestbranding: 1,
         },
+        events: {
+          onStateChange: (event: any) => {
+            // YT.PlayerState.ENDED === 0
+            if (event.data === 0 && onMarkWatched) {
+              onMarkWatched(lesson.id);
+            }
+          },
+        },
       });
     };
 
@@ -83,10 +93,16 @@ export default function VideoDetail({
       window.onYouTubeIframeAPIReady = initPlayer;
     }
 
-    // Polling player time every 250ms
+    // Polling player time every 250ms and check 80% completion mark
     const interval = setInterval(() => {
       if (playerRef.current && typeof playerRef.current.getCurrentTime === "function") {
-        setCurrentTime(playerRef.current.getCurrentTime());
+        const time = playerRef.current.getCurrentTime();
+        const duration = playerRef.current.getDuration();
+        setCurrentTime(time);
+
+        if (duration > 0 && time / duration >= 0.8 && onMarkWatched) {
+          onMarkWatched(lesson.id);
+        }
       }
     }, 250);
 
@@ -96,7 +112,7 @@ export default function VideoDetail({
         playerRef.current.destroy();
       }
     };
-  }, [cleanYoutubeId]);
+  }, [cleanYoutubeId, lesson.id, onMarkWatched]);
 
   // Sync current video time with active transcript line & auto-scroll
   useEffect(() => {
@@ -242,7 +258,7 @@ export default function VideoDetail({
           </div>
         </div>
 
-        {/* Right Column: Figma Styled Transcript Panel */}
+        {/* Right Column: Transcript Panel */}
         {showTranscript && (
           <div className="w-full lg:w-[360px] xl:w-[380px] bg-[#F7EEFE] border-2 border-white rounded-[24px] p-5 h-[480px] flex flex-col shrink-0 shadow-sm">
             {/* Transcript Drawer Header */}
