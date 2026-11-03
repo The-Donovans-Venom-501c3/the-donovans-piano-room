@@ -53,7 +53,7 @@ test("all admin tabs remain visible while section content enforces its own permi
   assert.ok(navStart >= 0 && navEnd < scrollStart);
   assert.ok(html.indexOf("Panel content") > scrollStart);
   assert.match(html.slice(scrollStart), /min-h-0 flex-1/);
-  for (const label of ["Calendar", "Coupons", "Notifications", "View Roles", "Manage Roles", "Schools", "Classes"]) {
+  for (const label of ["Calendar", "Coupons", "Notifications", "Roles Viewer", "Roles Manager", "Schools", "Classes"]) {
     assert.ok(html.slice(navStart, navEnd).includes(`>${label}</button>`));
   }
   assert.equal((html.slice(navStart, navEnd).match(/type="button"/g) ?? []).length, 7);

@@ -114,7 +114,7 @@ export default function RbacViewer() {
       <div className="header-row">
         <div>
           <div className="eyebrow">Access control · Admin</div>
-          <h1 className="page-title">View Roles</h1>
+          <h1 className="page-title">Roles Viewer</h1>
           <p className="page-description">
             Select a user to explore their personas, roles, and effective permissions as a tree or raw JSON.
           </p>

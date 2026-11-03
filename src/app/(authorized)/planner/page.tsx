@@ -13,7 +13,7 @@ export default function PlannerPage() {
       contentClassName="admin-ui"
     >
       <Calendar
-        title="My planner"
+        title="My planner (work in progress)"
         eyebrow="Make time for music"
         description="Create and manage your own private events and reminders. Organization events and reminders are visible here."
         showPermissionBadges={false}

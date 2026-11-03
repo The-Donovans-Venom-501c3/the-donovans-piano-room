@@ -26,7 +26,7 @@ test("admin resource mutations require resource-specific permission checks", () 
   assert.match(rbacManager, /apiRequest<Catalog>\("\/rbac\/admin\/manager\/catalog"/);
   assert.match(adminPage, /const sections: NavItem\[\] = \[/);
   assert.doesNotMatch(adminPage, /visibleSectionIds|sectionResources|permissionsLoading/);
-  for (const section of ["Calendar", "Coupons", "Notifications", "RBAC Viewer", "RBAC Manager"]) {
+  for (const section of ["Calendar", "Coupons", "Notifications", "Roles Viewer", "Roles Manager"]) {
     assert.match(adminPage, new RegExp(`name: "${section}"`));
   }
   for (const section of ["Schools", "Classes"]) assert.match(adminPage, new RegExp(`name: "${section}"`));
@@ -52,7 +52,7 @@ test("admin resource mutations require resource-specific permission checks", () 
   assert.match(calendar, /setEvents\(\[\]\);\s*setStandaloneReminders\(\[\]\);\s*setLoading\(false\);/);
 });
 
-test("RBAC viewer and manager are separately permission-gated", () => {
+test("Roles Viewer and Manange Roles are separately permission-gated", () => {
   const adminPage = read("src/app/(authorized)/admin/page.tsx");
   const rbacManager = read("src/app/(authorized)/admin/components/RbacManager.tsx");
   const migration = readFileSync(

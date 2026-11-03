@@ -134,7 +134,7 @@ export default function RbacManager() {
       <div className="header-row">
         <div>
           <div className="eyebrow">Access control · Admin</div>
-          <h1 className="page-title">Manage Roles</h1>
+          <h1 className="page-title">Roles Manager</h1>
           <p className="page-description">
             Create and manage resources, actions, permissions, roles, personas, and user assignments.
           </p>

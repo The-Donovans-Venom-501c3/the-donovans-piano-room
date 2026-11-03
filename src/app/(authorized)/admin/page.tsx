@@ -24,8 +24,8 @@ const sections: NavItem[] = [
   { name: "Calendar", id: "calendar" },
   { name: "Coupons", id: "coupons" },
   { name: "Notifications", id: "notifications" },
-  { name: "View Roles", id: "rbacviewer" },
-  { name: "Manage Roles", id: "rbacmanager" },
+  { name: "Roles Viewer", id: "rbacviewer" },
+  { name: "Roles Manager", id: "rbacmanager" },
   { name: "Schools", id: "schools" },
   { name: "Classes", id: "classes" },
 ];
