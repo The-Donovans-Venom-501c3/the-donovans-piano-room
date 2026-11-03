@@ -591,8 +591,8 @@ export default function Home() {
     setShowRestartModal(true);
   };
 
-  const confirmRestartGame = () => {
-    setShowRestartModal(false);
+  // Start the same level over from question 1 (Restart mid-game and Play Again on the end screen)
+  const restartGame = () => {
     setRestartCount((count) => count + 1);
     setScore(0);
     setLives(3);
@@ -603,8 +603,20 @@ export default function Home() {
     setFlowStage("active_game");
   };
 
+  const confirmRestartGame = () => {
+    setShowRestartModal(false);
+    restartGame();
+  };
+
   const keepPlayingRestart = () => {
     setShowRestartModal(false);
+  };
+
+  // A fresh game of the same level, with a new set of questions (Restart keeps the current set)
+  const playAgain = () => {
+    if (!selectedLevel) return;
+    setQuestions(getQuestions(selectedGameKey, selectedLevel as Level) || []);
+    restartGame();
   };
 
   const handleResetAccessibility = () => {
@@ -881,6 +893,9 @@ export default function Home() {
                     </p>
                     {lives > 0 && <p className="finished-encouragement">Keep it up, Superstar!</p>}
                     <div className="finish-actions">
+                      <button onClick={playAgain} className="play-again-btn">
+                        Play Again
+                      </button>
                       <button onClick={confirmExitGame} className="back-btn">
                         Back to Games
                       </button>
