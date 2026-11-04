@@ -21,6 +21,7 @@ $correct-bg: #438342;
     transform: translateY(3px);
   }
   &:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
     // Cancel the global `button:active` press style from QuizScreen.scss
     &:active {
@@ -34,7 +35,7 @@ $correct-bg: #438342;
     border-color: $wrong-bg;
     box-shadow: 0px 5px 0px 0px rgba($wrong-bg, 0.8);
     &:disabled {
-      opacity: 1; // override the global.css `button:disabled`
+      opacity: 1;
     }
     &:hover,
     &:active {
@@ -49,7 +50,7 @@ $correct-bg: #438342;
     box-shadow: 0px 5px 0px 0px rgba($correct-bg, 0.8);
     color: #fff;
     &:disabled {
-      opacity: 1; // override the global.css `button:disabled`
+      opacity: 1;
     }
     &:hover,
     &:active {
@@ -167,9 +168,6 @@ $correct-bg: #438342;
 
     .large-btn {
       height: 45px;
-      &:not(.note-selected):not(.locked):disabled {
-        color: $grey-200;
-      }
     }
   }
   &.reading {
