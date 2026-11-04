@@ -597,6 +597,7 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         flex-direction: column;
         gap: 17px;
         margin-top: 36px;
+        .play-again-btn,
         .back-btn,
         .review-btn {
           min-width: 354px;
@@ -615,13 +616,14 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
             transform: translateY(2px);
           }
         }
-        .back-btn {
+        .play-again-btn {
           background: #6F219E;
           color: #ffffff;
           &:hover {
             background: #5c1a85;
           }
         }
+        .back-btn,
         .review-btn {
           background: transparent;
           color: #6F219E;
