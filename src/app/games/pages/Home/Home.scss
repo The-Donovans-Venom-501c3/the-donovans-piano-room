@@ -598,7 +598,8 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         gap: 17px;
         margin-top: 36px;
         .back-btn,
-        .review-btn {
+        .review-btn,
+        .next-level-btn {
           min-width: 354px;
           height: 56px;
           padding: 0 32px;
@@ -615,7 +616,8 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
             transform: translateY(2px);
           }
         }
-        .back-btn {
+        .back-btn,
+        .next-level-btn {
           background: #6F219E;
           color: #ffffff;
           &:hover {
