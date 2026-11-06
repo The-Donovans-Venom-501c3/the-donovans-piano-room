@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import SignupHeader from "./SignupHeader";
 import Button1 from "@/components/atoms/Button1";
 import { useSetAtom } from "jotai";
