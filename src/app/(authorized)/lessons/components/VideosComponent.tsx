@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import LessonCard from './LessonCard';
 import { Lesson } from './Lesson';
 
@@ -7,16 +8,35 @@ interface VideosComponentProps {
   lessons: Lesson[];
   searchQuery: string;
   onSelectLesson: (lesson: Lesson) => void;
+  watchedLessonIds?: string[]; // Optional prop if passed from parent/database
 }
 
 export default function VideosComponent({
   lessons,
   searchQuery,
   onSelectLesson,
+  watchedLessonIds = [],
 }: VideosComponentProps) {
+  const [watchedIds, setWatchedIds] = useState<string[]>(watchedLessonIds);
+
+  // Load from localStorage if no backend prop provided
+  useEffect(() => {
+    if (watchedLessonIds.length > 0) {
+      setWatchedIds(watchedLessonIds);
+    } else {
+      const saved = localStorage.getItem('watchedLessons');
+      if (saved) {
+        try {
+          setWatchedIds(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to parse watched lessons', e);
+        }
+      }
+    }
+  }, [watchedLessonIds]);
+
   const q = (searchQuery || '').toLowerCase().trim();
 
-  // Safe optional-chaining search filter
   const filtered = lessons.filter((lesson) => {
     if (!q) return true;
     const titleMatch = lesson.title?.toLowerCase().includes(q) ?? false;
@@ -36,6 +56,7 @@ export default function VideosComponent({
             <LessonCard
               key={lesson.id}
               lesson={lesson}
+              isWatched={watchedIds.includes(lesson.id)} // <-- PASS IS WATCHED HERE
               onClick={() => onSelectLesson(lesson)}
             />
           ))}

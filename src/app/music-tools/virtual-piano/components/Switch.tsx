@@ -9,15 +9,15 @@ interface SwitchComponentProps {
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const SwitchComponent: React.FC<SwitchComponentProps> = ({ label, checked, onChange }) => {
-  const theme = createTheme({
-    palette: {
-      primary: {
-        main: '#9c27b0',
-      },
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#9c27b0',
     },
-  });
+  },
+});
 
+const SwitchComponent: React.FC<SwitchComponentProps> = ({ label, checked, onChange }) => {
   return (
     <ThemeProvider theme={theme}>
       <FormControlLabel

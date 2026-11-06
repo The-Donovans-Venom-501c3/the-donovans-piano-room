@@ -66,12 +66,12 @@ export default function Navbar4Left({
       disabled: false,
     },
     {
-      href: "",
+      href: "/music-tools",
       label: "MUSIC TOOLS",
       key: nav4leftLinks.musicTools,
       icon: "/navbar/NavBar4Left/MusicTools.svg",
       alt: "MT",
-      disabled: true,
+      disabled: false,
     },
     {
       href: "",

@@ -3,4 +3,5 @@ declare module '*.mp3' {
     export default src;
   }
   declare module '*.css' ;
+  declare module '*.scss';
   

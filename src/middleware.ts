@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Fix: Use VERCEL_ENV instead of NODE_ENV.
+// Vercel builds all preview deployments with NODE_ENV='production', 
+// which caused preview builds to evaluate to BE_PROD_BASE_URL.
 const BACKEND_BASE_URL =
-  process.env.NODE_ENV === 'production'
+  process.env.VERCEL_ENV === 'production'
     ? process.env.BE_PROD_BASE_URL
     : process.env.BE_BASE_URL;
 
@@ -50,7 +53,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Step 2: 🔑 FIX HERE - If access_token failed/expired, attempt refresh!
+  // 3. Step 2: If access_token failed/expired, attempt refresh
   if (!isSessionValid && refreshToken) {
     try {
       const refreshResponse = await fetch(`${BACKEND_BASE_URL}/api/auth/refresh`, {

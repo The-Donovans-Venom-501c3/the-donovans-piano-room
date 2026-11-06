@@ -279,9 +279,9 @@ export default function MembershipSelectionLayout({
                 </button>
               )}
 
-              {/* 2. Added 1-liner under button when activated */}
-              {!isButtonDisabled && (
-                <p className="text-white text-xs sm:text-sm font-medium mt-3 leading-snug">
+              {/* Updated: Yellow text, larger font size (text-sm sm:text-base), and bold */}
+              {(!isButtonDisabled || isScholarship) && (
+                <p className="text-[#FACC15] text-sm sm:text-base font-bold mt-3 leading-snug">
                   Beta Scholarship is FREE till Nov 27, 2026. Please click the button to complete your signup
                 </p>
               )}
