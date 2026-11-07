@@ -112,6 +112,13 @@ type GameFlowStage =
 
 type DifficultyLevel = "easy" | "medium" | "hard";
 
+// The level a finished game unlocks next; Hard is the last one
+const NEXT_LEVEL: Record<DifficultyLevel, DifficultyLevel | null> = {
+  easy: "medium",
+  medium: "hard",
+  hard: null,
+};
+
 // How long the Correct / Wrong popover shows before it hides itself
 const FEEDBACK_MS = 1500;
 
@@ -475,6 +482,8 @@ export default function Home() {
   const isMediumUnlocked = !!completedLevels[`${selectedGameKey}:easy`];
   const isHardUnlocked = isMediumUnlocked && !!completedLevels[`${selectedGameKey}:medium`];
   const isHardCompleted = !!completedLevels[`${selectedGameKey}:hard`];
+
+  const nextLevel = selectedLevel ? NEXT_LEVEL[selectedLevel] : null;
 
   const cancelFeedbackTimer = () => {
     if (feedbackTimeoutRef.current) {
@@ -899,13 +908,34 @@ export default function Home() {
                     </p>
                     {lives > 0 && <p className="finished-encouragement">Keep it up, Superstar!</p>}
                     <div className="finish-actions">
-                      <button onClick={playAgain} className="play-again-btn">
+                      {lives > 0 && nextLevel && (
+                        <button
+                          type="button"
+                          onClick={() => handleSelectLevel(nextLevel)}
+                          className="next-level-btn"
+                        >
+                          Next Level
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={playAgain}
+                        className="play-again-btn"
+                      >
                         Play Again
                       </button>
-                      <button onClick={confirmExitGame} className="back-btn">
+                      <button
+                        type="button"
+                        onClick={confirmExitGame}
+                        className="back-btn"
+                      >
                         Back to Games
                       </button>
-                      <button onClick={startReview} className="review-btn">
+                      <button
+                        type="button"
+                        onClick={startReview}
+                        className="review-btn"
+                      >
                         Review Your Questions
                       </button>
                     </div>
