@@ -4,7 +4,8 @@ import { Mountains_of_Christmas } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import MobileWarningPopup from "@/components/atoms/MobileWarningPopup";
-import BetaBanner from "@/components/atoms/BetaBanner"; // 1. Re-add this import
+import BetaBanner from "@/components/atoms/BetaBanner";
+import ScholarshipBanner from "@/components/atoms/ScholarshipBanner";
 
 const mountainsOfChristmas = Mountains_of_Christmas({
   weight: ["400", "700"],
@@ -35,9 +36,12 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
         />
       </head>
-      <body className="pt-10">
+      <body className="pt-[var(--banners-h)]">
         <Providers>
-          <BetaBanner /> {/* 2. Re-add the BetaBanner component here */}
+          <div className="fixed top-0 left-0 z-[60] w-full">
+            <BetaBanner />
+            <ScholarshipBanner />
+          </div>
           {children}
           <MobileWarningPopup />
         </Providers>
