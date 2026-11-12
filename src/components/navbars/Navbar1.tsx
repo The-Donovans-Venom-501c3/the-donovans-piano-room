@@ -26,11 +26,9 @@ export default function Navbar1({ page }: { page: string }) {
 
   return (
     <>
-      {/* ✅ UPDATED: Changed top-0 to top-10 to push the blur background below BetaBanner */}
-      <div className="fixed top-10 z-40 h-[8.8vh] w-[100vw] bg-[#fbf7ff] backdrop-blur-sm"></div>
+      <div className="fixed top-[var(--banners-h)] z-40 h-[8.8vh] w-[100vw] bg-[#fbf7ff] backdrop-blur-sm"></div>
 
-      {/* ✅ UPDATED: Changed top-0 to top-10 to push nav below BetaBanner */}
-      <nav className="fixed top-10 z-50 h-[9vh] w-full border-b-2 border-b-[#ecd6fe] bg-white">
+      <nav className="fixed top-[var(--banners-h)] z-50 h-[9vh] w-full border-b-2 border-b-[#ecd6fe] bg-white">
         <div className="absolute top-0 flex h-[8.8vh] w-[24vw] justify-end rounded-r-full bg-secondary-purple py-2 pr-4">
           <Link href="/" className="flex items-center">
             <Image
