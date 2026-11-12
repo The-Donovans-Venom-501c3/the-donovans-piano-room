@@ -34,8 +34,8 @@ export default function Navbar3({ page }: { page: string }) {
 
   return (
     <>
-      <div className="fixed top-10 z-40 h-[8.8vh] w-[100vw] bg-[#fbf7ff] backdrop-blur-sm"></div>
-      <nav className="fixed top-10 z-50 h-[9vh] w-full border-b-2 border-[#A135E8] bg-white">
+      <div className="fixed top-[var(--banners-h)] z-40 h-[8.8vh] w-[100vw] bg-[#fbf7ff] backdrop-blur-sm"></div>
+      <nav className="fixed top-[var(--banners-h)] z-50 h-[9vh] w-full border-b-2 border-[#A135E8] bg-white">
         <div className="absolute top-0 flex h-[8.8vh] w-[24vw] justify-end rounded-r-full bg-[#601D86] py-2 pr-4">
           <Link href="/" className="flex items-center">
             <Image

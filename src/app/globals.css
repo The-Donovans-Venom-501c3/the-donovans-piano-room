@@ -1,6 +1,6 @@
-/* 
+/*
    GLOBALS.CSS — application wide styles
-   
+
    This file is loaded once by the root layout and applies to every route, so
    it must stay limited to cross-cutting concerns:
 
@@ -14,7 +14,7 @@
 
 */
 
-/* 
+/*
    TAILWIND LAYERS
    Base reset, component classes, and utility classes for the whole app.
    -------------------------------------------------------------------------- */
@@ -71,4 +71,16 @@ body {
 
 .animate-float-up {
   animation: floatUp 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* --------------------------------------------------------------------------
+   BETA & SCHOLARSHIP BANNERS
+   -------------------------------------------------------------------------- */
+:root {
+  --banners-h: 6rem;   /* 2 × h-12 */
+}
+@media (min-width: 640px) {
+  :root {
+    --banners-h: 7rem; /* 2 × sm:h-14 */
+  }
 }
