@@ -24,6 +24,7 @@ import {
 // Imports from types and utils using correct relative paths
 import type { GameType, HighScore, Level, Question, LevelKey } from "../../types";
 import { getQuestions } from "../../utils/questions";
+import { useBackgroundMusic } from "../../utils/useBackgroundMusic";
 
 import ChordOptions from "../../components/QuizSection/Options/ChordOptions/ChordOptions";
 import IntervalOptions from "../../components/QuizSection/Options/IntervalOptions/IntervalOptions";
@@ -273,22 +274,22 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [flowStage]);
 
+  // The clock and the music only run while a game is on screen with nothing covering it
+  const isGameRunning =
+    flowStage === "active_game" &&
+    !isPaused &&
+    !showExitModal &&
+    !showRestartModal &&
+    !showAccessibilityModal;
+
+  useBackgroundMusic(flowStage === "active_game", isGameRunning, volume);
+
   // Game Active Timer
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (
-      flowStage === "active_game" &&
-      !isPaused &&
-      !showExitModal &&
-      !showRestartModal &&
-      !showAccessibilityModal
-    ) {
-      interval = setInterval(() => {
-        setTimerSeconds((prev) => prev + 1);
-      }, 1000);
-    }
+    if (!isGameRunning) return;
+    const interval = setInterval(() => setTimerSeconds((prev) => prev + 1), 1000);
     return () => clearInterval(interval);
-  }, [flowStage, isPaused, showExitModal, showRestartModal, showAccessibilityModal]);
+  }, [isGameRunning]);
 
   // true once this game's results are saved, so Review → back to results doesn't save them again
   const resultsSavedRef = useRef<boolean>(false);
