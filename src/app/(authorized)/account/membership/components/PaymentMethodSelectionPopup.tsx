@@ -9,7 +9,7 @@ interface PaymentMethodSelectionPopupProps {
   paymentMethods: PaymentMethod[];
   selectedPaymentMethod: PaymentMethod | null;
   onPaymentMethodSelect: (method: PaymentMethod) => void;
-  isBeta?: boolean; // Controls Beta UI state
+  isBeta?: boolean;
 }
 
 export default function PaymentMethodSelectionPopup({
@@ -18,13 +18,10 @@ export default function PaymentMethodSelectionPopup({
   paymentMethods,
   selectedPaymentMethod,
   onPaymentMethodSelect,
-  isBeta = true, // Default to true for Beta Launch
+  isBeta = false, // Set default to false for production
 }: PaymentMethodSelectionPopupProps) {
-  // Removed unused `useRouter` import and declaration
-
   if (!isOpen) return null;
 
-  // Filter valid payment methods safely
   const validMethods = paymentMethods ? paymentMethods.filter((method) => method && method.maskedDetails) : [];
 
   const handleMethodSelect = (method: PaymentMethod) => {
@@ -41,7 +38,7 @@ export default function PaymentMethodSelectionPopup({
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
           >
             <Image src="/Close.svg" alt="Close" width={24} height={24} />
           </button>
@@ -50,7 +47,6 @@ export default function PaymentMethodSelectionPopup({
         {/* Payment Methods List */}
         <div className="space-y-4 mb-8">
           {isBeta || validMethods.length === 0 ? (
-            /* Empty State / Beta Notice */
             <div className="py-8 text-center text-primary-gray text-xl bg-white/50 rounded-xl p-6 border border-[#F6E2D1]">
               <p className="font-semibold text-primary-brown mb-1">No Saved Payment Methods</p>
               <p className="text-lg">Payment methods are not collected or required during <span className="font-medium text-tertiary-orange">The Piano Room Beta</span>.</p>
@@ -73,7 +69,7 @@ export default function PaymentMethodSelectionPopup({
                         type="radio"
                         checked={selectedPaymentMethod?.vaultTokenId === method.vaultTokenId}
                         onChange={() => handleMethodSelect(method)}
-                        className="w-5 h-5 text-primary-purple"
+                        className="w-5 h-5 text-primary-purple cursor-pointer"
                       />
                     </div>
                     <div className="flex items-center gap-4">

@@ -74,7 +74,7 @@ export default function Navbar4Left({
       disabled: false,
     },
     {
-      href: "",
+      href: "/planner",
       label: "PLANNER",
       key: nav4leftLinks.planner,
       icon: "/navbar/NavBar4Left/Planner.svg",
@@ -98,8 +98,8 @@ export default function Navbar4Left({
     >
       {/* Top Header Section */}
       <div className="relative flex h-[12vh] w-full items-center justify-center rounded-tr-[20px] bg-[#601d86]">
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="flex h-full w-full items-center justify-center cursor-pointer transition-opacity hover:opacity-90"
         >
           {isNavOpen ? (
@@ -143,10 +143,10 @@ export default function Navbar4Left({
           {profile?.id ? (
             <div className="flex flex-col items-center w-full cursor-pointer">
               <div className="relative h-[8vh] w-[8vh] shrink-0">
-                <Image 
-                  src={profile.picture || "/profile/Settings/Avatar%20default.svg"} 
-                  fill 
-                  alt="Profile Picture" 
+                <Image
+                  src={profile.picture || "/profile/Settings/Avatar%20default.svg"}
+                  fill
+                  alt="Profile Picture"
                 />
               </div>
               <p

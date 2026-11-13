@@ -1,0 +1,97 @@
+.highlights-block {
+  flex: 1;
+  padding: 3.2rem;
+
+  .highlights-heading {
+    font-weight: 600;
+    font-size: 2rem;
+    line-height: 1.4;
+    color: #59371D;
+    margin-bottom: 3.2rem;
+  }
+
+  .highlights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
+
+  // Each dt + dd pair is wrapped in a div (allowed inside a <dl>) so the
+  // pair can be styled and clicked as one card
+  .highlight-item {
+    position: relative;
+    padding: 1.6rem;
+    background: #FFFFFF;
+    border-radius: 12px;
+    text-align: center;
+    transition: background-color 0.15s ease;
+
+    &.is-open {
+      background: #F9F3FE;
+    }
+
+    &:hover,
+    &:has(.info-button:focus-visible) {
+      background: #D8BCFD;
+    }
+  }
+
+  .highlight-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #59371D;
+
+    .info-button {
+      // Stretch the click area over the whole card, so clicking anywhere on
+      // it shows or hides the description
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 12px;
+      }
+
+      // The whole card is the target now, so drop the icon's own hover
+      // circle and press movement
+      &:hover {
+        background-color: transparent;
+      }
+
+      &:active {
+        transform: none;
+      }
+
+      .info-icon {
+        width: 1.2rem;
+        height: 1.2rem;
+      }
+    }
+  }
+
+  .highlight-value {
+    font-weight: 700;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    color: #1C1A1A;
+  }
+
+  .highlight-description {
+    margin-top: 1.2rem;
+    font-size: 1.4rem;
+    line-height: 1.5;
+    color: #1C1A1A;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlights-block .highlight-item {
+    transition: none;
+  }
+}

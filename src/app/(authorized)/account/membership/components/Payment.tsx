@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { PaymentMethodSummary, PaymentMethodBrand, Plan, PaymentMethod } from "@/interfaces/membershipInterface";
@@ -10,16 +12,16 @@ interface PaymentProps {
   membershipId: string;
   nextRenewalAt?: string;
   autoRenew?: boolean;
-  membershipStatus?: string; // for determining if membership is cancelled
+  membershipStatus?: string;
   paymentMethodSummary?: PaymentMethodSummary;
   selectedPaymentMethod?: PaymentMethod;
   buttons?: ButtonConfig[];
-  selectedPlan?: Plan; // for upgrade mode
-  onEditClick?: () => void; // for custom edit behavior
-  errorMessage?: string; // for displaying error messages
-  transactionId?: string; // for displaying transaction ID with error
-  onRetry?: () => void; // for retry functionality
-  isBeta?: boolean; // Controls Beta UI mode
+  selectedPlan?: Plan;
+  onEditClick?: () => void;
+  errorMessage?: string;
+  transactionId?: string;
+  onRetry?: () => void;
+  isBeta?: boolean;
 }
 
 export default function Payment({
@@ -36,7 +38,7 @@ export default function Payment({
   errorMessage,
   transactionId,
   onRetry,
-  isBeta = true, // Defaults to true for your Beta Launch
+  isBeta = false, // Set default to false for production
 }: PaymentProps) {
   const router = useRouter();
   const formattedDate = formatRenewalDate(nextRenewalAt);
@@ -112,7 +114,7 @@ export default function Payment({
               <div className="flex items-center gap-4">
                 <div className="flex flex-col">
                   <div className="text-2xl font-semibold text-primary-brown leading-6">
-                    Beta Access — $0.00
+                    Beta Access — \$0.00
                   </div>
                   <div className="text-xl text-primary-gray mt-1">
                     No Payment Method Required During Beta
@@ -159,7 +161,7 @@ export default function Payment({
                 </div>
               </div>
 
-              <button type="button" className="inline-flex items-center gap-2 text-primary-purple" onClick={onEditClick || (() => router.push('/account/payments'))}>
+              <button type="button" className="inline-flex items-center gap-2 text-primary-purple cursor-pointer" onClick={onEditClick || (() => router.push('/account/payments'))}>
                 <span className="text-xl font-medium">Edit</span>
                 <Image
                   src="/memberships/Payment/pencil-outline.svg"
@@ -173,13 +175,13 @@ export default function Payment({
         </div>
       )}
 
-      {/* 4. Action Buttons (Hidden in Beta mode) */}
+      {/* 4. Action Buttons */}
       {errorMessage && onRetry ? (
         <div className="mt-4 flex w-full justify-center">
           <button
             type="button"
             onClick={onRetry}
-            className="w-full rounded-full bg-primary-purple px-6 py-5 text-center text-white font-semibold text-3xl hover:bg-purple-700 transition-colors"
+            className="w-full rounded-full bg-primary-purple px-6 py-5 text-center text-white font-semibold text-3xl hover:bg-purple-700 transition-colors cursor-pointer"
           >
             Retry
           </button>
@@ -200,7 +202,7 @@ export default function Payment({
                 className={button.style || `w-full rounded-full px-6 py-5 text-center ${
                   (button.disabled || button.loading)
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                    : 'bg-primary-purple text-white'
+                    : 'bg-primary-purple text-white cursor-pointer'
                 }`}
                 onClick={button.onClick}
               >

@@ -8,7 +8,7 @@ interface BenefitAccessCardProps {
   textColor?: string;
   benefits: string[];
   closeButton?: ButtonConfig;
-  isBeta?: boolean; // Controls Beta UI state
+  isBeta?: boolean;
 }
 
 export default function BenefitAccessCard({
@@ -17,7 +17,7 @@ export default function BenefitAccessCard({
   textColor,
   benefits,
   closeButton,
-  isBeta = true, // Defaults to true for Beta Launch
+  isBeta = false, // Set default to false for production
 }: BenefitAccessCardProps) {
   const displayPlanName = isBeta ? "Free Beta Access Benefits" : planName;
 
@@ -49,7 +49,7 @@ export default function BenefitAccessCard({
               disabled={closeButton?.disabled || closeButton?.loading}
               className={
                 closeButton?.style ||
-                "text-[#59371D] hover:opacity-75 transition-colors text-3xl font-bold leading-none"
+                "text-[#59371D] hover:opacity-75 transition-colors text-3xl font-bold leading-none cursor-pointer"
               }
             >
               {closeButton?.loading 
@@ -78,7 +78,7 @@ export default function BenefitAccessCard({
               ))
             ) : (
               <p className="text-black text-lg text-center py-2">
-                All Piano Room features are unlocked during the Beta testing phase!
+                All Piano Room features are unlocked with your current membership plan!
               </p>
             )}
           </div>

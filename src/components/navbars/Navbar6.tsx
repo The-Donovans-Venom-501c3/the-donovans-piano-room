@@ -29,7 +29,7 @@ export default function Navbar6({ page }: { page: string }) {
 
   return (
     <>
-      <nav className="fixed top-10 z-50 h-[9.5vh] w-full border-b-2 border-[#A135E8] py-2 backdrop-blur-sm">
+      <nav className="fixed top-[var(--banners-h)] z-50 h-[9.5vh] w-full border-b-2 border-[#A135E8] py-2 backdrop-blur-sm">
         <div className="absolute top-0 flex h-[9.3vh] w-[24vw] justify-end rounded-r-full bg-[#601D86] py-2 pr-4">
           <Link href="/" className="flex items-center">
             <Image
@@ -61,7 +61,7 @@ export default function Navbar6({ page }: { page: string }) {
           <Link
             className="relative flex items-center text-xl font-bold text-[#F0D454] hover:text-[#E98427] active:text-[#Da6a1c] 2xl:text-3xl"
             style={navigationPages.games === page ? highlightLink : {}}
-            href="https://thedonovansmusicgames.netlify.app/"
+            href="/games"
           >
             <p>GAMES</p>
             {navigationPages.games === page && displayBorder()}

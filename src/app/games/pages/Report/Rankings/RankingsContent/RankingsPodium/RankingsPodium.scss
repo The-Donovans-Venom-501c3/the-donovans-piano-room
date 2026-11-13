@@ -1,0 +1,91 @@
+// Shown in place of the podium until a game has been played
+.rankings-empty {
+  margin-top: 4.8rem; // the same space below the tabs as the podium
+  padding: 4.8rem 2.4rem;
+  font-weight: 500;
+  font-size: 1.8rem;
+  line-height: 1.4;
+  color: #59371D;
+  text-align: center;
+}
+
+.podium-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  // The row gap leaves room for the next row's rank badges, which stick
+  // out above each card
+  gap: 4.8rem 1.2rem;
+  max-width: 78rem;
+  margin: 4.8rem auto 0;
+
+  // Expanded (4th place and below): two columns that scroll inside the
+  // rankings card. The padding keeps the rank badges and bottom edges, which
+  // stick out of each card, from being clipped by the scroll area
+  &:has(.below-podium) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.4rem 1.6rem;
+    max-width: none;
+    max-height: 42rem;
+    margin: 1.2rem -2.4rem 0 0;
+    padding: 1.6rem 2.4rem 1.6rem 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #6F219E transparent;
+
+    // Safari still needs the prefixed scrollbar styles
+    &::-webkit-scrollbar {
+      width: 0.8rem;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #6F219E;
+      border-radius: 4px;
+    }
+  }
+}
+
+// A button styled as a link: it changes what's on the page rather than
+// going somewhere
+.more-rankings {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: fit-content;
+  margin: 3.4rem auto 0;
+  padding: 0.4rem;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1.5;
+  color: #6F219E;
+  cursor: pointer;
+
+  .more-rankings-label {
+    text-decoration: underline;
+    text-underline-offset: 0.3rem;
+  }
+
+  &:hover .more-rankings-label {
+    text-decoration-thickness: 2px;
+  }
+
+  // Cancel the global `button:active` press style from QuizScreen.scss
+  &:active {
+    background-color: transparent;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .more-rankings-icon {
+    width: 1.6rem;
+    height: 1rem;
+  }
+
+  // Sits between the tabs and the expanded list, which adds its own space
+  // above the cards
+  &.hide {
+    margin-top: 2.4rem;
+  }
+}
