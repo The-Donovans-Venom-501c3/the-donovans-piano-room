@@ -1,0 +1,140 @@
+@use 'styles/variables' as *;
+
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  padding: 1rem;
+}
+
+.overlay-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border-radius: 28px;
+  padding: 2.25rem 2rem;
+  width: min(90vw, 32rem);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  gap: 1.25rem;
+  text-align: center;
+
+  .mascot-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    img {
+      max-width: 130px;
+      height: auto;
+      object-fit: contain;
+    }
+  }
+
+  .overlay-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #2b2b2b;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    p {
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: #666666;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+
+  .overlay-actions {
+    display: flex;
+    width: 100%;
+    gap: 0.85rem;
+    margin-top: 0.5rem;
+  }
+}
+
+.btn-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.15s ease;
+
+  &:active {
+    transform: translateY(2px);
+    box-shadow: none !important;
+  }
+}
+
+.btn-white {
+  background-color: #ffffff;
+  color: #333333;
+  border: 2px solid $grey-200;
+  box-shadow: 0 4px 0 $grey-200;
+
+  &:hover {
+    background-color: $grey-50;
+  }
+}
+
+.btn-red {
+  background-color: #d9534f;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #b52b27;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.btn-orange {
+  background-color: $orange-500;
+  color: #ffffff;
+  box-shadow: 0 4px 0 $orange-600;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.btn-purple {
+  background-color: $purple-800;
+  color: #ffffff;
+  box-shadow: 0 4px 0 $purple-900;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+@media (max-width: 480px) {
+  .overlay-modal {
+    padding: 1.5rem 1.25rem;
+
+    .overlay-actions {
+      flex-direction: column;
+    }
+  }
+}

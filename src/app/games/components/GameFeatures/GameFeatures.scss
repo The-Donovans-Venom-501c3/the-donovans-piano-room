@@ -1,0 +1,91 @@
+@use "../../assets/scss/variables" as *;
+
+.gameFeatureContainer {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  z-index: 10;
+
+  .gameHeaderHUD {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 6px 16px;
+    border-radius: 8px;
+    color: #fff;
+
+    .hudItem {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+      font-weight: 600;
+
+      .hudLabel {
+        color: $grey-300;
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+
+      #timer,
+      #score {
+        font-size: 20px;
+        font-weight: bold;
+        color: #ffffff;
+      }
+
+      #lives {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+
+        img {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      &.controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        padding-left: 12px;
+      }
+
+      .musicBtn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: transparent;
+        border: 1px solid $grey-500;
+        border-radius: 4px;
+        padding: 2px 8px;
+        cursor: pointer;
+        color: #fff;
+
+        img {
+          width: 16px;
+          height: 16px;
+        }
+
+        span {
+          font-size: 12px;
+          font-weight: bold;
+        }
+
+        &.on {
+          background-color: $pale-green;
+          border-color: $green-500;
+        }
+      }
+
+      #volume {
+        display: flex;
+        align-items: center;
+      }
+    }
+  }
+}

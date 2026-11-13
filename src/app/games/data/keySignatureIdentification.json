@@ -1,0 +1,89 @@
+{
+
+            "name": "Key Signature Identification",
+            "levels": [
+              {
+                "level": "Easy",
+                "numberOfQuestions": {
+                  "easy": 10
+                },
+                "questions": [
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Easy/KeySignature-Question-Easy-1.svg",
+                    "correctOption": "G"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Easy/KeySignature-Question-Easy-2.svg",
+                    "correctOption": "D"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Easy/KeySignature-Question-Easy-3.svg",
+                    "correctOption": "A"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Easy/KeySignature-Question-Easy-4.svg",
+                    "correctOption": "F"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Easy/KeySignature-Question-Easy-5.svg",
+                    "correctOption": "B♭"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Easy/KeySignature-Question-Easy-6.svg",
+                    "correctOption": "E♭"
+                  }
+                ]
+              },
+              {
+                "level": "Medium",
+                "numberOfQuestions": {
+                  "easy": 5,
+                  "medium": 15
+                },
+                "questions": [
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Medium/KeySignature-Question-Medium-1.svg",
+                    "correctOption": "E"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Medium/KeySignature-Question-Medium-2.svg",
+                    "correctOption": "B"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Medium/KeySignature-Question-Medium-3.svg",
+                    "correctOption": "A♭"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Medium/KeySignature-Question-Medium-4.svg",
+                    "correctOption": "D♭"
+                  }
+                ]
+              },
+              {
+                "level": "Hard",
+                "numberOfQuestions": {
+                  "easy": 5,
+                  "medium": 10,
+                  "hard": 15
+                },
+                "questions": [
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Hard/KeySignature-Question-Hard-1.svg",
+                    "correctOption": "F#"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Hard/KeySignature-Question-Hard-2.svg",
+                    "correctOption": "C#"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Hard/KeySignature-Question-Hard-3.svg",
+                    "correctOption": "G♭"
+                  },
+                  {
+                    "questionImage": "https://github.com/The-Donovans-Venom-501c3/svg-image-server/raw/main/Key%20Signature%20Identification/Hard/KeySignature-Question-Hard-4.svg",
+                    "correctOption": "C♭"
+                  }
+                ]
+              }
+            ]
+}

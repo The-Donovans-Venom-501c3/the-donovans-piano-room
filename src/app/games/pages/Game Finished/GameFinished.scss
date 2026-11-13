@@ -1,0 +1,10 @@
+@use '../../assets/scss/variables' as *;
+
+.game-finished {
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(1rem, 4vh, 3rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

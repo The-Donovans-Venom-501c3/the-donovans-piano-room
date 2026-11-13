@@ -2,15 +2,14 @@
 import { getUser } from "@/lib/api/userService";
 import { refreshToken } from "@/lib/api/authService";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LockOutlined from "@mui/icons-material/LockOutlined";
 import CircularProgress from "@mui/material/CircularProgress";
+import GameApp from "./App";
 
 const Games = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const handleGameRoute = async () => {
@@ -36,7 +35,6 @@ const Games = () => {
         // Final authentication check after potential token refresh
         if (ok) {
           setIsAuthenticated(true);
-          router.replace("https://thedonovansmusicgames.netlify.app/");
           return;
         } else {
           setIsAuthenticated(false);
@@ -50,7 +48,7 @@ const Games = () => {
     };
 
     handleGameRoute();
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (
@@ -60,6 +58,12 @@ const Games = () => {
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </>
+    );
+  }
+
+  if (isAuthenticated) {
+    return (
+      <GameApp />
     );
   }
 
