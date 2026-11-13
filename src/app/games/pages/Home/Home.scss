@@ -950,6 +950,12 @@ $roboto-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI'
         box-shadow: none;
         transform: translateY(2px); // smaller press than the global 4px
       }
+      &.accessibility-btn:disabled {
+        opacity: 0.5;
+        transform: none;
+        cursor: not-allowed;
+        background: transparent;
+      }
     }
     .pill-btn {
       display: inline-flex;

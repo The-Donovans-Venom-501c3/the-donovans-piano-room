@@ -125,6 +125,9 @@ const FEEDBACK_MS = 1500;
 // How many upcoming question images to fetch ahead of the player
 const PRELOAD_AHEAD = 2;
 
+// Accessibility is turned off until the feature is ready
+const IS_ACCESSIBILITY_ENABLED = false;
+
 // Music is Reading: a letter lands on the blank under the mouse. If the mouse isn't over one
 // (or there's no mouse, as when dragging with the keyboard), it lands on the blank it overlaps most.
 const dropOnBlankUnderPointer: CollisionDetection = (args) => {
@@ -232,6 +235,8 @@ export default function Home() {
 
   // Keyboard shortcut Ctrl+U for accessibility modal
   useEffect(() => {
+    if (!IS_ACCESSIBILITY_ENABLED) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "u") {
         e.preventDefault();
@@ -979,9 +984,10 @@ export default function Home() {
                     </div>
                     <div className="right-controls">
                       <button
-                        className="icon-circle-btn"
-                        title="Accessibility"
+                        className="icon-circle-btn accessibility-btn"
+                        title={`Accessibility${IS_ACCESSIBILITY_ENABLED ? "" : " (coming soon)"}`}
                         onClick={() => setShowAccessibilityModal(true)}
+                        disabled={!IS_ACCESSIBILITY_ENABLED}
                       >
                         <img src={accessibilityIcon} alt="Accessibility" />
                       </button>
