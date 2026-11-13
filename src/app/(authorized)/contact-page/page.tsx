@@ -21,9 +21,13 @@ export default function ContactDashboardPage() {
     }
   }, [profile, router]);
 
-  // Block rendering dashboard layout if logged out
+  // Loading indicator while auth status is determined
   if (!isAuthorized) {
-    return null;
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#521C75] text-white">
+        <p className="text-xl font-bold">Loading contact page...</p>
+      </div>
+    );
   }
 
   return (

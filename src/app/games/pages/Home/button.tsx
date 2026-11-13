@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "./Button.scss";
 
+const arrowIcon = "/games/gameDashboardArrow.svg";
+
 export interface ButtonProps {
   icon: string;
   hoverIcon?: string;
@@ -40,6 +42,8 @@ const Button: React.FC<ButtonProps> = ({
           <span id="title">{title}</span>
           <span id="tips">{tips}</span>
         </div>
+
+        <img src={arrowIcon} className="arrow-icon" alt="" />
       </div>
     </button>
   );

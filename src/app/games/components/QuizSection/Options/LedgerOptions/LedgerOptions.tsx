@@ -13,24 +13,42 @@ const symbols = [
   },
 ];
 
-export default function LedgerOptions({ handleOptionClick, level }: { handleOptionClick: OptionClickHandler; level: Level }) {
+export default function LedgerOptions({
+  handleOptionClick,
+  level,
+  wrongOptions = [],
+  correctOption = null,
+  locked = false
+}: {
+  handleOptionClick: OptionClickHandler;
+  level: Level;
+  wrongOptions?: string[];
+  // Set from a correct pick until the next question loads
+  correctOption?: string | null;
+  // Answers aren't accepted right now (question answered or Wrong popover up), so every button is disabled
+  locked?: boolean;
+}) {
   return (
-    <div className="small-btn-wrapper" style={{ gridColumnGap: "4px" }}>
+    <div className="small-btn-wrapper">
       {symbols.map((symbol, index) =>
-        notes.map((note, idx) =>
-          (level == "easy" && index > 0) || (level == "medium" && index > 1) ? (
+        notes.map((note, idx) => {
+          const option = note + symbol.name;
+          return (level == "easy" && index > 0) || (level == "medium" && index > 1) ? (
             <div key={note} className="option-blank"></div>
           ) : (
             <button
               key={idx}
-              onClick={() => handleOptionClick(note + symbol.name)}
-              className="option-btn small-btn"
+              onClick={() => handleOptionClick(option)}
+              className={`option-btn small-btn ${
+                wrongOptions.includes(option) ? 'wrong' : option === correctOption ? 'correct' : ''
+              }`}
+              disabled={locked || wrongOptions.includes(option)}
             >
-              <span>{note}</span>
-              {index !== 0 ? <img src={index === 1 ? "/games/SharpSymbol.svg" : "/games/BimolSymbol.svg"} alt={symbol.name} /> : null}
+              {note}
+              {index !== 0 ? (index === 1 ? "\u266F" : "\u266D") : null}
             </button>
-          )
-        )
+          );
+        })
       )}
     </div>
   );

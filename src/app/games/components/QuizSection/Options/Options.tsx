@@ -9,6 +9,7 @@ import IntervalOptions from "./IntervalOptions/IntervalOptions";
 import ChordOptions from "./ChordOptions/ChordOptions";
 import LedgerOptions from "./LedgerOptions/LedgerOptions";
 import ReadingOptions from "./ReadingOptions/ReadingOptions";
+import MathOptions from "./MathOptions/MathOptions";
 import { gameStateAtom, levelStateAtom } from "@/store/game-atoms";
 import { normalizeGameKey } from "../../../utils/questions";
 import type { OptionClickHandler, Question, Level } from "../../../types";
@@ -36,9 +37,8 @@ const OPTIONS_REGISTRY: Record<string, (props: OptionRendererProps) => JSX.Eleme
   chord: ({ handleClick, level }) => <ChordOptions handleOptionClick={handleClick} level={level} />,
   ledger: ({ handleClick, level }) => <LedgerOptions handleOptionClick={handleClick} level={level} />,
   interval: ({ handleClick }) => <IntervalOptions handleOptionClick={handleClick} />,
-  reading: ({ displayText, currQuestion }) => (
-    <ReadingOptions displayText={displayText} currQuestion={currQuestion} />
-  ),
+  math: ({ handleClick }) => <MathOptions handleOptionClick={handleClick} />,
+  reading: ({ handleClick }) => <ReadingOptions handleOptionClick={handleClick} />,
 };
 
 export default function Options({ handleOptionClick, displayText = "", currQuestion }: OptionsProps) {

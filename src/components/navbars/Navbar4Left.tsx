@@ -74,12 +74,12 @@ export default function Navbar4Left({
       disabled: false,
     },
     {
-      href: "",
+      href: "/planner",
       label: "PLANNER",
       key: nav4leftLinks.planner,
       icon: "/navbar/NavBar4Left/Planner.svg",
       alt: "P",
-      disabled: true,
+      disabled: false,
     },
     {
       href: "/contact-page",

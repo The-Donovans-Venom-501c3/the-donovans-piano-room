@@ -1,28 +1,114 @@
 @use '../../../assets/scss/variables' as *;
 
+$wrong-bg: #FF7A7A;
+$correct-bg: #438342;
+
 .option-btn {
   border: 1px solid $grey-200;
   box-shadow: 0px 5px 0px 0px $grey-200;
-  font-size: 15px;
+  font-size: 2.07rem;
   font-weight: 500;
-
-  &:hover {
+  color: #1C1A1A;
+  // Disabled buttons (wrong picks, answered questions) get no hover or press effect
+  &:not(:disabled):hover,
+  &:not(:disabled):active {
+    border-color: $yellow-300;
     background-color: $yellow-100-hover;
     box-shadow: 0px 5px 0px 0px $yellow-300;
   }
-  &:active {
-    background-color: white;
-    box-shadow: 0px 1px 0px 0px $grey-200;
-    transform: translateY(2px);
+  &:not(:disabled):active {
+    box-shadow: 0px 2px 0px 0px $yellow-300;
+    transform: translateY(3px);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    // Cancel the global `button:active` press style from QuizScreen.scss
+    &:active {
+      background-color: transparent;
+      box-shadow: 0px 5px 0px 0px $grey-200;
+      transform: none;
+    }
+  }
+  &.wrong {
+    background-color: $wrong-bg;
+    border-color: $wrong-bg;
+    box-shadow: 0px 5px 0px 0px rgba($wrong-bg, 0.8);
+    &:hover,
+    &:active {
+      background-color: $wrong-bg;
+      box-shadow: 0px 5px 0px 0px rgba($wrong-bg, 0.8);
+      transform: none;
+    }
+  }
+  &.correct {
+    background-color: $correct-bg;
+    border-color: $correct-bg;
+    box-shadow: 0px 5px 0px 0px rgba($correct-bg, 0.8);
+    color: #fff;
+    &:hover,
+    &:active {
+      background-color: $correct-bg;
+      border-color: $correct-bg;
+      box-shadow: 0px 5px 0px 0px rgba($correct-bg, 0.8);
+      transform: none;
+    }
   }
 }
 
-.small-btn-wrapper {
-  margin-top: 15px;
+.option-output {
+  --flash-bg: #{$yellow-100-hover};
+  --flash-border: #{$yellow-300};
+  font-size: 2.07rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid $grey-200;
+  width: 160px;
+  height: 45px;
+  color: #1C1A1A;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  &:empty::before {
+    // placeholder
+    content: "0";
+    color: #757575;
+  }
+  &.wrong {
+    background-color: $wrong-bg;
+    border-color: $wrong-bg;
+  }
+  &.correct {
+    background-color: $correct-bg;
+    border-color: $correct-bg;
+    color: #fff;
+  }
+}
+
+.small-btn-wrapper,
+.large-btn-wrapper {
+  margin-top: 22px;
   display: grid;
+}
+
+.small-btn-wrapper {
   grid-template-columns: repeat(7, 1fr);
-  grid-column-gap: 5px;
+  grid-column-gap: 15px;
   grid-row-gap: 10px;
+  &.reading {
+    justify-items: center;
+  }
+  &.key {
+    margin-top: 38px;
+  }
+  &.chord,
+  &.math,
+  &.interval {
+    margin-top: 10px; // same as `grid-row-gap` on `.small-btn-wrapper`
+  }
 
   .small-btn {
     display: flex;
@@ -30,6 +116,9 @@
     justify-content: center;
     border-radius: 10px;
     height: 45px;
+    &.reading-letter {
+      width: 45px;
+    }
 
     img {
       margin-left: 1px;
@@ -52,11 +141,38 @@
   grid-template-columns: repeat(6, 1fr);
 }
 
+.small-btn-wrapper-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
 .large-btn-wrapper {
-  display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-column-gap: 5px;
-  grid-row-gap: 10px;
+  grid-column-gap: 12px;
+  grid-row-gap: 14px;
+  &.major-minor {
+    margin-top: 36px;
+
+    .large-btn {
+      height: 85px;
+    }
+  }
+  &.scale {
+    margin-top: 20px;
+
+    .large-btn {
+      height: 45px;
+      &:not(.note-selected):not(.locked):disabled {
+        color: $grey-200;
+      }
+    }
+  }
+  &.reading {
+    margin-top: 20px;
+
+    .large-btn {
+      height: 45px;
+    }
+  }
 
   .large-btn {
     border-radius: 12px;

@@ -1,0 +1,17 @@
+.math-options-container {
+  margin-top: 22px;
+
+  .small-btn-wrapper:first-of-type,
+  .small-btn-wrapper:last-of-type {
+    margin-top: 15px;
+  }
+
+  .option-btn {
+    &.clear-btn,
+    &.del-btn,
+    &.submit-btn {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
+}
