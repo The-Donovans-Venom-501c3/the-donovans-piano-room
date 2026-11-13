@@ -9,44 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAtomValue } from "jotai";
 import { profileAtom } from "@/utils/stores";
+import { TRACKS, trackUrl } from "@/utils/tracks";
 import HomeCar, { type HomeCarHandle } from "@/app/components/HomeMap/HomeCar";
 import { BUILDING_HIT_BOXES } from "@/app/components/HomeMap/roadRoutes";
-
-// TRACKS array matching exact audio filenames while displaying full title with artist credit
-const TRACKS = [
-  {
-    title: "Fantasie Impromptu by The Donovan",
-    file: "Fantasie Impromptu.wav",
-  },
-  {
-    title: "Gymnopédie by The Donovan",
-    file: "Gymno.wav",
-  },
-  {
-    title: "Moonlight Sonata by The Donovan",
-    file: "Moonlight Sonata.wav",
-  },
-  {
-    title: "Nocturne Op. 37, No. 2 in G Minor by The Donovan",
-    file: "Nocturne Op. 37, No. 2 in G Minor.wav",
-  },
-  {
-    title: "Posthumous Nocturne by The Donovan",
-    file: "Posthumous Nocturne.wav",
-  },
-  {
-    title: "Pour le Piano by The Donovan",
-    file: "Pourle Piano.wav",
-  },
-  {
-    title: "Prelude in C# minor by The Donovan",
-    file: "Prelude in C# minor.wav",
-  },
-  {
-    title: "The Seasons Op. 37a August (Harvest) by The Donovan",
-    file: "The Seasons Op. 37a August (Harvest).wav",
-  },
-];
 
 export default function Home() {
   const profile = useAtomValue(profileAtom);
@@ -65,9 +30,7 @@ export default function Home() {
     const selectedTrack = TRACKS[dayIndex % TRACKS.length];
     setCurrentTrack(selectedTrack);
 
-    // Safely encode characters (#, spaces) for web loading
-    const encodedAudioPath = `/audio/${encodeURIComponent(selectedTrack.file)}`;
-    const audio = new Audio(encodedAudioPath);
+    const audio = new Audio(trackUrl(selectedTrack.file));
     audio.volume = 1.0; // Max default HTML volume
     audio.onended = () => setIsPlaying(false);
 
