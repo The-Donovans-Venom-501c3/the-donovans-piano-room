@@ -25,6 +25,7 @@ interface RawChatMessage {
   };
   text: string;
   createdAt: string;
+  cursor: string;
 }
 
 interface RawParticipant {
@@ -177,6 +178,7 @@ export const liveSessionApi = {
         pronouns: message.sender.pronouns ?? undefined,
         text: message.text,
         createdAt: message.createdAt,
+        cursor: message.cursor,
       })),
       nextCursor: response.page.nextCursor,
       hasMore: response.page.hasMore,

@@ -100,6 +100,7 @@ export default function LiveSessionsComponent({
     messages,
     hasMoreMessages,
     isLoadingOlder,
+    isSendingMessage,
     loadOlderMessages,
     activePoll,
     typingNames,
@@ -164,11 +165,16 @@ export default function LiveSessionsComponent({
     }
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatMessage.trim()) return;
-    sendMessage(chatMessage);
-    setChatMessage("");
+    const submittedDraft = chatMessage;
+    const accepted = await sendMessage(submittedDraft);
+    if (accepted) {
+      setChatMessage((currentDraft) =>
+        currentDraft === submittedDraft ? "" : currentDraft
+      );
+    }
   };
 
   const handleChatScroll = () => {
@@ -212,6 +218,7 @@ export default function LiveSessionsComponent({
   const codePointCount = [...chatMessage].length;
   const isChatDisabled =
     connectionState !== "connected" ||
+    isSendingMessage ||
     Boolean(restriction) ||
     (!isHost && chatMode !== "enabled");
 
@@ -517,6 +524,12 @@ export default function LiveSessionsComponent({
                           </p>
                         )}
 
+                        {error && (
+                          <p className="text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-1.5 mt-1 font-semibold">
+                            {error}
+                          </p>
+                        )}
+
                         <form onSubmit={handleSendMessage} className="relative mt-2 shrink-0">
                           <input
                             type="text"
@@ -525,6 +538,8 @@ export default function LiveSessionsComponent({
                                 ? "Chat restricted"
                                 : chatMode !== "enabled" && !isHost
                                 ? "Chat is read-only"
+                                : isSendingMessage
+                                ? "Sending message..."
                                 : "Send a message"
                             }
                             disabled={isChatDisabled}

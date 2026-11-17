@@ -43,7 +43,22 @@ export interface ChatMessage {
   pronouns?: string;
   text: string;
   createdAt: string;
+  cursor?: string;
   isHost?: boolean;
+}
+
+export interface ServerChatMessage {
+  id: string;
+  clientMessageId: string;
+  sender: {
+    id: string;
+    displayName: string;
+    picture?: string | null;
+    pronouns?: string | null;
+  };
+  text: string;
+  createdAt: string;
+  cursor: string;
 }
 
 export interface MessagesPage {
@@ -93,7 +108,22 @@ export type WsInboundEvent =
     }
   | { type: "presence.snapshot"; payload: { participants: Participant[]; count: number } }
   | { type: "presence.updated"; payload: { participants: Participant[]; count: number } }
-  | { type: "chat.message"; payload: ChatMessage }
+  | {
+      type: "chat.ack";
+      requestId: string;
+      clientMessageId: string;
+      messageId: string;
+      status: "accepted" | "duplicate";
+    }
+  | { type: "chat.message"; message: ServerChatMessage }
+  | {
+      type: "error";
+      requestId: string | null;
+      code: string;
+      message: string;
+      retryable: boolean;
+      retryAfterMs?: number;
+    }
   | { type: "chat.message_deleted"; payload: { messageId: string } }
   | { type: "chat.mode_changed"; payload: { chatMode: ChatMode } }
   | { type: "typing.updated"; payload: { userId: string; name: string; isTyping: boolean } }

@@ -20,6 +20,13 @@ interface UseLiveSessionOptions {
   onReaction: (emoji: string) => void;
 }
 
+interface PendingChatRequest {
+  clientMessageId: string;
+  text: string;
+  resolve: (accepted: boolean) => void;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
 function resolveWebSocketUrl(wsPath: string): string {
   if (wsPath.startsWith("ws://") || wsPath.startsWith("wss://")) return wsPath;
 
@@ -53,6 +60,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
   const [typingUsers, setTypingUsers] = useState<
@@ -63,13 +71,18 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
   const shouldReconnectRef = useRef(false);
-  const lastMessageIdRef = useRef<string | null>(null);
+  const lastMessageCursorRef = useRef<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingSentRef = useRef(false);
+  const pendingChatRequestsRef = useRef<Map<string, PendingChatRequest>>(new Map());
+  const failedChatMessageRef = useRef<{
+    text: string;
+    clientMessageId: string;
+  } | null>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
-      lastMessageIdRef.current = messages[messages.length - 1].id;
+      lastMessageCursorRef.current = messages[messages.length - 1].cursor ?? null;
     }
   }, [messages]);
 
@@ -92,6 +105,16 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const cleanupSocket = useCallback(() => {
     shouldReconnectRef.current = false;
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+    for (const pending of pendingChatRequestsRef.current.values()) {
+      clearTimeout(pending.timeout);
+      failedChatMessageRef.current = {
+        text: pending.text,
+        clientMessageId: pending.clientMessageId,
+      };
+      pending.resolve(false);
+    }
+    pendingChatRequestsRef.current.clear();
+    setIsSendingMessage(false);
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -115,11 +138,11 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         setConnectionState("connected");
         setError(null);
 
-        if (wasReconnecting && lastMessageIdRef.current) {
+        if (wasReconnecting && lastMessageCursorRef.current) {
           try {
             const [missed, latestPoll, reloadedSession] = await Promise.all([
               liveSessionApi.getMessages(sessionId, {
-                after: lastMessageIdRef.current,
+                after: lastMessageCursorRef.current,
               }),
               liveSessionApi.getCurrentPoll(sessionId),
               liveSessionApi.getSession(sessionId),
@@ -167,12 +190,63 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               setParticipants(parsed.payload.participants);
               break;
 
-            case "chat.message":
+            case "chat.ack": {
+              const pending = pendingChatRequestsRef.current.get(parsed.requestId);
+              if (!pending) break;
+
+              clearTimeout(pending.timeout);
+              pendingChatRequestsRef.current.delete(parsed.requestId);
+              if (
+                failedChatMessageRef.current?.clientMessageId ===
+                pending.clientMessageId
+              ) {
+                failedChatMessageRef.current = null;
+              }
+              setIsSendingMessage(false);
+              setError(null);
+              pending.resolve(true);
+              break;
+            }
+
+            case "chat.message": {
+              const serverMessage = parsed.message;
+              const normalizedMessage: ChatMessage = {
+                id: serverMessage.id,
+                userId: serverMessage.sender.id,
+                name: serverMessage.sender.displayName,
+                avatarUrl: serverMessage.sender.picture ?? undefined,
+                pronouns: serverMessage.sender.pronouns ?? undefined,
+                text: serverMessage.text,
+                createdAt: serverMessage.createdAt,
+                cursor: serverMessage.cursor,
+              };
+
               setMessages((prev) => {
-                if (prev.some((m) => m.id === parsed.payload.id)) return prev;
-                return [...prev, parsed.payload];
+                if (prev.some((message) => message.id === normalizedMessage.id)) {
+                  return prev;
+                }
+                return [...prev, normalizedMessage];
               });
               break;
+            }
+
+            case "error": {
+              setError(parsed.message);
+              if (!parsed.requestId) break;
+
+              const pending = pendingChatRequestsRef.current.get(parsed.requestId);
+              if (!pending) break;
+
+              clearTimeout(pending.timeout);
+              pendingChatRequestsRef.current.delete(parsed.requestId);
+              failedChatMessageRef.current = {
+                text: pending.text,
+                clientMessageId: pending.clientMessageId,
+              };
+              setIsSendingMessage(false);
+              pending.resolve(false);
+              break;
+            }
 
             case "chat.message_deleted":
               setMessages((prev) =>
@@ -343,27 +417,91 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   }, [currentSession, nextCursor, isLoadingOlder, hasMoreMessages]);
 
   const sendMessage = useCallback(
-    (text: string) => {
+    (text: string): Promise<boolean> => {
       const trimmed = text.trim();
-      if (!trimmed || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)
-        return;
+      if (!trimmed) return Promise.resolve(false);
+
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        setError("Chat is reconnecting. Please try again in a moment.");
+        return Promise.resolve(false);
+      }
+
+      if (chatMode !== "enabled" || restriction || !config?.permissions.canChat) {
+        setError("You cannot send messages in the current chat state.");
+        return Promise.resolve(false);
+      }
 
       const maxLen = config?.limits?.maxMessageLength || 200;
-      const safeText = [...trimmed].slice(0, maxLen).join("");
+      if ([...trimmed].length > maxLen) {
+        setError(`Messages must be ${maxLen} characters or fewer.`);
+        return Promise.resolve(false);
+      }
 
-      wsRef.current.send(
-        JSON.stringify({
-          type: "chat.send",
-          payload: { text: safeText },
-        })
-      );
+      const requestId = crypto.randomUUID();
+      const clientMessageId =
+        failedChatMessageRef.current?.text === trimmed
+          ? failedChatMessageRef.current.clientMessageId
+          : crypto.randomUUID();
+
+      setError(null);
+      setIsSendingMessage(true);
+
+      const result = new Promise<boolean>((resolve) => {
+        const timeout = setTimeout(() => {
+          const pending = pendingChatRequestsRef.current.get(requestId);
+          if (!pending) return;
+
+          pendingChatRequestsRef.current.delete(requestId);
+          failedChatMessageRef.current = {
+            text: pending.text,
+            clientMessageId: pending.clientMessageId,
+          };
+          setIsSendingMessage(false);
+          setError("The message was not confirmed. Please try again.");
+          pending.resolve(false);
+        }, 10000);
+
+        pendingChatRequestsRef.current.set(requestId, {
+          clientMessageId,
+          text: trimmed,
+          resolve,
+          timeout,
+        });
+
+        try {
+          wsRef.current?.send(
+            JSON.stringify({
+              version: 1,
+              type: "chat.send",
+              requestId,
+              clientMessageId,
+              text: trimmed,
+            })
+          );
+        } catch {
+          clearTimeout(timeout);
+          pendingChatRequestsRef.current.delete(requestId);
+          failedChatMessageRef.current = { text: trimmed, clientMessageId };
+          setIsSendingMessage(false);
+          setError("The message could not be sent. Please try again.");
+          resolve(false);
+        }
+      });
 
       if (isTypingSentRef.current) {
         isTypingSentRef.current = false;
-        wsRef.current.send(JSON.stringify({ type: "typing.stop" }));
+        wsRef.current.send(
+          JSON.stringify({
+            version: 1,
+            type: "typing.stop",
+            requestId: crypto.randomUUID(),
+          })
+        );
       }
+
+      return result;
     },
-    [config]
+    [chatMode, config, restriction]
   );
 
   const notifyTyping = useCallback(() => {
@@ -371,14 +509,26 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
     if (!isTypingSentRef.current) {
       isTypingSentRef.current = true;
-      wsRef.current.send(JSON.stringify({ type: "typing.start" }));
+      wsRef.current.send(
+        JSON.stringify({
+          version: 1,
+          type: "typing.start",
+          requestId: crypto.randomUUID(),
+        })
+      );
     }
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN && isTypingSentRef.current) {
         isTypingSentRef.current = false;
-        wsRef.current.send(JSON.stringify({ type: "typing.stop" }));
+        wsRef.current.send(
+          JSON.stringify({
+            version: 1,
+            type: "typing.stop",
+            requestId: crypto.randomUUID(),
+          })
+        );
       }
     }, 3000);
   }, []);
@@ -480,6 +630,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     messages,
     hasMoreMessages,
     isLoadingOlder,
+    isSendingMessage,
     loadOlderMessages,
     activePoll,
     typingNames: Object.values(typingUsers).map((u) => u.name),
