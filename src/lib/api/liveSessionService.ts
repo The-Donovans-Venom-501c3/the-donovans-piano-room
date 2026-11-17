@@ -6,6 +6,7 @@ import {
   MessagesPage,
   Participant,
   Poll,
+  ServerParticipant,
   SessionJoinConfig,
 } from "@/interfaces/liveSessionInterface";
 
@@ -26,13 +27,6 @@ interface RawChatMessage {
   text: string;
   createdAt: string;
   cursor: string;
-}
-
-interface RawParticipant {
-  userId: string;
-  displayName: string;
-  picture?: string | null;
-  role: string;
 }
 
 interface RawPoll {
@@ -92,6 +86,15 @@ function normalizePoll(poll: RawPoll | null): Poll | null {
     isClosed: poll.status === "closed",
     userVotedOptionId: poll.myVoteOptionId ?? null,
     totalVotes: poll.totalVotes ?? 0,
+  };
+}
+
+export function normalizeParticipant(participant: ServerParticipant): Participant {
+  return {
+    id: participant.userId,
+    name: participant.displayName,
+    avatarUrl: participant.picture ?? undefined,
+    role: participant.role,
   };
 }
 
@@ -188,16 +191,11 @@ export const liveSessionApi = {
   // 6. Participant snapshot and host search
   getParticipants: (sessionId: string, search?: string) => {
     const qs = search ? `?search=${encodeURIComponent(search)}` : "";
-    return apiRequest<{ participants: RawParticipant[]; activeCount: number }>(
+    return apiRequest<{ participants: ServerParticipant[]; activeCount: number }>(
       `${BASE}/${sessionId}/participants${qs}`,
       { cache: "no-store" }
     ).then((response) => ({
-      participants: response.participants.map((participant): Participant => ({
-        id: participant.userId,
-        name: participant.displayName,
-        avatarUrl: participant.picture ?? undefined,
-        role: participant.role,
-      })),
+      participants: response.participants.map(normalizeParticipant),
       count: response.activeCount,
     }));
   },

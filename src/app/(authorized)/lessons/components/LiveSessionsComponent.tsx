@@ -97,6 +97,8 @@ export default function LiveSessionsComponent({
     restriction,
     activeRestrictions,
     participants,
+    activeParticipantCount,
+    presenceStatus,
     messages,
     hasMoreMessages,
     isLoadingOlder,
@@ -352,7 +354,7 @@ export default function LiveSessionsComponent({
                       activePanel === "people" ? "bg-purple-600 text-white" : "bg-[#41285E]/90 text-white hover:bg-purple-800"
                     }`}
                   >
-                    <span>👥</span> People ({participants.length})
+                    <span>👥</span> People ({activeParticipantCount})
                   </button>
                   <button
                     onClick={() => handlePanelOpen("chat")}
@@ -399,7 +401,7 @@ export default function LiveSessionsComponent({
                   <div className="bg-[#6B21A8] text-[#FDE047] rounded-t-3xl px-6 py-4 flex items-center justify-between w-full lg:w-[320px] xl:w-[350px] shadow-2xl border-t border-x border-purple-400/30">
                     <span className="font-extrabold text-sm md:text-base tracking-wide">
                       {activePanel === "chat" && "Meeting chat"}
-                      {activePanel === "people" && `Participants (${participants.length})`}
+                      {activePanel === "people" && `Participants (${activeParticipantCount})`}
                       {activePanel === "react" && "Reactions"}
                       {activePanel === "poll" && "Poll"}
                     </span>
@@ -412,7 +414,7 @@ export default function LiveSessionsComponent({
                   <div className="w-full lg:w-[320px] xl:w-[350px] bg-[#F8F5FB] rounded-3xl p-4 flex flex-col justify-between shadow-xl shrink-0 border border-purple-100/50 h-full">
                     <div className="flex items-center justify-between pb-2 shrink-0 px-1">
                       <h3 className="font-extrabold text-lg text-[#4A1D0B]">
-                        {activePanel === "people" && `Participants (${participants.length})`}
+                        {activePanel === "people" && `Participants (${activeParticipantCount})`}
                         {activePanel === "chat" && "Meeting chat"}
                         {activePanel === "react" && "Reactions"}
                         {activePanel === "poll" && "Poll"}
@@ -574,6 +576,28 @@ export default function LiveSessionsComponent({
                           />
                         )}
                         <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                          {presenceStatus === "loading" && (
+                            <p className="text-center text-[11px] text-purple-700 font-semibold py-2">
+                              Connecting to live participant updates...
+                            </p>
+                          )}
+                          {presenceStatus === "reconnecting" && (
+                            <p className="text-center text-[11px] text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
+                              Reconnecting. Showing the last known participant list.
+                            </p>
+                          )}
+                          {presenceStatus === "error" && filteredParticipants.length === 0 && (
+                            <p className="text-center text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2">
+                              Unable to load participants. Live updates will retry automatically.
+                            </p>
+                          )}
+                          {presenceStatus === "live" && filteredParticipants.length === 0 && (
+                            <p className="text-center text-xs text-gray-400 py-4">
+                              {participantSearch.trim()
+                                ? "No participants found."
+                                : "No active participants."}
+                            </p>
+                          )}
                           {filteredParticipants.map((user) => {
                             const isUserRestricted =
                               user.isRestricted || restrictedUserIds.has(user.id);

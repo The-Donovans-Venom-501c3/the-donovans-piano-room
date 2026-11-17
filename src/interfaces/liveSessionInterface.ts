@@ -75,6 +75,13 @@ export interface Participant {
   isRestricted?: boolean;
 }
 
+export interface ServerParticipant {
+  userId: string;
+  displayName: string;
+  picture?: string | null;
+  role: string;
+}
+
 export interface ChatRestriction {
   userId: string;
   userName?: string;
@@ -106,8 +113,17 @@ export type WsInboundEvent =
       canSend: boolean;
       restriction: CurrentUserRestriction;
     }
-  | { type: "presence.snapshot"; payload: { participants: Participant[]; count: number } }
-  | { type: "presence.updated"; payload: { participants: Participant[]; count: number } }
+  | {
+      type: "presence.snapshot";
+      participants: ServerParticipant[];
+      activeCount: number;
+    }
+  | {
+      type: "presence.joined";
+      participant: ServerParticipant;
+      activeCount: number;
+    }
+  | { type: "presence.left"; userId: string; activeCount: number }
   | {
       type: "chat.ack";
       requestId: string;

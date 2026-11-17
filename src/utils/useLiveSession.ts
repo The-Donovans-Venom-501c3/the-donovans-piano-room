@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { apiBase } from "@/lib/api/api";
-import { liveSessionApi } from "@/lib/api/liveSessionService";
+import {
+  liveSessionApi,
+  normalizeParticipant,
+} from "@/lib/api/liveSessionService";
 import {
   ChatMessage,
   ChatMode,
@@ -26,6 +29,8 @@ interface PendingChatRequest {
   resolve: (accepted: boolean) => void;
   timeout: ReturnType<typeof setTimeout>;
 }
+
+type PresenceStatus = "idle" | "loading" | "live" | "reconnecting" | "error";
 
 function resolveWebSocketUrl(wsPath: string): string {
   if (wsPath.startsWith("ws://") || wsPath.startsWith("wss://")) return wsPath;
@@ -56,6 +61,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const [activeRestrictions, setActiveRestrictions] = useState<ChatRestriction[]>([]);
 
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [activeParticipantCount, setActiveParticipantCount] = useState(0);
+  const [presenceStatus, setPresenceStatus] = useState<PresenceStatus>("idle");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
@@ -71,6 +78,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
   const shouldReconnectRef = useRef(false);
+  const hasLivePresenceRef = useRef(false);
   const lastMessageCursorRef = useRef<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingSentRef = useRef(false);
@@ -115,10 +123,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     }
     pendingChatRequestsRef.current.clear();
     setIsSendingMessage(false);
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
+    const socket = wsRef.current;
+    wsRef.current = null;
+    socket?.close();
   }, []);
 
   const connectWebSocket = useCallback(
@@ -133,6 +140,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       wsRef.current = ws;
 
       ws.onopen = async () => {
+        if (wsRef.current !== ws) return;
+
         const wasReconnecting = reconnectAttemptRef.current > 0;
         reconnectAttemptRef.current = 0;
         setConnectionState("connected");
@@ -164,6 +173,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       };
 
       ws.onmessage = (event) => {
+        if (wsRef.current !== ws) return;
+
         try {
           const parsed: WsInboundEvent = JSON.parse(event.data);
 
@@ -186,8 +197,37 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               break;
 
             case "presence.snapshot":
-            case "presence.updated":
-              setParticipants(parsed.payload.participants);
+              hasLivePresenceRef.current = true;
+              setParticipants(parsed.participants.map(normalizeParticipant));
+              setActiveParticipantCount(parsed.activeCount);
+              setPresenceStatus("live");
+              break;
+
+            case "presence.joined": {
+              hasLivePresenceRef.current = true;
+              const participant = normalizeParticipant(parsed.participant);
+              setParticipants((current) => {
+                const existingIndex = current.findIndex(
+                  (item) => item.id === participant.id
+                );
+                if (existingIndex === -1) return [...current, participant];
+
+                const next = [...current];
+                next[existingIndex] = participant;
+                return next;
+              });
+              setActiveParticipantCount(parsed.activeCount);
+              setPresenceStatus("live");
+              break;
+            }
+
+            case "presence.left":
+              hasLivePresenceRef.current = true;
+              setParticipants((current) =>
+                current.filter((participant) => participant.id !== parsed.userId)
+              );
+              setActiveParticipantCount(parsed.activeCount);
+              setPresenceStatus("live");
               break;
 
             case "chat.ack": {
@@ -318,6 +358,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
             case "session.ended":
               shouldReconnectRef.current = false;
               setConnectionState("ended");
+              setParticipants([]);
+              setActiveParticipantCount(0);
+              setPresenceStatus("idle");
               setActivePoll((prev) => (prev ? { ...prev, isClosed: true } : null));
               setCurrentSession((prev) =>
                 prev ? { ...prev, status: "ended" } : null
@@ -331,14 +374,24 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       };
 
       ws.onclose = () => {
+        if (wsRef.current !== ws) return;
+        wsRef.current = null;
         if (!shouldReconnectRef.current) return;
 
         setConnectionState("reconnecting");
+        setPresenceStatus("reconnecting");
         const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current, 15000);
         reconnectAttemptRef.current += 1;
         reconnectTimerRef.current = setTimeout(() => {
           connectWebSocket(sessionId, wsUrl);
         }, delay);
+      };
+
+      ws.onerror = () => {
+        if (wsRef.current !== ws) return;
+        setPresenceStatus((current) =>
+          current === "live" ? "reconnecting" : current
+        );
       };
     },
     [cleanupSocket, currentUserId, onReaction]
@@ -348,6 +401,10 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     async (sessionId: string) => {
       setIsJoining(true);
       setError(null);
+      setParticipants([]);
+      setActiveParticipantCount(0);
+      setPresenceStatus("loading");
+      hasLivePresenceRef.current = false;
       try {
         const joinData = await liveSessionApi.joinSession(sessionId);
         setConfig(joinData);
@@ -355,31 +412,50 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         setChatMode(joinData.session.chatMode);
         setRestriction(joinData.restriction || null);
         setActivePoll(joinData.activePoll);
+        setIsJoined(true);
+        connectWebSocket(sessionId, joinData.wsUrl);
 
-        const [historyPage, participantSnapshot] = await Promise.all([
+        const [historyResult, participantResult] = await Promise.allSettled([
           liveSessionApi.getMessages(sessionId, { limit: 50 }),
           liveSessionApi.getParticipants(sessionId),
         ]);
 
-        setMessages(historyPage.items);
-        setNextCursor(historyPage.nextCursor);
-        setHasMoreMessages(historyPage.hasMore);
-        setParticipants(participantSnapshot.participants);
+        if (historyResult.status === "fulfilled") {
+          setMessages(historyResult.value.items);
+          setNextCursor(historyResult.value.nextCursor);
+          setHasMoreMessages(historyResult.value.hasMore);
+        } else {
+          setError(
+            historyResult.reason instanceof Error
+              ? historyResult.reason.message
+              : "Unable to load chat history"
+          );
+        }
+
+        if (participantResult.status === "fulfilled") {
+          if (!hasLivePresenceRef.current) {
+            setParticipants(participantResult.value.participants);
+            setActiveParticipantCount(participantResult.value.count);
+          }
+        } else if (!hasLivePresenceRef.current) {
+          setPresenceStatus("error");
+        }
 
         if (joinData.permissions.isHost) {
           const restrictions = await liveSessionApi.getRestrictions(sessionId);
           setActiveRestrictions(restrictions);
         }
 
-        setIsJoined(true);
-        connectWebSocket(sessionId, joinData.wsUrl);
       } catch (err) {
+        cleanupSocket();
+        setIsJoined(false);
+        setPresenceStatus("error");
         setError(err instanceof Error ? err.message : "Unable to join session");
       } finally {
         setIsJoining(false);
       }
     },
-    [connectWebSocket]
+    [cleanupSocket, connectWebSocket]
   );
 
   const leaveSession = useCallback(() => {
@@ -388,6 +464,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     setConnectionState("disconnected");
     setMessages([]);
     setParticipants([]);
+    setActiveParticipantCount(0);
+    setPresenceStatus("idle");
+    hasLivePresenceRef.current = false;
     setActivePoll(null);
     setConfig(null);
   }, [cleanupSocket]);
@@ -627,6 +706,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     restriction,
     activeRestrictions,
     participants,
+    activeParticipantCount,
+    presenceStatus,
     messages,
     hasMoreMessages,
     isLoadingOlder,
