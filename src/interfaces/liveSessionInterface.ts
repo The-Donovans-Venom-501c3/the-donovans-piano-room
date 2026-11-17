@@ -23,6 +23,7 @@ export interface SessionJoinConfig {
   };
   restriction?: CurrentUserRestriction | null;
   activePoll: Poll | null;
+  pollLimits: PollLimits;
   limits: {
     maxMessageLength: number;
     typingWindowMs: number;
@@ -96,13 +97,37 @@ export interface PollOption {
   votes: number;
 }
 
+export interface PollLimits {
+  questionMaxCodePoints: number;
+  optionMinCount: number;
+  optionMaxCount: number;
+  optionMaxCodePoints: number;
+}
+
+export interface ServerPollSnapshot {
+  id: string;
+  question: string;
+  status: "active" | "closed";
+  revision: number;
+  closedAt?: string | null;
+  options: Array<{
+    id: string;
+    text: string;
+    voteCount: number;
+  }>;
+  myVoteOptionId?: string | null;
+  totalVotes: number;
+}
+
 export interface Poll {
   id: string;
   question: string;
   options: PollOption[];
+  revision: number;
   isClosed: boolean;
+  closedAt?: string | null;
   userVotedOptionId?: string | null;
-  totalVotes?: number;
+  totalVotes: number;
 }
 
 export type WsInboundEvent =
@@ -112,6 +137,11 @@ export type WsInboundEvent =
       chatMode: ChatMode;
       canSend: boolean;
       restriction: CurrentUserRestriction;
+      poll: {
+        active: boolean;
+        current: ServerPollSnapshot | null;
+        limits: PollLimits;
+      };
     }
   | {
       type: "presence.snapshot";
@@ -144,9 +174,21 @@ export type WsInboundEvent =
   | { type: "chat.mode_changed"; payload: { chatMode: ChatMode } }
   | { type: "typing.updated"; payload: { userId: string; name: string; isTyping: boolean } }
   | { type: "reaction.created"; payload: { emoji: string; userId?: string } }
-  | { type: "poll.created"; payload: Poll }
-  | { type: "poll.updated"; payload: Poll }
-  | { type: "poll.closed"; payload: Poll }
+  | { type: "poll.started"; poll: ServerPollSnapshot }
+  | {
+      type: "poll.vote_recorded";
+      pollId: string;
+      optionId: string;
+      revision: number;
+    }
+  | {
+      type: "poll.results_updated";
+      pollId: string;
+      revision: number;
+      results: Array<{ optionId: string; voteCount: number }>;
+      totalVotes: number;
+    }
+  | { type: "poll.closed"; poll: ServerPollSnapshot }
   | { type: "user.restricted"; payload: { userId: string; restriction: ChatRestriction } }
   | { type: "user.unrestricted"; payload: { userId: string } }
   | { type: "session.ended"; payload: { sessionId: string; endedAt?: string } }

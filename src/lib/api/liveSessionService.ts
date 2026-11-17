@@ -6,7 +6,9 @@ import {
   MessagesPage,
   Participant,
   Poll,
+  PollLimits,
   ServerParticipant,
+  ServerPollSnapshot,
   SessionJoinConfig,
 } from "@/interfaces/liveSessionInterface";
 
@@ -27,19 +29,6 @@ interface RawChatMessage {
   text: string;
   createdAt: string;
   cursor: string;
-}
-
-interface RawPoll {
-  id: string;
-  question: string;
-  status: "active" | "closed";
-  options: Array<{
-    id: string;
-    text: string;
-    voteCount: number;
-  }>;
-  myVoteOptionId?: string | null;
-  totalVotes?: number;
 }
 
 interface JoinResponse {
@@ -68,11 +57,12 @@ interface JoinResponse {
   };
   poll: {
     active: boolean;
-    current: RawPoll | null;
+    current: ServerPollSnapshot | null;
+    limits: PollLimits;
   };
 }
 
-function normalizePoll(poll: RawPoll | null): Poll | null {
+export function normalizePoll(poll: ServerPollSnapshot | null): Poll | null {
   if (!poll) return null;
 
   return {
@@ -83,9 +73,11 @@ function normalizePoll(poll: RawPoll | null): Poll | null {
       text: option.text,
       votes: option.voteCount,
     })),
+    revision: poll.revision,
     isClosed: poll.status === "closed",
-    userVotedOptionId: poll.myVoteOptionId ?? null,
-    totalVotes: poll.totalVotes ?? 0,
+    closedAt: poll.closedAt ?? null,
+    userVotedOptionId: poll.myVoteOptionId,
+    totalVotes: poll.totalVotes,
   };
 }
 
@@ -148,6 +140,7 @@ export const liveSessionApi = {
         ? response.chat.restriction
         : null,
       activePoll: normalizePoll(response.poll.current),
+      pollLimits: response.poll.limits,
       limits: {
         maxMessageLength: response.chat.messageMaxCodePoints,
         typingWindowMs: response.typing.timeoutMs,
@@ -202,32 +195,35 @@ export const liveSessionApi = {
 
   // 7. Reload the active poll
   getCurrentPoll: (sessionId: string) =>
-    apiRequest<Poll | null>(`${BASE}/${sessionId}/polls/current`, {
+    apiRequest<{ poll: ServerPollSnapshot | null }>(`${BASE}/${sessionId}/polls/current`, {
       cache: "no-store",
-    }),
+    }).then((response) => normalizePoll(response.poll)),
 
   // 8. Host creates and launches a poll
   createPoll: (
     sessionId: string,
     payload: { question: string; options: string[] }
   ) =>
-    apiRequest<Poll>(`${BASE}/${sessionId}/polls`, {
+    apiRequest<{ poll: ServerPollSnapshot }>(`${BASE}/${sessionId}/polls`, {
       method: "POST",
       body: JSON.stringify(payload),
-    }),
+    }).then((response) => normalizePoll(response.poll)!),
 
   // 9. Attendee submits one choice
   votePoll: (sessionId: string, pollId: string, optionId: string) =>
-    apiRequest<Poll>(`${BASE}/${sessionId}/polls/${pollId}/votes`, {
+    apiRequest<{
+      status: "recorded" | "duplicate";
+      poll: ServerPollSnapshot;
+    }>(`${BASE}/${sessionId}/polls/${pollId}/votes`, {
       method: "POST",
       body: JSON.stringify({ optionId }),
-    }),
+    }).then((response) => normalizePoll(response.poll)!),
 
   // 10. Host closes a poll
   closePoll: (sessionId: string, pollId: string) =>
-    apiRequest<Poll>(`${BASE}/${sessionId}/polls/${pollId}/close`, {
+    apiRequest<{ poll: ServerPollSnapshot }>(`${BASE}/${sessionId}/polls/${pollId}/close`, {
       method: "POST",
-    }),
+    }).then((response) => normalizePoll(response.poll)!),
 
   // 11. Host enables, disables, or makes chat read-only
   updateChatMode: (sessionId: string, chatMode: ChatMode) =>

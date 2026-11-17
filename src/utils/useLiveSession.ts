@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { apiBase } from "@/lib/api/api";
+import { ApiError, apiBase } from "@/lib/api/api";
 import {
   liveSessionApi,
   normalizeParticipant,
+  normalizePoll,
 } from "@/lib/api/liveSessionService";
 import {
   ChatMessage,
@@ -31,6 +32,14 @@ interface PendingChatRequest {
 }
 
 type PresenceStatus = "idle" | "loading" | "live" | "reconnecting" | "error";
+type PollOperation = "idle" | "creating" | "voting" | "closing";
+
+const DEFAULT_POLL_LIMITS = {
+  questionMaxCodePoints: 300,
+  optionMinCount: 2,
+  optionMaxCount: 10,
+  optionMaxCodePoints: 150,
+};
 
 function resolveWebSocketUrl(wsPath: string): string {
   if (wsPath.startsWith("ws://") || wsPath.startsWith("wss://")) return wsPath;
@@ -70,6 +79,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
+  const [pollOperation, setPollOperation] = useState<PollOperation>("idle");
+  const [pollError, setPollError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<
     Record<string, { name: string; timeout: ReturnType<typeof setTimeout> }>
   >({});
@@ -79,6 +90,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const reconnectAttemptRef = useRef(0);
   const shouldReconnectRef = useRef(false);
   const hasLivePresenceRef = useRef(false);
+  const pollOperationRef = useRef<PollOperation>("idle");
   const lastMessageCursorRef = useRef<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingSentRef = useRef(false);
@@ -93,6 +105,25 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       lastMessageCursorRef.current = messages[messages.length - 1].cursor ?? null;
     }
   }, [messages]);
+
+  const applyPollSnapshot = useCallback((incoming: Poll) => {
+    setActivePoll((current) => {
+      if (
+        current?.id === incoming.id &&
+        incoming.revision < current.revision
+      ) {
+        return current;
+      }
+
+      return {
+        ...incoming,
+        userVotedOptionId:
+          incoming.userVotedOptionId === undefined && current?.id === incoming.id
+            ? current.userVotedOptionId
+            : incoming.userVotedOptionId ?? null,
+      };
+    });
+  }, []);
 
   const refreshCurrentSession = useCallback(async () => {
     setIsLoadingSession(true);
@@ -149,11 +180,10 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
         if (wasReconnecting && lastMessageCursorRef.current) {
           try {
-            const [missed, latestPoll, reloadedSession] = await Promise.all([
+            const [missed, reloadedSession] = await Promise.all([
               liveSessionApi.getMessages(sessionId, {
                 after: lastMessageCursorRef.current,
               }),
-              liveSessionApi.getCurrentPoll(sessionId),
               liveSessionApi.getSession(sessionId),
             ]);
             if (missed.items.length > 0) {
@@ -163,7 +193,6 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
                 return [...prev, ...fresh];
               });
             }
-            setActivePoll(latestPoll);
             setChatMode(reloadedSession.chatMode);
             setCurrentSession(reloadedSession);
           } catch {
@@ -186,6 +215,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
                 previous
                   ? {
                       ...previous,
+                      pollLimits: parsed.poll.limits,
                       permissions: {
                         ...previous.permissions,
                         isHost: parsed.role === "host",
@@ -194,6 +224,13 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
                     }
                   : previous
               );
+              if (parsed.poll.current) {
+                applyPollSnapshot(normalizePoll(parsed.poll.current)!);
+              } else {
+                setActivePoll((current) =>
+                  current?.isClosed ? current : null
+                );
+              }
               break;
 
             case "presence.snapshot":
@@ -327,10 +364,47 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               onReaction(parsed.payload.emoji);
               break;
 
-            case "poll.created":
-            case "poll.updated":
+            case "poll.started":
+              applyPollSnapshot(normalizePoll(parsed.poll)!);
+              setPollError(null);
+              break;
+
+            case "poll.vote_recorded":
+              setActivePoll((current) => {
+                if (!current || current.id !== parsed.pollId) return current;
+                if (parsed.revision < current.revision) return current;
+                return {
+                  ...current,
+                  revision: Math.max(current.revision, parsed.revision),
+                  userVotedOptionId: parsed.optionId,
+                };
+              });
+              setPollError(null);
+              break;
+
+            case "poll.results_updated": {
+              const results = new Map(
+                parsed.results.map((result) => [result.optionId, result.voteCount])
+              );
+              setActivePoll((current) => {
+                if (!current || current.id !== parsed.pollId) return current;
+                if (parsed.revision < current.revision) return current;
+                return {
+                  ...current,
+                  revision: parsed.revision,
+                  totalVotes: parsed.totalVotes,
+                  options: current.options.map((option) => ({
+                    ...option,
+                    votes: results.get(option.id) ?? option.votes,
+                  })),
+                };
+              });
+              break;
+            }
+
             case "poll.closed":
-              setActivePoll(parsed.payload);
+              applyPollSnapshot(normalizePoll(parsed.poll)!);
+              setPollError(null);
               break;
 
             case "user.restricted":
@@ -394,7 +468,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         );
       };
     },
-    [cleanupSocket, currentUserId, onReaction]
+    [applyPollSnapshot, cleanupSocket, currentUserId, onReaction]
   );
 
   const joinSession = useCallback(
@@ -412,6 +486,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         setChatMode(joinData.session.chatMode);
         setRestriction(joinData.restriction || null);
         setActivePoll(joinData.activePoll);
+        pollOperationRef.current = "idle";
+        setPollOperation("idle");
+        setPollError(null);
         setIsJoined(true);
         connectWebSocket(sessionId, joinData.wsUrl);
 
@@ -468,6 +545,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     setPresenceStatus("idle");
     hasLivePresenceRef.current = false;
     setActivePoll(null);
+    pollOperationRef.current = "idle";
+    setPollOperation("idle");
+    setPollError(null);
     setConfig(null);
   }, [cleanupSocket]);
 
@@ -624,31 +704,123 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   }, []);
 
   const createPoll = async (question: string, options: string[]) => {
-    if (!currentSession) return;
-    const poll = await liveSessionApi.createPoll(currentSession.id, {
-      question,
-      options,
-    });
-    setActivePoll(poll);
+    if (!currentSession || pollOperationRef.current !== "idle") return false;
+    pollOperationRef.current = "creating";
+    setPollOperation("creating");
+    setPollError(null);
+    try {
+      const poll = await liveSessionApi.createPoll(currentSession.id, {
+        question,
+        options,
+      });
+      applyPollSnapshot(poll);
+      return true;
+    } catch (err) {
+      if (
+        err instanceof ApiError &&
+        (err.code === "ACTIVE_POLL_ALREADY_EXISTS" ||
+          err.code === "POLL_SNAPSHOT_UNAVAILABLE")
+      ) {
+        try {
+          const current = await liveSessionApi.getCurrentPoll(currentSession.id);
+          if (current) {
+            applyPollSnapshot(current);
+            if (err.code === "POLL_SNAPSHOT_UNAVAILABLE") {
+              setPollError(null);
+              return true;
+            }
+          }
+        } catch {
+          // Preserve the original action error.
+        }
+      }
+      setPollError(err instanceof Error ? err.message : "Unable to launch poll");
+      return false;
+    } finally {
+      pollOperationRef.current = "idle";
+      setPollOperation("idle");
+    }
   };
 
   const votePoll = async (optionId: string) => {
-    if (!currentSession || !activePoll) return;
-    const updated = await liveSessionApi.votePoll(
-      currentSession.id,
-      activePoll.id,
-      optionId
-    );
-    setActivePoll(updated);
+    if (
+      !currentSession ||
+      !activePoll ||
+      activePoll.isClosed ||
+      activePoll.userVotedOptionId ||
+      pollOperationRef.current !== "idle"
+    ) {
+      return false;
+    }
+
+    pollOperationRef.current = "voting";
+    setPollOperation("voting");
+    setPollError(null);
+    try {
+      const updated = await liveSessionApi.votePoll(
+        currentSession.id,
+        activePoll.id,
+        optionId
+      );
+      applyPollSnapshot(updated);
+      return true;
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "POLL_CLOSED") {
+        setActivePoll((current) =>
+          current ? { ...current, isClosed: true } : current
+        );
+      } else if (
+        err instanceof ApiError &&
+        (err.code === "POLL_ALREADY_VOTED" ||
+          err.code === "POLL_OPTION_NOT_FOUND")
+      ) {
+        try {
+          const current = await liveSessionApi.getCurrentPoll(currentSession.id);
+          if (current) applyPollSnapshot(current);
+        } catch {
+          // Preserve the original action error.
+        }
+      }
+      setPollError(err instanceof Error ? err.message : "Unable to submit vote");
+      return false;
+    } finally {
+      pollOperationRef.current = "idle";
+      setPollOperation("idle");
+    }
   };
 
   const closePoll = async () => {
-    if (!currentSession || !activePoll) return;
-    const closed = await liveSessionApi.closePoll(
-      currentSession.id,
-      activePoll.id
-    );
-    setActivePoll(closed);
+    if (
+      !currentSession ||
+      !activePoll ||
+      activePoll.isClosed ||
+      pollOperationRef.current !== "idle"
+    ) {
+      return false;
+    }
+
+    pollOperationRef.current = "closing";
+    setPollOperation("closing");
+    setPollError(null);
+    try {
+      const closed = await liveSessionApi.closePoll(
+        currentSession.id,
+        activePoll.id
+      );
+      applyPollSnapshot(closed);
+      return true;
+    } catch (err) {
+      setPollError(err instanceof Error ? err.message : "Unable to close poll");
+      return false;
+    } finally {
+      pollOperationRef.current = "idle";
+      setPollOperation("idle");
+    }
+  };
+
+  const dismissClosedPoll = () => {
+    setActivePoll((current) => (current?.isClosed ? null : current));
+    setPollError(null);
   };
 
   const changeChatMode = async (mode: ChatMode) => {
@@ -714,6 +886,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     isSendingMessage,
     loadOlderMessages,
     activePoll,
+    pollLimits: config?.pollLimits ?? DEFAULT_POLL_LIMITS,
+    pollOperation,
+    pollError,
     typingNames: Object.values(typingUsers).map((u) => u.name),
     joinSession,
     leaveSession,
@@ -723,6 +898,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     createPoll,
     votePoll,
     closePoll,
+    dismissClosedPoll,
     changeChatMode,
     deleteMessage,
     restrictUser,

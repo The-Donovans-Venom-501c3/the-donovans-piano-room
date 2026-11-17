@@ -60,6 +60,7 @@ export default function LiveSessionsComponent({
   const [newQuestion, setNewQuestion] = useState("");
   const [newOptions, setNewOptions] = useState(["", ""]);
   const [pollSelected, setPollSelected] = useState<string | null>(null);
+  const [pollValidationError, setPollValidationError] = useState<string | null>(null);
 
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -105,6 +106,9 @@ export default function LiveSessionsComponent({
     isSendingMessage,
     loadOlderMessages,
     activePoll,
+    pollLimits,
+    pollOperation,
+    pollError,
     typingNames,
     joinSession,
     leaveSession,
@@ -114,6 +118,7 @@ export default function LiveSessionsComponent({
     createPoll,
     votePoll,
     closePoll,
+    dismissClosedPoll,
     changeChatMode,
     deleteMessage,
     restrictUser,
@@ -188,13 +193,62 @@ export default function LiveSessionsComponent({
 
   const handleCreatePoll = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validOptions = newOptions.filter((opt) => opt.trim() !== "");
-    if (!newQuestion.trim() || validOptions.length < 2) return;
+    const question = newQuestion.trim();
+    const validOptions = newOptions
+      .map((option) => option.trim())
+      .filter(Boolean);
 
-    await createPoll(newQuestion.trim(), validOptions);
-    setNewQuestion("");
-    setNewOptions(["", ""]);
-    setPollSelected(null);
+    if (!question) {
+      setPollValidationError("Enter a poll question.");
+      return;
+    }
+    if ([...question].length > pollLimits.questionMaxCodePoints) {
+      setPollValidationError(
+        `The question must be ${pollLimits.questionMaxCodePoints} characters or fewer.`
+      );
+      return;
+    }
+    if (
+      validOptions.length < pollLimits.optionMinCount ||
+      validOptions.length > pollLimits.optionMaxCount
+    ) {
+      setPollValidationError(
+        `Add between ${pollLimits.optionMinCount} and ${pollLimits.optionMaxCount} options.`
+      );
+      return;
+    }
+    if (
+      validOptions.some(
+        (option) => [...option].length > pollLimits.optionMaxCodePoints
+      )
+    ) {
+      setPollValidationError(
+        `Each option must be ${pollLimits.optionMaxCodePoints} characters or fewer.`
+      );
+      return;
+    }
+
+    const normalizedOptions = validOptions.map((option) =>
+      option.normalize("NFKC").toLowerCase()
+    );
+    if (new Set(normalizedOptions).size !== normalizedOptions.length) {
+      setPollValidationError("Poll options must be unique.");
+      return;
+    }
+
+    setPollValidationError(null);
+    const launched = await createPoll(question, validOptions);
+    if (launched) {
+      setNewQuestion("");
+      setNewOptions(["", ""]);
+      setPollSelected(null);
+    }
+  };
+
+  const handleVotePoll = async () => {
+    if (!pollSelected) return;
+    const recorded = await votePoll(pollSelected);
+    if (recorded) setPollSelected(null);
   };
 
   const handleCreateSessionSubmit = async (e: React.FormEvent) => {
@@ -216,6 +270,17 @@ export default function LiveSessionsComponent({
     () => new Set(activeRestrictions.map((r) => r.userId)),
     [activeRestrictions]
   );
+
+  useEffect(() => {
+    setPollSelected(null);
+    setPollValidationError(null);
+  }, [activePoll?.id]);
+
+  useEffect(() => {
+    if (activePoll?.isClosed || activePoll?.userVotedOptionId) {
+      setPollSelected(null);
+    }
+  }, [activePoll?.isClosed, activePoll?.userVotedOptionId]);
 
   const codePointCount = [...chatMessage].length;
   const isChatDisabled =
@@ -661,6 +726,11 @@ export default function LiveSessionsComponent({
                     {/* POLL PANEL */}
                     {activePanel === "poll" && (
                       <div className="flex-1 my-2 flex flex-col justify-between overflow-y-auto">
+                        {pollError && (
+                          <p className="text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2 mb-2 font-semibold">
+                            {pollError}
+                          </p>
+                        )}
                         {activePoll ? (
                           <div className="space-y-3 flex-1 flex flex-col justify-between">
                             <div className="space-y-2">
@@ -676,39 +746,36 @@ export default function LiveSessionsComponent({
                               </div>
 
                               {activePoll.options.map((opt) => {
-                                const total =
-                                  activePoll.totalVotes ??
-                                  activePoll.options.reduce((sum, o) => sum + o.votes, 0);
+                                const total = activePoll.totalVotes;
                                 const pct = total > 0 ? Math.round((opt.votes / total) * 100) : 0;
-                                const showResults =
-                                  isHost || activePoll.isClosed || Boolean(activePoll.userVotedOptionId);
+                                const canSelect =
+                                  !isHost &&
+                                  !activePoll.isClosed &&
+                                  !activePoll.userVotedOptionId &&
+                                  pollOperation === "idle";
                                 const isChosen =
                                   activePoll.userVotedOptionId === opt.id || pollSelected === opt.id;
 
                                 return (
                                   <button
                                     key={opt.id}
-                                    disabled={showResults}
+                                    disabled={!canSelect}
                                     onClick={() => setPollSelected(opt.id)}
                                     className={`w-full text-left p-2.5 rounded-2xl border text-xs font-semibold transition relative overflow-hidden ${
                                       isChosen
                                         ? "border-purple-600 bg-purple-100 text-purple-900"
                                         : "border-gray-200 bg-white text-gray-800"
-                                    } ${!showResults ? "cursor-pointer" : "cursor-default"}`}
+                                    } ${canSelect ? "cursor-pointer" : "cursor-default"}`}
                                   >
-                                    {showResults && (
-                                      <div
-                                        className="absolute inset-y-0 left-0 bg-purple-200/50 transition-all"
-                                        style={{ width: `${pct}%` }}
-                                      />
-                                    )}
+                                    <div
+                                      className="absolute inset-y-0 left-0 bg-purple-200/50 transition-all"
+                                      style={{ width: `${pct}%` }}
+                                    />
                                     <div className="relative flex items-center justify-between">
                                       <span>{opt.text}</span>
-                                      {showResults && (
-                                        <span className="text-[11px] font-extrabold text-purple-900">
-                                          {pct}% ({opt.votes})
-                                        </span>
-                                      )}
+                                      <span className="text-[11px] font-extrabold text-purple-900">
+                                        {pct}% ({opt.votes})
+                                      </span>
                                     </div>
                                   </button>
                                 );
@@ -717,20 +784,30 @@ export default function LiveSessionsComponent({
 
                             {!isHost && !activePoll.isClosed && !activePoll.userVotedOptionId && (
                               <button
-                                onClick={() => pollSelected && votePoll(pollSelected)}
-                                disabled={!pollSelected}
+                                onClick={handleVotePoll}
+                                disabled={!pollSelected || pollOperation !== "idle"}
                                 className="w-full bg-purple-700 text-white font-extrabold text-xs py-2.5 rounded-2xl disabled:opacity-50 mt-2 transition cursor-pointer"
                               >
-                                Submit Answer
+                                {pollOperation === "voting" ? "Submitting..." : "Submit Answer"}
                               </button>
                             )}
 
                             {isHost && !activePoll.isClosed && (
                               <button
                                 onClick={closePoll}
-                                className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs py-2.5 rounded-2xl mt-2 transition cursor-pointer"
+                                disabled={pollOperation !== "idle"}
+                                className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs py-2.5 rounded-2xl mt-2 transition cursor-pointer disabled:opacity-50"
                               >
-                                Close Poll
+                                {pollOperation === "closing" ? "Closing..." : "Close Poll"}
+                              </button>
+                            )}
+
+                            {isHost && activePoll.isClosed && (
+                              <button
+                                onClick={dismissClosedPoll}
+                                className="w-full bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs py-2.5 rounded-2xl mt-2 transition cursor-pointer"
+                              >
+                                Create Another Poll
                               </button>
                             )}
                           </div>
@@ -744,32 +821,62 @@ export default function LiveSessionsComponent({
                               onChange={(e) => setNewQuestion(e.target.value)}
                               className="w-full bg-white text-xs border border-gray-200 rounded-xl p-2.5 outline-none focus:border-purple-600"
                             />
+                            <p className={`text-right text-[10px] ${[...newQuestion].length > pollLimits.questionMaxCodePoints ? "text-red-600" : "text-gray-400"}`}>
+                              {[...newQuestion].length}/{pollLimits.questionMaxCodePoints}
+                            </p>
                             {newOptions.map((opt, i) => (
-                              <input
-                                key={i}
-                                type="text"
-                                placeholder={`Option ${i + 1}`}
-                                value={opt}
-                                onChange={(e) => {
-                                  const updated = [...newOptions];
-                                  updated[i] = e.target.value;
-                                  setNewOptions(updated);
-                                }}
-                                className="w-full bg-white text-xs border border-gray-200 rounded-xl p-2.5 outline-none focus:border-purple-600"
-                              />
+                              <div key={i} className="space-y-1">
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder={`Option ${i + 1}`}
+                                    value={opt}
+                                    onChange={(e) => {
+                                      const updated = [...newOptions];
+                                      updated[i] = e.target.value;
+                                      setNewOptions(updated);
+                                    }}
+                                    className="min-w-0 flex-1 bg-white text-xs border border-gray-200 rounded-xl p-2.5 outline-none focus:border-purple-600"
+                                  />
+                                  {newOptions.length > pollLimits.optionMinCount && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setNewOptions((current) =>
+                                          current.filter((_, index) => index !== i)
+                                        )
+                                      }
+                                      className="text-red-600 text-xs font-bold px-1 cursor-pointer"
+                                      aria-label={`Remove option ${i + 1}`}
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                                <p className={`text-right text-[10px] ${[...opt].length > pollLimits.optionMaxCodePoints ? "text-red-600" : "text-gray-400"}`}>
+                                  {[...opt].length}/{pollLimits.optionMaxCodePoints}
+                                </p>
+                              </div>
                             ))}
                             <button
                               type="button"
                               onClick={() => setNewOptions([...newOptions, ""])}
-                              className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer"
+                              disabled={newOptions.length >= pollLimits.optionMaxCount}
+                              className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer disabled:opacity-40 disabled:cursor-default"
                             >
                               + Add Option
                             </button>
+                            {pollValidationError && (
+                              <p className="text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2 font-semibold">
+                                {pollValidationError}
+                              </p>
+                            )}
                             <button
                               type="submit"
-                              className="w-full bg-purple-700 text-white font-extrabold text-xs py-2.5 rounded-2xl transition cursor-pointer mt-2"
+                              disabled={pollOperation !== "idle"}
+                              className="w-full bg-purple-700 text-white font-extrabold text-xs py-2.5 rounded-2xl transition cursor-pointer mt-2 disabled:opacity-50"
                             >
-                              Launch Poll
+                              {pollOperation === "creating" ? "Launching..." : "Launch Poll"}
                             </button>
                           </form>
                         ) : (
