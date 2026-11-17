@@ -7,6 +7,7 @@ import {
   ChatMessage,
   ChatMode,
   ChatRestriction,
+  CurrentUserRestriction,
   LiveSession,
   Participant,
   Poll,
@@ -43,8 +44,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const [error, setError] = useState<string | null>(null);
 
   const [config, setConfig] = useState<SessionJoinConfig | null>(null);
-  const [chatMode, setChatMode] = useState<ChatMode>("open");
-  const [restriction, setRestriction] = useState<ChatRestriction | null>(null);
+  const [chatMode, setChatMode] = useState<ChatMode>("enabled");
+  const [restriction, setRestriction] = useState<CurrentUserRestriction | null>(null);
   const [activeRestrictions, setActiveRestrictions] = useState<ChatRestriction[]>([]);
 
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -59,7 +60,6 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   >({});
 
   const wsRef = useRef<WebSocket | null>(null);
-  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
   const shouldReconnectRef = useRef(false);
@@ -91,7 +91,6 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
   const cleanupSocket = useCallback(() => {
     shouldReconnectRef.current = false;
-    if (heartbeatRef.current) clearInterval(heartbeatRef.current);
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     if (wsRef.current) {
       wsRef.current.close();
@@ -100,7 +99,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   }, []);
 
   const connectWebSocket = useCallback(
-    (sessionId: string, wsUrl: string, heartbeatMs = 20000) => {
+    (sessionId: string, wsUrl: string) => {
       cleanupSocket();
       shouldReconnectRef.current = true;
       setConnectionState((prev) =>
@@ -115,12 +114,6 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         reconnectAttemptRef.current = 0;
         setConnectionState("connected");
         setError(null);
-
-        heartbeatRef.current = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: "ping" }));
-          }
-        }, heartbeatMs);
 
         if (wasReconnecting && lastMessageIdRef.current) {
           try {
@@ -152,6 +145,23 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
           const parsed: WsInboundEvent = JSON.parse(event.data);
 
           switch (parsed.type) {
+            case "session.ready":
+              setChatMode(parsed.chatMode);
+              setRestriction(parsed.restriction.restricted ? parsed.restriction : null);
+              setConfig((previous) =>
+                previous
+                  ? {
+                      ...previous,
+                      permissions: {
+                        ...previous.permissions,
+                        isHost: parsed.role === "host",
+                        canChat: parsed.canSend,
+                      },
+                    }
+                  : previous
+              );
+              break;
+
             case "presence.snapshot":
             case "presence.updated":
               setParticipants(parsed.payload.participants);
@@ -211,7 +221,10 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
             case "user.restricted":
               if (parsed.payload.userId === currentUserId) {
-                setRestriction(parsed.payload.restriction);
+                setRestriction({
+                  restricted: true,
+                  expiresAt: parsed.payload.restriction.expiresAt ?? null,
+                });
               }
               setActiveRestrictions((prev) => [
                 ...prev.filter((r) => r.userId !== parsed.payload.userId),
@@ -244,14 +257,13 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       };
 
       ws.onclose = () => {
-        if (heartbeatRef.current) clearInterval(heartbeatRef.current);
         if (!shouldReconnectRef.current) return;
 
         setConnectionState("reconnecting");
         const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current, 15000);
         reconnectAttemptRef.current += 1;
         reconnectTimerRef.current = setTimeout(() => {
-          connectWebSocket(sessionId, wsUrl, heartbeatMs);
+          connectWebSocket(sessionId, wsUrl);
         }, delay);
       };
     },
@@ -286,11 +298,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         }
 
         setIsJoined(true);
-        connectWebSocket(
-          sessionId,
-          joinData.wsUrl,
-          joinData.limits?.heartbeatIntervalMs || 20000
-        );
+        connectWebSocket(sessionId, joinData.wsUrl);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unable to join session");
       } finally {

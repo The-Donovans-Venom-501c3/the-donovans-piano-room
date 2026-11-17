@@ -213,7 +213,7 @@ export default function LiveSessionsComponent({
   const isChatDisabled =
     connectionState !== "connected" ||
     Boolean(restriction) ||
-    (!isHost && chatMode !== "open");
+    (!isHost && chatMode !== "enabled");
 
   return (
     <div className="w-full flex flex-col justify-start items-start">
@@ -427,7 +427,7 @@ export default function LiveSessionsComponent({
                               onChange={(e) => changeChatMode(e.target.value as ChatMode)}
                               className="bg-white border border-purple-200 rounded-lg px-2 py-0.5 font-bold text-purple-900 outline-none cursor-pointer"
                             >
-                              <option value="open">Open</option>
+                              <option value="enabled">Open</option>
                               <option value="read_only">Read-only</option>
                               <option value="disabled">Disabled</option>
                             </select>
@@ -523,7 +523,7 @@ export default function LiveSessionsComponent({
                             placeholder={
                               restriction
                                 ? "Chat restricted"
-                                : chatMode !== "open" && !isHost
+                                : chatMode !== "enabled" && !isHost
                                 ? "Chat is read-only"
                                 : "Send a message"
                             }

@@ -1,5 +1,5 @@
 export type SessionStatus = "scheduled" | "live" | "ended";
-export type ChatMode = "open" | "read_only" | "disabled";
+export type ChatMode = "enabled" | "read_only" | "disabled";
 
 export interface LiveSession {
   id: string;
@@ -21,13 +21,18 @@ export interface SessionJoinConfig {
     canReact: boolean;
     canVote: boolean;
   };
-  restriction?: ChatRestriction | null;
+  restriction?: CurrentUserRestriction | null;
   activePoll: Poll | null;
   limits: {
     maxMessageLength: number;
     typingWindowMs: number;
     heartbeatIntervalMs: number;
   };
+}
+
+export interface CurrentUserRestriction {
+  restricted: boolean;
+  expiresAt: string | null;
 }
 
 export interface ChatMessage {
@@ -79,6 +84,13 @@ export interface Poll {
 }
 
 export type WsInboundEvent =
+  | {
+      type: "session.ready";
+      role: "host" | "participant";
+      chatMode: ChatMode;
+      canSend: boolean;
+      restriction: CurrentUserRestriction;
+    }
   | { type: "presence.snapshot"; payload: { participants: Participant[]; count: number } }
   | { type: "presence.updated"; payload: { participants: Participant[]; count: number } }
   | { type: "chat.message"; payload: ChatMessage }
