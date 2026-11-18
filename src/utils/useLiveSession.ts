@@ -15,19 +15,26 @@ import {
   LiveSession,
   Participant,
   Poll,
+  ReactionSendEvent,
+  ServerReaction,
   SessionJoinConfig,
   WsInboundEvent,
 } from "@/interfaces/liveSessionInterface";
 
 interface UseLiveSessionOptions {
   currentUserId: string;
-  onReaction: (emoji: string) => void;
+  onReaction: (reaction: ServerReaction) => void;
 }
 
 interface PendingChatRequest {
   clientMessageId: string;
   text: string;
   resolve: (accepted: boolean) => void;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
+interface PendingReactionRequest {
+  emoji: string;
   timeout: ReturnType<typeof setTimeout>;
 }
 
@@ -81,6 +88,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
   const [pollOperation, setPollOperation] = useState<PollOperation>("idle");
   const [pollError, setPollError] = useState<string | null>(null);
+  const [isSendingReaction, setIsSendingReaction] = useState(false);
+  const [isReactionRateLimited, setIsReactionRateLimited] = useState(false);
+  const [reactionError, setReactionError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<
     Record<string, { name: string; timeout: ReturnType<typeof setTimeout> }>
   >({});
@@ -95,6 +105,13 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingSentRef = useRef(false);
   const pendingChatRequestsRef = useRef<Map<string, PendingChatRequest>>(new Map());
+  const pendingReactionRequestsRef = useRef<
+    Map<string, PendingReactionRequest>
+  >(new Map());
+  const reactionCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const reactionCooldownUntilRef = useRef(0);
   const failedChatMessageRef = useRef<{
     text: string;
     clientMessageId: string;
@@ -154,6 +171,17 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     }
     pendingChatRequestsRef.current.clear();
     setIsSendingMessage(false);
+    for (const pending of pendingReactionRequestsRef.current.values()) {
+      clearTimeout(pending.timeout);
+    }
+    pendingReactionRequestsRef.current.clear();
+    setIsSendingReaction(false);
+    if (reactionCooldownTimerRef.current) {
+      clearTimeout(reactionCooldownTimerRef.current);
+      reactionCooldownTimerRef.current = null;
+    }
+    reactionCooldownUntilRef.current = 0;
+    setIsReactionRateLimited(false);
     const socket = wsRef.current;
     wsRef.current = null;
     socket?.close();
@@ -177,6 +205,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         reconnectAttemptRef.current = 0;
         setConnectionState("connected");
         setError(null);
+        setReactionError(null);
 
         if (wasReconnecting && lastMessageCursorRef.current) {
           try {
@@ -220,7 +249,9 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
                         ...previous.permissions,
                         isHost: parsed.role === "host",
                         canChat: parsed.canSend,
+                        canReact: parsed.reactions.enabled,
                       },
+                      allowedReactions: parsed.reactions.allowed,
                     }
                   : previous
               );
@@ -308,6 +339,62 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
             }
 
             case "error": {
+              if (parsed.requestId) {
+                const pendingReaction = pendingReactionRequestsRef.current.get(
+                  parsed.requestId
+                );
+                if (pendingReaction) {
+                  clearTimeout(pendingReaction.timeout);
+                  pendingReactionRequestsRef.current.delete(parsed.requestId);
+                  setIsSendingReaction(
+                    pendingReactionRequestsRef.current.size > 0
+                  );
+                  setReactionError(parsed.message);
+
+                  if (parsed.code === "INVALID_REACTION") {
+                    setConfig((current) =>
+                      current
+                        ? {
+                            ...current,
+                            allowedReactions: current.allowedReactions.filter(
+                              (emoji) => emoji !== pendingReaction.emoji
+                            ),
+                          }
+                        : current
+                    );
+                  }
+                  if (parsed.code === "SESSION_NOT_LIVE") {
+                    setConfig((current) =>
+                      current
+                        ? {
+                            ...current,
+                            permissions: {
+                              ...current.permissions,
+                              canReact: false,
+                            },
+                          }
+                        : current
+                    );
+                  }
+
+                  if (parsed.code === "REACTION_RATE_LIMITED") {
+                    const retryAfterMs = Math.max(parsed.retryAfterMs ?? 3000, 0);
+                    reactionCooldownUntilRef.current = Date.now() + retryAfterMs;
+                    setIsReactionRateLimited(true);
+                    if (reactionCooldownTimerRef.current) {
+                      clearTimeout(reactionCooldownTimerRef.current);
+                    }
+                    reactionCooldownTimerRef.current = setTimeout(() => {
+                      reactionCooldownUntilRef.current = 0;
+                      setIsReactionRateLimited(false);
+                      setReactionError(null);
+                      reactionCooldownTimerRef.current = null;
+                    }, retryAfterMs);
+                  }
+                  break;
+                }
+              }
+
               setError(parsed.message);
               if (!parsed.requestId) break;
 
@@ -360,8 +447,22 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               break;
             }
 
+            case "reaction.ack": {
+              const pending = pendingReactionRequestsRef.current.get(
+                parsed.requestId
+              );
+              if (!pending) break;
+              clearTimeout(pending.timeout);
+              pendingReactionRequestsRef.current.delete(parsed.requestId);
+              setIsSendingReaction(
+                pendingReactionRequestsRef.current.size > 0
+              );
+              setReactionError(null);
+              break;
+            }
+
             case "reaction.created":
-              onReaction(parsed.payload.emoji);
+              onReaction(parsed.reaction);
               break;
 
             case "poll.started":
@@ -435,6 +536,18 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               setParticipants([]);
               setActiveParticipantCount(0);
               setPresenceStatus("idle");
+              for (const pending of pendingReactionRequestsRef.current.values()) {
+                clearTimeout(pending.timeout);
+              }
+              pendingReactionRequestsRef.current.clear();
+              setIsSendingReaction(false);
+              if (reactionCooldownTimerRef.current) {
+                clearTimeout(reactionCooldownTimerRef.current);
+                reactionCooldownTimerRef.current = null;
+              }
+              reactionCooldownUntilRef.current = 0;
+              setIsReactionRateLimited(false);
+              setReactionError("Reactions are unavailable because the session ended.");
               setActivePoll((prev) => (prev ? { ...prev, isClosed: true } : null));
               setCurrentSession((prev) =>
                 prev ? { ...prev, status: "ended" } : null
@@ -452,6 +565,11 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         wsRef.current = null;
         if (!shouldReconnectRef.current) return;
 
+        for (const pending of pendingReactionRequestsRef.current.values()) {
+          clearTimeout(pending.timeout);
+        }
+        pendingReactionRequestsRef.current.clear();
+        setIsSendingReaction(false);
         setConnectionState("reconnecting");
         setPresenceStatus("reconnecting");
         const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current, 15000);
@@ -485,6 +603,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         setCurrentSession(joinData.session);
         setChatMode(joinData.session.chatMode);
         setRestriction(joinData.restriction || null);
+        setReactionError(null);
         setActivePoll(joinData.activePoll);
         pollOperationRef.current = "idle";
         setPollOperation("idle");
@@ -548,6 +667,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     pollOperationRef.current = "idle";
     setPollOperation("idle");
     setPollError(null);
+    setReactionError(null);
     setConfig(null);
   }, [cleanupSocket]);
 
@@ -692,16 +812,58 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     }, 3000);
   }, []);
 
-  const sendReaction = useCallback((emoji: string) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
+  const sendReaction = useCallback(
+    (emoji: string) => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        setReactionError("Reactions are unavailable while reconnecting.");
+        return false;
+      }
+      if (!config?.permissions.canReact) {
+        setReactionError("Reactions are not available for this session.");
+        return false;
+      }
+      if (!config.allowedReactions.includes(emoji)) {
+        setReactionError("That reaction is not supported.");
+        return false;
+      }
+      if (
+        pendingReactionRequestsRef.current.size > 0 ||
+        reactionCooldownUntilRef.current > Date.now()
+      ) {
+        return false;
+      }
+
+      const requestId = crypto.randomUUID();
+      const timeout = setTimeout(() => {
+        if (!pendingReactionRequestsRef.current.has(requestId)) return;
+        pendingReactionRequestsRef.current.delete(requestId);
+        setIsSendingReaction(false);
+        setReactionError("The reaction was not confirmed. Please try again.");
+      }, 5000);
+
+      pendingReactionRequestsRef.current.set(requestId, { emoji, timeout });
+      setIsSendingReaction(true);
+      setReactionError(null);
+
+      try {
+        const event: ReactionSendEvent = {
+          version: 1,
           type: "reaction.send",
-          payload: { emoji },
-        })
-      );
-    }
-  }, []);
+          requestId,
+          emoji,
+        };
+        wsRef.current.send(JSON.stringify(event));
+        return true;
+      } catch {
+        clearTimeout(timeout);
+        pendingReactionRequestsRef.current.delete(requestId);
+        setIsSendingReaction(false);
+        setReactionError("The reaction could not be sent. Please try again.");
+        return false;
+      }
+    },
+    [config]
+  );
 
   const createPoll = async (question: string, options: string[]) => {
     if (!currentSession || pollOperationRef.current !== "idle") return false;
@@ -889,6 +1051,11 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     pollLimits: config?.pollLimits ?? DEFAULT_POLL_LIMITS,
     pollOperation,
     pollError,
+    allowedReactions: config?.allowedReactions ?? [],
+    canReact: Boolean(config?.permissions.canReact),
+    isSendingReaction,
+    isReactionRateLimited,
+    reactionError,
     typingNames: Object.values(typingUsers).map((u) => u.name),
     joinSession,
     leaveSession,

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useLiveSession } from "@/utils/useLiveSession";
-import { ChatMode } from "@/interfaces/liveSessionInterface";
+import { ChatMode, ServerReaction } from "@/interfaces/liveSessionInterface";
 
 interface LiveSessionsComponentProps {
   currentUser?: {
@@ -19,12 +19,10 @@ interface LiveSessionsComponentProps {
 type SidePanelTab = "people" | "chat" | "react" | "poll" | null;
 
 interface FloatingReaction {
-  id: number;
+  id: string;
   emoji: string;
   leftPercent: number;
 }
-
-const SUPPORTED_REACTIONS = ["👏", "❤️", "🎉", "🔥", "😂", "👍"];
 
 function extractYouTubeChannelId(input?: string): { id: string; type: "channel" | "handle" | "none" } {
   const channelInput = input?.trim() || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_NAME?.trim() || "";
@@ -67,23 +65,38 @@ export default function LiveSessionsComponent({
   const [hasEmbedError, setHasEmbedError] = useState(false);
 
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const reactionTimersRef = useRef<
+    Map<string, ReturnType<typeof setTimeout>>
+  >(new Map());
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const triggerReaction = useCallback((emoji: string) => {
-    const newId = Date.now() + Math.random();
+  const triggerReaction = useCallback((reaction: ServerReaction) => {
+    if (reactionTimersRef.current.has(reaction.id)) return;
     const randomLeft = Math.floor(Math.random() * 70) + 15;
 
     setFloatingReactions((prev) => [
       ...prev,
-      { id: newId, emoji, leftPercent: randomLeft },
+      { id: reaction.id, emoji: reaction.emoji, leftPercent: randomLeft },
     ]);
 
-    setTimeout(() => {
-      setFloatingReactions((prev) => prev.filter((item) => item.id !== newId));
+    const timeout = setTimeout(() => {
+      setFloatingReactions((prev) =>
+        prev.filter((item) => item.id !== reaction.id)
+      );
+      reactionTimersRef.current.delete(reaction.id);
     }, 2000);
+    reactionTimersRef.current.set(reaction.id, timeout);
+  }, []);
+
+  useEffect(() => {
+    const reactionTimers = reactionTimersRef.current;
+    return () => {
+      for (const timeout of reactionTimers.values()) clearTimeout(timeout);
+      reactionTimers.clear();
+    };
   }, []);
 
   const {
@@ -109,6 +122,11 @@ export default function LiveSessionsComponent({
     pollLimits,
     pollOperation,
     pollError,
+    allowedReactions,
+    canReact,
+    isSendingReaction,
+    isReactionRateLimited,
+    reactionError,
     typingNames,
     joinSession,
     leaveSession,
@@ -288,6 +306,11 @@ export default function LiveSessionsComponent({
     isSendingMessage ||
     Boolean(restriction) ||
     (!isHost && chatMode !== "enabled");
+  const areReactionsDisabled =
+    connectionState !== "connected" ||
+    !canReact ||
+    isSendingReaction ||
+    isReactionRateLimited;
 
   return (
     <div className="w-full flex flex-col justify-start items-start">
@@ -708,18 +731,40 @@ export default function LiveSessionsComponent({
 
                     {/* REACTIONS PANEL */}
                     {activePanel === "react" && (
-                      <div className="flex-1 flex items-center justify-center py-4">
-                        <div className="grid grid-cols-3 gap-3 text-3xl bg-white p-4 rounded-3xl w-full text-center border border-purple-50">
-                          {SUPPORTED_REACTIONS.map((emoji) => (
-                            <button
-                              key={emoji}
-                              onClick={() => sendReaction(emoji)}
-                              className="p-2 hover:scale-125 transition transform active:scale-95 cursor-pointer"
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
+                      <div className="flex-1 flex flex-col items-center justify-center gap-3 py-4">
+                        {reactionError && (
+                          <p className="w-full text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2 font-semibold text-center">
+                            {reactionError}
+                          </p>
+                        )}
+                        {connectionState === "reconnecting" && !reactionError && (
+                          <p className="w-full text-[11px] text-amber-700 bg-amber-50 rounded-xl px-3 py-2 text-center">
+                            Reconnecting. Reactions will be available shortly.
+                          </p>
+                        )}
+                        {allowedReactions.length > 0 ? (
+                          <div className="grid grid-cols-3 gap-3 text-3xl bg-white p-4 rounded-3xl w-full text-center border border-purple-50">
+                            {allowedReactions.map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => sendReaction(emoji)}
+                                disabled={areReactionsDisabled}
+                                className="p-2 hover:scale-125 transition transform active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-xs text-gray-400">
+                            Reactions are not available for this session.
+                          </p>
+                        )}
+                        {isSendingReaction && (
+                          <p className="text-[10px] text-purple-700 font-semibold">
+                            Sending reaction...
+                          </p>
+                        )}
                       </div>
                     )}
 

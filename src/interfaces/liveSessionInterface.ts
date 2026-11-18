@@ -22,6 +22,7 @@ export interface SessionJoinConfig {
     canVote: boolean;
   };
   restriction?: CurrentUserRestriction | null;
+  allowedReactions: string[];
   activePoll: Poll | null;
   pollLimits: PollLimits;
   limits: {
@@ -83,6 +84,24 @@ export interface ServerParticipant {
   role: string;
 }
 
+export interface ServerReaction {
+  id: string;
+  emoji: string;
+  sender: {
+    id: string;
+    displayName: string;
+    picture?: string | null;
+  };
+  createdAt: string;
+}
+
+export interface ReactionSendEvent {
+  version: 1;
+  type: "reaction.send";
+  requestId: string;
+  emoji: string;
+}
+
 export interface ChatRestriction {
   userId: string;
   userName?: string;
@@ -137,6 +156,10 @@ export type WsInboundEvent =
       chatMode: ChatMode;
       canSend: boolean;
       restriction: CurrentUserRestriction;
+      reactions: {
+        enabled: boolean;
+        allowed: string[];
+      };
       poll: {
         active: boolean;
         current: ServerPollSnapshot | null;
@@ -173,7 +196,13 @@ export type WsInboundEvent =
   | { type: "chat.message_deleted"; payload: { messageId: string } }
   | { type: "chat.mode_changed"; payload: { chatMode: ChatMode } }
   | { type: "typing.updated"; payload: { userId: string; name: string; isTyping: boolean } }
-  | { type: "reaction.created"; payload: { emoji: string; userId?: string } }
+  | {
+      type: "reaction.ack";
+      requestId: string;
+      reactionId: string;
+      status: "accepted";
+    }
+  | { type: "reaction.created"; reaction: ServerReaction }
   | { type: "poll.started"; poll: ServerPollSnapshot }
   | {
       type: "poll.vote_recorded";

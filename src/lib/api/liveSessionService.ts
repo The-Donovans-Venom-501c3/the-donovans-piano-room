@@ -139,6 +139,7 @@ export const liveSessionApi = {
       restriction: response.chat.restriction.restricted
         ? response.chat.restriction
         : null,
+      allowedReactions: response.reactions.allowed,
       activePoll: normalizePoll(response.poll.current),
       pollLimits: response.poll.limits,
       limits: {
