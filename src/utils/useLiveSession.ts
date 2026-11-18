@@ -100,6 +100,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const reconnectAttemptRef = useRef(0);
   const shouldReconnectRef = useRef(false);
   const hasLivePresenceRef = useRef(false);
+  const socketRoleRef = useRef<"host" | "participant">("participant");
   const pollOperationRef = useRef<PollOperation>("idle");
   const lastMessageCursorRef = useRef<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -160,6 +161,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
   const cleanupSocket = useCallback(() => {
     shouldReconnectRef.current = false;
+    socketRoleRef.current = "participant";
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     for (const pending of pendingChatRequestsRef.current.values()) {
       clearTimeout(pending.timeout);
@@ -238,6 +240,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
           switch (parsed.type) {
             case "session.ready":
+              socketRoleRef.current = parsed.role;
               setChatMode(parsed.chatMode);
               setRestriction(parsed.restriction.restricted ? parsed.restriction : null);
               setConfig((previous) =>
@@ -484,6 +487,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               break;
 
             case "poll.results_updated": {
+              if (socketRoleRef.current !== "host") break;
+
               const results = new Map(
                 parsed.results.map((result) => [result.optionId, result.voteCount])
               );

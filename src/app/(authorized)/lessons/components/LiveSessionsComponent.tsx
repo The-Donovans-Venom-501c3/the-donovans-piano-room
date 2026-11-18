@@ -311,6 +311,7 @@ export default function LiveSessionsComponent({
     !canReact ||
     isSendingReaction ||
     isReactionRateLimited;
+  const canDisplayPollResults = isHost || Boolean(activePoll?.isClosed);
 
   return (
     <div className="w-full flex flex-col justify-start items-start">
@@ -812,19 +813,31 @@ export default function LiveSessionsComponent({
                                         : "border-gray-200 bg-white text-gray-800"
                                     } ${canSelect ? "cursor-pointer" : "cursor-default"}`}
                                   >
-                                    <div
-                                      className="absolute inset-y-0 left-0 bg-purple-200/50 transition-all"
-                                      style={{ width: `${pct}%` }}
-                                    />
+                                    {canDisplayPollResults && (
+                                      <div
+                                        className="absolute inset-y-0 left-0 bg-purple-200/50 transition-all"
+                                        style={{ width: `${pct}%` }}
+                                      />
+                                    )}
                                     <div className="relative flex items-center justify-between">
                                       <span>{opt.text}</span>
-                                      <span className="text-[11px] font-extrabold text-purple-900">
-                                        {pct}% ({opt.votes})
-                                      </span>
+                                      {canDisplayPollResults && (
+                                        <span className="text-[11px] font-extrabold text-purple-900">
+                                          {pct}% ({opt.votes})
+                                        </span>
+                                      )}
                                     </div>
                                   </button>
                                 );
                               })}
+
+                              {!isHost &&
+                                !activePoll.isClosed &&
+                                activePoll.userVotedOptionId && (
+                                  <p className="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2 font-semibold">
+                                    Your answer has been submitted. Results will appear when the poll closes.
+                                  </p>
+                                )}
                             </div>
 
                             {!isHost && !activePoll.isClosed && !activePoll.userVotedOptionId && (
