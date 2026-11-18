@@ -39,51 +39,6 @@ const PLAN_ID_MAP: Record<string, MembershipLevelId> = {
   'free': MembershipLevelId.FREE,
 };
 
-// Normalize backend plan identifier (levelId, membershipId, slug, etc.)
-function resolveMembershipLevelId(membership: any): MembershipLevelId {
-  if (!membership) return MembershipLevelId.FREE;
-
-  const rawId = String(
-    membership.levelId ??
-      membership.membershipLevelId ??
-      membership.planId ??
-      membership.membershipId ??
-      ""
-  )
-    .toLowerCase()
-    .trim();
-
-  if (
-    rawId === MembershipLevelId.YEAR.toLowerCase() ||
-    rawId === "yearly" ||
-    rawId === "year" ||
-    rawId === "004"
-  ) {
-    return MembershipLevelId.YEAR;
-  }
-
-  if (
-    rawId === MembershipLevelId.MONTH.toLowerCase() ||
-    rawId === "monthly" ||
-    rawId === "month" ||
-    rawId === "002"
-  ) {
-    return MembershipLevelId.MONTH;
-  }
-
-  if (
-    rawId === MembershipLevelId.DAY.toLowerCase() ||
-    rawId === "daily" ||
-    rawId === "day" ||
-    rawId === "day pass" ||
-    rawId === "001"
-  ) {
-    return MembershipLevelId.DAY;
-  }
-
-  return MembershipLevelId.FREE;
-}
-
 export default function UpgradeConfirmationPage() {
   const router = useRouter();
   const params = useParams();
@@ -128,24 +83,15 @@ export default function UpgradeConfirmationPage() {
         if (!isMounted) return;
         
         setMembership(userMembership);
-
-        // Avoid double-multiplying if Yearly price is already returned as annual (e.g., 239.88)
-        const computedYearlyPrice =
-          planDetails.levelId === MembershipLevelId.YEAR && Number(planDetails.price) > 100
-            ? Number(planDetails.price).toFixed(2)
-            : (planDetails.price * getYearlyPriceMultiplier(levelId)).toFixed(2);
-
         setSelectedPlan({ 
           ...planDetails, 
           isCurrent: false,
           isPopular: planDetails.levelId === MembershipLevelId.YEAR,
-          yearlyPrice: computedYearlyPrice
+          yearlyPrice: (planDetails.price * getYearlyPriceMultiplier(levelId)).toFixed(2)
         });
 
-        const currentUserLevel = resolveMembershipLevelId(userMembership);
-
         // Redirect if user already owns this tier
-        if (currentUserLevel === levelId) {
+        if (userMembership.levelId === levelId) {
           setTimeout(() => {
             router.push('/account/membership');
           }, 1000);
@@ -153,7 +99,7 @@ export default function UpgradeConfirmationPage() {
         }
 
         // Prompt warning if user moves off scholarship plan
-        if (currentUserLevel === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
+        if (userMembership.levelId === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
           setShowScholarshipWarningPopup(true);
         }
         
@@ -197,6 +143,7 @@ export default function UpgradeConfirmationPage() {
   }, [levelId, router]);
 
   const handleBackButton = () => {
+    // Correct route target back to main dashboard
     router.push('/account/membership');
   };
 
@@ -214,13 +161,13 @@ export default function UpgradeConfirmationPage() {
   };
 
   const handleSwitch = async () => {
-    if (!selectedPlan || switching) {
+    if (switching) return;
+    if (!selectedPlan) {
+      setSwitchError("No plan selected.");
       return;
     }
-
-    if (!selectedPaymentMethod && selectedPlan.levelId !== MembershipLevelId.FREE) {
-      setSwitchError("Please add or select a payment method before confirming your plan.");
-      setShowPaymentMethodPopup(true);
+    if (!selectedPaymentMethod) {
+      setSwitchError("Please add and select a payment method first. Linking a payment method is separate from starting a subscription — after linking, return here and click Confirm Plan Selection to approve the PayPal subscription.");
       return;
     }
 
@@ -242,7 +189,7 @@ export default function UpgradeConfirmationPage() {
 
       const response: UpgradeResponse = await requestMembershipUpgrade(
         newMembershipId,
-        selectedPaymentMethod?.vaultTokenId || '',
+        selectedPaymentMethod.vaultTokenId,
         'immediate'
       );
 
@@ -255,21 +202,15 @@ export default function UpgradeConfirmationPage() {
         setSwitchSuccess(true);
         setEffectiveDate(response.effectiveDate || null);
         
-        // Poll until backend reflects the updated membership tier before redirecting
-        for (let attempt = 0; attempt < 5; attempt++) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+        setTimeout(async () => {
           try {
             const updatedMembership = await getUserMembership();
             setMembership(updatedMembership);
-            if (resolveMembershipLevelId(updatedMembership) === levelId) {
-              break;
-            }
           } catch (error) {
             console.warn('Failed to refresh membership:', error);
           }
-        }
-
-        router.push('/account/membership');
+          router.push('/account/membership');
+        }, 2000);
 
       } else {
         const error = new Error(response.error || 'Switch failed');
@@ -297,7 +238,6 @@ export default function UpgradeConfirmationPage() {
 
   const handlePaymentMethodChange = (method: PaymentMethod) => {
     setSelectedPaymentMethod(method);
-    setSwitchError(null);
   };
 
   const handleScholarshipWarningConfirm = () => {
@@ -432,7 +372,7 @@ export default function UpgradeConfirmationPage() {
                 Selected plan
               </h1>
 
-              <PlanCard plan={selectedPlan} showChooseButton={false} />
+              <PlanCard plan={selectedPlan} />
               
               {upgradePreview && upgradePreview.proration && (
                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">

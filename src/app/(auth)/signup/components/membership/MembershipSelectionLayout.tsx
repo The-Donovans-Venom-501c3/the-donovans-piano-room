@@ -13,24 +13,20 @@ import MembershipIncludes from "./MembershipIncludes";
 
 interface MembershipSelectionLayoutProps {
   isBeta?: boolean;
-  appliedPromoCode?: string;
 }
 
 export default function MembershipSelectionLayout({
   isBeta = false,
-  appliedPromoCode = "",
 }: MembershipSelectionLayoutProps) {
   const [membershipChoice, setMembershipChoice] = useAtom(membershipChoiceAtom);
   const isCouponVerified = useAtomValue(couponVerifiedAtom);
   const setSignupStep = useSetAtom(signupStepAtom);
 
   const isScholarship = membershipChoice === membershipTypes["scholarship"];
-  const isBetaUnlocked = !isBeta || appliedPromoCode === "TDPRBETA" || isCouponVerified;
 
-  // Enable button if beta condition is passed or if user selected a valid option
-  const isButtonDisabled = isBetaUnlocked 
-    ? (isScholarship ? !isCouponVerified : !membershipChoice)
-    : true;
+  // Continue is enabled once a plan is selected; the scholarship tier also
+  // requires a verified scholarship code.
+  const isButtonDisabled = isScholarship ? !isCouponVerified : !membershipChoice;
 
   const goToPayment = (e: FormEvent) => {
     e.preventDefault();
@@ -54,11 +50,6 @@ export default function MembershipSelectionLayout({
               navLink="/"
               navName="Account"
             />
-            {isBeta && !isBetaUnlocked && (
-              <p className="text-[#FACC15] font-semibold text-sm sm:text-base mt-2">
-                For Beta version, choose Scholarship and apply code: TDPRBETA
-              </p>
-            )}
           </div>
 
           <form onSubmit={goToPayment} className="w-full flex flex-col gap-5">

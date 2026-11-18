@@ -31,7 +31,7 @@ const membershipIncludes = {
     ]
   },
   [membershipTypes["scholarship"]]: {
-    id: 3,
+    id: "local-scholarship-001",
     title: "Scholarship Access",
     content: [
       ["Full access", "Enjoy the same benefits as a paid membership, which includes the complete library of games, tools, and resources."],
@@ -67,16 +67,17 @@ const YellowCheck = () => (
 );
 
 interface DiscountSectionProps {
-  membershipId: number;
+  membershipId: string | number;
   currentKey: string;
   isBeta?: boolean;
 }
 
-function DiscountSection({ membershipId, currentKey, isBeta = false }: DiscountSectionProps) {
+function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSectionProps) {
   const [discountCode, setDiscountCode] = useState("");
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Safely retrieve user email dynamically using optional chaining
   const formData = useAtomValue(signupFormDataAtom);
   const profile = useAtomValue(profileAtom);
   const userEmail = formData?.email || profile?.email || "";
@@ -99,7 +100,7 @@ function DiscountSection({ membershipId, currentKey, isBeta = false }: DiscountS
 
     try {
       setIsLoading(true);
-      const isValid = await validateCouponCode(membershipId, userEmail, discountCode);
+      const isValid = await validateCouponCode(String(membershipId), userEmail, discountCode);
       if (isValid) {
         setStatus("success");
         setIsCouponVerified(true);
@@ -176,7 +177,7 @@ function DiscountSection({ membershipId, currentKey, isBeta = false }: DiscountS
   );
 }
 
-export default function MembershipIncludes({ isBeta = false }: { isBeta?: boolean }) {
+export default function MembershipIncludes({ isBeta = true }: { isBeta?: boolean }) {
   const membershipChoice = useAtomValue(membershipChoiceAtom);
 
   const currentKey =

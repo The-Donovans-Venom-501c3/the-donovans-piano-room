@@ -84,6 +84,25 @@ export const refreshOTP = async (email: string): Promise<ApiResponse> => {
     }
 };
 
+export const completeSignup = async (
+    email: string,
+    membershipId: string | number
+): Promise<ApiResponse> => {
+    try {
+        const response = await fetch("/api/auth/complete-signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email, membershipId }),
+        });
+        const data = await response.json().catch(() => null);
+        return { data, ok: response.ok, status: response.status };
+    } catch (error: any) {
+        console.error("Complete Signup Failed:", error);
+        return { data: null, ok: false, status: 500, error: error.message };
+    }
+};
+
 export const login = async (email: string, password: string): Promise<ApiResponse> => {
     try {
         const response = await fetch("/api/auth/login", {
