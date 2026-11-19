@@ -203,7 +203,7 @@ export default function AccountForm() {
 
                     {profile.studentId && (
                         <span className="inline-flex items-center rounded-full bg-[#EFE5FF] border border-purple-300 px-4 py-1.5 text-lg 3xl:text-xl 4xl:text-2xl font-montserrat font-semibold text-purple-900">
-                            {profile.studentId}
+                            Account ID : {profile.studentId}
                         </span>
                     )}
                 </div>
