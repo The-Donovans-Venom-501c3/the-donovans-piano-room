@@ -47,7 +47,7 @@ function LessonsPageContent() {
 
   // Load logged-in user for LiveSessionsComponent
   useEffect(() => {
-    apiRequest<Record<string, unknown>>("/users/me")
+    apiRequest<Record<string, unknown>>("/user/")
       .then((res) => {
         const user = (res?.user as Record<string, unknown>) || res;
         if (!user || !user.id) return;
