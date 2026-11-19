@@ -4,7 +4,6 @@ import { Mountains_of_Christmas } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import MobileWarningPopup from "@/components/atoms/MobileWarningPopup";
-import BetaBanner from "@/components/atoms/BetaBanner";
 import ScholarshipBanner from "@/components/atoms/ScholarshipBanner";
 
 const mountainsOfChristmas = Mountains_of_Christmas({
@@ -39,7 +38,6 @@ export default function RootLayout({
       <body className="pt-[var(--banners-h)]">
         <Providers>
           <div className="fixed top-0 left-0 z-[60] w-full">
-            <BetaBanner />
             <ScholarshipBanner />
           </div>
           {children}

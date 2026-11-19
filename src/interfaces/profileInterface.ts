@@ -1,5 +1,6 @@
 export interface profileInterface {
     id: string;
+    studentId?: string;
     fullName: string;
     displayName: string;
     email: string;

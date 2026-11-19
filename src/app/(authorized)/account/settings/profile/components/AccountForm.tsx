@@ -120,7 +120,7 @@ export default function AccountForm() {
         setIsSaving(true)
 
         try {
-            // DOB is read-only, so it is intentionally excluded.
+            // DOB and studentId are read-only, so they are intentionally excluded.
             const { data, ok } = await updateUser({
                 email,
                 ...changes,
@@ -196,9 +196,17 @@ export default function AccountForm() {
     return (
         <div className="w-[60%] flex flex-col justify-between min-h-[75vh]">
             <div>
-                <h1 className="text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-montserrat font-medium mt-[3vh]">
-                    Your profile
-                </h1>
+                <div className="flex flex-wrap items-center gap-4 mt-[3vh]">
+                    <h1 className="text-5xl 3xl:text-6xl 4xl:text-7xl text-primary-brown font-montserrat font-medium">
+                        Your profile
+                    </h1>
+
+                    {profile.studentId && (
+                        <span className="inline-flex items-center rounded-full bg-[#EFE5FF] border border-purple-300 px-4 py-1.5 text-lg 3xl:text-xl 4xl:text-2xl font-montserrat font-semibold text-purple-900">
+                            Account ID : {profile.studentId}
+                        </span>
+                    )}
+                </div>
 
                 <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl w-[90%] mt-2">
                     Update your profile information to ensure your
