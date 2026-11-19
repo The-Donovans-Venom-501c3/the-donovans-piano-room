@@ -26,9 +26,19 @@ interface RawChatMessage {
     picture?: string | null;
     pronouns?: string | null;
   };
-  text: string;
+  text: string | null;
+  isDeleted: boolean;
+  deletedAt: string | null;
   createdAt: string;
   cursor: string;
+}
+
+interface MessageDeletedEvent {
+  version: 1;
+  type: "chat.message_deleted";
+  sessionId: string;
+  messageId: string;
+  deletedAt: string;
 }
 
 interface JoinResponse {
@@ -174,6 +184,8 @@ export const liveSessionApi = {
         avatarUrl: message.sender.picture ?? undefined,
         pronouns: message.sender.pronouns ?? undefined,
         text: message.text,
+        isDeleted: message.isDeleted,
+        deletedAt: message.deletedAt,
         createdAt: message.createdAt,
         cursor: message.cursor,
       })),
@@ -228,30 +240,33 @@ export const liveSessionApi = {
 
   // 11. Host enables, disables, or makes chat read-only
   updateChatMode: (sessionId: string, chatMode: ChatMode) =>
-    apiRequest<{ chatMode: ChatMode }>(`${BASE}/${sessionId}/chat-mode`, {
+    apiRequest<{ session: LiveSession }>(`${BASE}/${sessionId}/chat-mode`, {
       method: "PATCH",
       body: JSON.stringify({ chatMode }),
-    }),
+    }).then((response) => response.session),
 
   // 12. Host deletes a message
   deleteMessage: (sessionId: string, messageId: string) =>
-    apiRequest<void>(`${BASE}/${sessionId}/messages/${messageId}`, {
-      method: "DELETE",
-    }),
+    apiRequest<{ message: MessageDeletedEvent }>(
+      `${BASE}/${sessionId}/messages/${messageId}`,
+      {
+        method: "DELETE",
+      }
+    ).then((response) => response.message),
 
   // 13. Host restricts a participant from chatting
   restrictUser: (
     sessionId: string,
     userId: string,
-    payload?: { reason?: string; durationSeconds?: number }
+    payload?: { reason?: string; expiresAt?: string | null }
   ) =>
-    apiRequest<ChatRestriction>(
+    apiRequest<{ restriction: ChatRestriction }>(
       `${BASE}/${sessionId}/chat-restrictions/${userId}`,
       {
         method: "PUT",
         body: JSON.stringify(payload || {}),
       }
-    ),
+    ).then((response) => response.restriction),
 
   // 14. Host removes a chat restriction
   unrestrictUser: (sessionId: string, userId: string) =>
@@ -261,20 +276,26 @@ export const liveSessionApi = {
 
   // 15. Host loads active restrictions
   getRestrictions: (sessionId: string) =>
-    apiRequest<ChatRestriction[]>(`${BASE}/${sessionId}/chat-restrictions`, {
-      cache: "no-store",
-    }),
+    apiRequest<{ restrictions: ChatRestriction[] }>(
+      `${BASE}/${sessionId}/chat-restrictions`,
+      { cache: "no-store" }
+    ).then((response) => response.restrictions),
 
-  // 16. Configured host registers a YouTube session
-  createSession: (payload: { youtubeVideoId: string; title?: string }) =>
-    apiRequest<LiveSession>(BASE, {
+  // 16. Configured host discovers and registers the channel's YouTube session
+  createSession: async (payload: { title: string }) => {
+    const response = await apiRequest<SessionResponse>(BASE, {
       method: "POST",
       body: JSON.stringify(payload),
-    }),
+    });
+    if (!response.session) {
+      throw new ApiError("The backend did not return the created live session.", 500);
+    }
+    return response.session;
+  },
 
   // 17. Configured host requests immediate YouTube synchronization
   syncSession: (sessionId: string) =>
-    apiRequest<LiveSession>(`${BASE}/${sessionId}/sync`, {
+    apiRequest<{ session: LiveSession }>(`${BASE}/${sessionId}/sync`, {
       method: "POST",
-    }),
+    }).then((response) => response.session),
 };

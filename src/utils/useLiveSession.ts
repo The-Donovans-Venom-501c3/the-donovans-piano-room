@@ -48,6 +48,30 @@ const DEFAULT_POLL_LIMITS = {
   optionMaxCodePoints: 150,
 };
 
+function getCreateSessionErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return "Unable to create the live session. Please try again.";
+  }
+
+  switch (error.code) {
+    case "YOUTUBE_BROADCAST_NOT_FOUND":
+      return "No public live or upcoming YouTube stream was found. Create or start the stream in YouTube Studio and try again.";
+    case "MULTIPLE_YOUTUBE_BROADCASTS":
+      return "Multiple YouTube streams were found. Ensure only one applicable stream is live or scheduled, then try again.";
+    case "YOUTUBE_VIDEO_ALREADY_REGISTERED":
+      return "This YouTube stream is already registered, but the existing session could not be loaded. Please refresh and try again.";
+    case "YOUTUBE_UNAVAILABLE":
+      return "YouTube could not be reached. Please try again shortly.";
+    case "LIVE_SESSION_HOST_NOT_FOUND":
+      return "The configured live-session host could not be found. Please contact an administrator.";
+    default:
+      if (error.status === 400) return error.message;
+      if (error.status === 401) return "Your login has expired. Please sign in again.";
+      if (error.status === 403) return "Only the configured host can create a live session.";
+      return error.message || "Unable to create the live session. Please try again.";
+  }
+}
+
 function resolveWebSocketUrl(wsPath: string): string {
   if (wsPath.startsWith("ws://") || wsPath.startsWith("wss://")) return wsPath;
 
@@ -88,6 +112,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
   const [pollOperation, setPollOperation] = useState<PollOperation>("idle");
   const [pollError, setPollError] = useState<string | null>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [createSessionError, setCreateSessionError] = useState<string | null>(null);
   const [isSendingReaction, setIsSendingReaction] = useState(false);
   const [isReactionRateLimited, setIsReactionRateLimited] = useState(false);
   const [reactionError, setReactionError] = useState<string | null>(null);
@@ -101,6 +127,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const shouldReconnectRef = useRef(false);
   const hasLivePresenceRef = useRef(false);
   const socketRoleRef = useRef<"host" | "participant">("participant");
+  const isCreatingSessionRef = useRef(false);
   const pollOperationRef = useRef<PollOperation>("idle");
   const lastMessageCursorRef = useRef<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -143,13 +170,34 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     });
   }, []);
 
+  const markMessageDeleted = useCallback(
+    (messageId: string, deletedAt: string | null) => {
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === messageId
+            ? {
+                ...message,
+                text: null,
+                isDeleted: true,
+                deletedAt: deletedAt ?? message.deletedAt,
+              }
+            : message
+        )
+      );
+    },
+    []
+  );
+
   const refreshCurrentSession = useCallback(async () => {
     setIsLoadingSession(true);
     try {
       const session = await liveSessionApi.getCurrentSession();
       setCurrentSession(session);
+      setError(null);
+      return session;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load session");
+      return null;
     } finally {
       setIsLoadingSession(false);
     }
@@ -158,6 +206,32 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   useEffect(() => {
     refreshCurrentSession();
   }, [refreshCurrentSession]);
+
+  useEffect(() => {
+    if (currentSession?.status !== "scheduled" || isJoined) return;
+
+    let disposed = false;
+    const refreshScheduledSession = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const session = await liveSessionApi.getCurrentSession();
+        if (!disposed) setCurrentSession(session);
+      } catch {
+        // Preserve the scheduled session during a transient background refresh failure.
+      }
+    };
+    const interval = window.setInterval(refreshScheduledSession, 30_000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshScheduledSession();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [currentSession?.status, isJoined]);
 
   const cleanupSocket = useCallback(() => {
     shouldReconnectRef.current = false;
@@ -328,6 +402,8 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
                 avatarUrl: serverMessage.sender.picture ?? undefined,
                 pronouns: serverMessage.sender.pronouns ?? undefined,
                 text: serverMessage.text,
+                isDeleted: false,
+                deletedAt: null,
                 createdAt: serverMessage.createdAt,
                 cursor: serverMessage.cursor,
               };
@@ -416,13 +492,26 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
             }
 
             case "chat.message_deleted":
-              setMessages((prev) =>
-                prev.filter((m) => m.id !== parsed.payload.messageId)
-              );
+              markMessageDeleted(parsed.messageId, parsed.deletedAt);
               break;
 
-            case "chat.mode_changed":
-              setChatMode(parsed.payload.chatMode);
+            case "session.chat_mode":
+              setChatMode(parsed.chatMode);
+              setCurrentSession((current) =>
+                current ? { ...current, chatMode: parsed.chatMode } : current
+              );
+              setConfig((current) =>
+                current
+                  ? {
+                      ...current,
+                      session: { ...current.session, chatMode: parsed.chatMode },
+                      permissions: {
+                        ...current.permissions,
+                        canChat: parsed.chatMode === "enabled",
+                      },
+                    }
+                  : current
+              );
               break;
 
             case "typing.updated": {
@@ -513,25 +602,27 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               setPollError(null);
               break;
 
-            case "user.restricted":
-              if (parsed.payload.userId === currentUserId) {
-                setRestriction({
-                  restricted: true,
-                  expiresAt: parsed.payload.restriction.expiresAt ?? null,
-                });
-              }
-              setActiveRestrictions((prev) => [
-                ...prev.filter((r) => r.userId !== parsed.payload.userId),
-                parsed.payload.restriction,
-              ]);
-              break;
-
-            case "user.unrestricted":
-              if (parsed.payload.userId === currentUserId) {
-                setRestriction(null);
-              }
-              setActiveRestrictions((prev) =>
-                prev.filter((r) => r.userId !== parsed.payload.userId)
+            case "chat.restriction_updated":
+              setRestriction(
+                parsed.restricted
+                  ? {
+                      restricted: true,
+                      expiresAt: parsed.expiresAt,
+                    }
+                  : null
+              );
+              setConfig((current) =>
+                current
+                  ? {
+                      ...current,
+                      permissions: {
+                        ...current.permissions,
+                        canChat:
+                          !parsed.restricted &&
+                          current.session.chatMode === "enabled",
+                      },
+                    }
+                  : current
               );
               break;
 
@@ -591,7 +682,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         );
       };
     },
-    [applyPollSnapshot, cleanupSocket, currentUserId, onReaction]
+    [applyPollSnapshot, cleanupSocket, currentUserId, markMessageDeleted, onReaction]
   );
 
   const joinSession = useCallback(
@@ -599,6 +690,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       setIsJoining(true);
       setError(null);
       setParticipants([]);
+      setActiveRestrictions([]);
       setActiveParticipantCount(0);
       setPresenceStatus("loading");
       hasLivePresenceRef.current = false;
@@ -642,11 +734,6 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
           setPresenceStatus("error");
         }
 
-        if (joinData.permissions.isHost) {
-          const restrictions = await liveSessionApi.getRestrictions(sessionId);
-          setActiveRestrictions(restrictions);
-        }
-
       } catch (err) {
         cleanupSocket();
         setIsJoined(false);
@@ -659,12 +746,37 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     [cleanupSocket, connectWebSocket]
   );
 
+  useEffect(() => {
+    if (!isJoined || !currentSession || !config?.permissions.isHost) return;
+
+    let cancelled = false;
+    liveSessionApi
+      .getRestrictions(currentSession.id)
+      .then((restrictions) => {
+        if (!cancelled) setActiveRestrictions(restrictions);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load chat restrictions"
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [config?.permissions.isHost, currentSession, isJoined]);
+
   const leaveSession = useCallback(() => {
     cleanupSocket();
     setIsJoined(false);
     setConnectionState("disconnected");
     setMessages([]);
     setParticipants([]);
+    setActiveRestrictions([]);
     setActiveParticipantCount(0);
     setPresenceStatus("idle");
     hasLivePresenceRef.current = false;
@@ -992,50 +1104,141 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
   const changeChatMode = async (mode: ChatMode) => {
     if (!currentSession) return;
-    const res = await liveSessionApi.updateChatMode(currentSession.id, mode);
-    setChatMode(res.chatMode);
+    try {
+      const session = await liveSessionApi.updateChatMode(currentSession.id, mode);
+      setCurrentSession(session);
+      setChatMode(session.chatMode);
+      setConfig((current) =>
+        current
+          ? {
+              ...current,
+              session,
+              permissions: {
+                ...current.permissions,
+                canChat: session.chatMode === "enabled",
+              },
+            }
+          : current
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to change chat mode");
+    }
   };
 
   const deleteMessage = async (messageId: string) => {
     if (!currentSession) return;
-    await liveSessionApi.deleteMessage(currentSession.id, messageId);
-    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    try {
+      const deleted = await liveSessionApi.deleteMessage(
+        currentSession.id,
+        messageId
+      );
+      markMessageDeleted(deleted.messageId, deleted.deletedAt);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete message");
+    }
   };
 
   const restrictUser = async (userId: string) => {
     if (!currentSession) return;
-    const res = await liveSessionApi.restrictUser(currentSession.id, userId);
-    setActiveRestrictions((prev) => [
-      ...prev.filter((r) => r.userId !== userId),
-      res,
-    ]);
+    try {
+      const restriction = await liveSessionApi.restrictUser(
+        currentSession.id,
+        userId
+      );
+      setActiveRestrictions((prev) => [
+        ...prev.filter((item) => item.userId !== userId),
+        restriction,
+      ]);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to mute participant");
+    }
   };
 
   const unrestrictUser = async (userId: string) => {
     if (!currentSession) return;
-    await liveSessionApi.unrestrictUser(currentSession.id, userId);
-    setActiveRestrictions((prev) => prev.filter((r) => r.userId !== userId));
+    try {
+      await liveSessionApi.unrestrictUser(currentSession.id, userId);
+      setActiveRestrictions((prev) =>
+        prev.filter((restriction) => restriction.userId !== userId)
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to unmute participant");
+    }
   };
 
-  const registerHostSession = async (youtubeVideoId: string, title?: string) => {
-    const created = await liveSessionApi.createSession({
-      youtubeVideoId,
-      title,
-    });
-    setCurrentSession(created);
-    return created;
+  const registerHostSession = async (title: string): Promise<LiveSession | null> => {
+    if (isCreatingSessionRef.current) return null;
+
+    isCreatingSessionRef.current = true;
+    setIsCreatingSession(true);
+    setCreateSessionError(null);
+    try {
+      const created = await liveSessionApi.createSession({ title });
+      setCurrentSession(created);
+      setError(null);
+      return created;
+    } catch (err) {
+      if (
+        err instanceof ApiError &&
+        err.code === "YOUTUBE_VIDEO_ALREADY_REGISTERED"
+      ) {
+        try {
+          const existing = await liveSessionApi.getCurrentSession();
+          if (existing) {
+            setCurrentSession(existing);
+            setError(null);
+            return existing;
+          }
+        } catch {
+          // Fall through to the duplicate-session recovery message below.
+        }
+      }
+
+      setCreateSessionError(getCreateSessionErrorMessage(err));
+      return null;
+    } finally {
+      isCreatingSessionRef.current = false;
+      setIsCreatingSession(false);
+    }
   };
+
+  const clearCreateSessionError = () => setCreateSessionError(null);
 
   const syncYouTube = async () => {
     if (!currentSession) return;
-    const synced = await liveSessionApi.syncSession(currentSession.id);
-    setCurrentSession(synced);
+    try {
+      const synced = await liveSessionApi.syncSession(currentSession.id);
+      setCurrentSession(synced);
+      setChatMode(synced.chatMode);
+      setConfig((current) =>
+        current
+          ? {
+              ...current,
+              session: synced,
+              permissions: {
+                ...current.permissions,
+                canChat: synced.chatMode === "enabled" && !restriction,
+              },
+            }
+          : current
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to sync YouTube");
+    }
   };
 
   return {
     currentSession,
     isLoadingSession,
     refreshCurrentSession,
+    isCreatingSession,
+    createSessionError,
+    clearCreateSessionError,
     isJoined,
     isJoining,
     connectionState,

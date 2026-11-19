@@ -43,7 +43,9 @@ export interface ChatMessage {
   name: string;
   avatarUrl?: string;
   pronouns?: string;
-  text: string;
+  text: string | null;
+  isDeleted: boolean;
+  deletedAt: string | null;
   createdAt: string;
   cursor?: string;
   isHost?: boolean;
@@ -193,8 +195,13 @@ export type WsInboundEvent =
       retryable: boolean;
       retryAfterMs?: number;
     }
-  | { type: "chat.message_deleted"; payload: { messageId: string } }
-  | { type: "chat.mode_changed"; payload: { chatMode: ChatMode } }
+  | {
+      type: "chat.message_deleted";
+      sessionId: string;
+      messageId: string;
+      deletedAt: string;
+    }
+  | { type: "session.chat_mode"; chatMode: ChatMode }
   | { type: "typing.updated"; payload: { userId: string; name: string; isTyping: boolean } }
   | {
       type: "reaction.ack";
@@ -218,7 +225,10 @@ export type WsInboundEvent =
       totalVotes: number;
     }
   | { type: "poll.closed"; poll: ServerPollSnapshot }
-  | { type: "user.restricted"; payload: { userId: string; restriction: ChatRestriction } }
-  | { type: "user.unrestricted"; payload: { userId: string } }
+  | {
+      type: "chat.restriction_updated";
+      restricted: boolean;
+      expiresAt: string | null;
+    }
   | { type: "session.ended"; payload: { sessionId: string; endedAt?: string } }
   | { type: "pong"; payload?: unknown };

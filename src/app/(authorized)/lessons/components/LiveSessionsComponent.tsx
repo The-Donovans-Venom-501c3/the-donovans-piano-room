@@ -52,8 +52,8 @@ export default function LiveSessionsComponent({
   const [participantSearch, setParticipantSearch] = useState("");
 
   const [showCreateSessionModal, setShowCreateSessionModal] = useState(false);
-  const [newVideoId, setNewVideoId] = useState("");
   const [newSessionTitle, setNewSessionTitle] = useState("");
+  const [createSessionValidationError, setCreateSessionValidationError] = useState<string | null>(null);
 
   const [newQuestion, setNewQuestion] = useState("");
   const [newOptions, setNewOptions] = useState(["", ""]);
@@ -102,6 +102,10 @@ export default function LiveSessionsComponent({
   const {
     currentSession,
     isLoadingSession,
+    refreshCurrentSession,
+    isCreatingSession,
+    createSessionError,
+    clearCreateSessionError,
     isJoined,
     isJoining,
     connectionState,
@@ -271,11 +275,23 @@ export default function LiveSessionsComponent({
 
   const handleCreateSessionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newVideoId.trim()) return;
-    await registerHostSession(newVideoId.trim(), newSessionTitle.trim() || undefined);
-    setShowCreateSessionModal(false);
-    setNewVideoId("");
-    setNewSessionTitle("");
+    const title = newSessionTitle.trim();
+    if (!title) {
+      setCreateSessionValidationError("Enter a lesson title.");
+      return;
+    }
+    if ([...title].length > 200) {
+      setCreateSessionValidationError("The title must be 200 characters or fewer.");
+      return;
+    }
+
+    setCreateSessionValidationError(null);
+    const session = await registerHostSession(title);
+    if (session) {
+      setShowCreateSessionModal(false);
+      setNewSessionTitle("");
+      clearCreateSessionError();
+    }
   };
 
   const filteredParticipants = useMemo(() => {
@@ -334,7 +350,7 @@ export default function LiveSessionsComponent({
             <div className="flex items-center gap-3">
               {isHost && (
                 <button
-                  onClick={syncYouTube}
+                  onClick={() => void syncYouTube()}
                   className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold px-3 py-1.5 rounded-lg transition cursor-pointer"
                 >
                   ↻ Sync YouTube
@@ -579,9 +595,9 @@ export default function LiveSessionsComponent({
                                             minute: "2-digit",
                                           })}
                                         </span>
-                                        {isHost && (
+                                        {isHost && !m.isDeleted && (
                                           <button
-                                            onClick={() => deleteMessage(m.id)}
+                                            onClick={() => void deleteMessage(m.id)}
                                             className="text-[10px] text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition cursor-pointer"
                                             title="Delete message"
                                           >
@@ -595,7 +611,15 @@ export default function LiveSessionsComponent({
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-700 font-medium pl-1 break-words">{m.text}</p>
+                                {m.isDeleted ? (
+                                  <p className="text-xs text-gray-400 italic font-medium pl-1">
+                                    This message was deleted by the host.
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-gray-700 font-medium pl-1 break-words">
+                                    {m.text}
+                                  </p>
+                                )}
                               </div>
                             ))
                           )}
@@ -983,12 +1007,17 @@ export default function LiveSessionsComponent({
             <h2 className="text-xl font-extrabold text-[#632200]">
               Live session
             </h2>
-            {currentUser.role === "Presenter" && (
+            {currentUser.role === "Presenter" &&
+              (!currentSession || currentSession.status === "ended") && (
               <button
-                onClick={() => setShowCreateSessionModal(true)}
+                onClick={() => {
+                  setCreateSessionValidationError(null);
+                  clearCreateSessionError();
+                  setShowCreateSessionModal(true);
+                }}
                 className="bg-[#6F219E] hover:bg-purple-900 text-white text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer"
               >
-                + Register YouTube Session
+                + Find YouTube Session
               </button>
             )}
           </div>
@@ -1035,17 +1064,42 @@ export default function LiveSessionsComponent({
             </div>
 
             <div>
+              {currentSession?.status === "scheduled" && (
+                <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-xs font-semibold text-amber-800">
+                    The YouTube stream was found. You can join when it goes live.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void refreshCurrentSession()}
+                    disabled={isLoadingSession}
+                    className="shrink-0 text-xs font-bold text-purple-800 hover:text-purple-950 disabled:opacity-50 cursor-pointer"
+                  >
+                    Check status
+                  </button>
+                </div>
+              )}
               <button
-                disabled={isLoadingSession || isJoining || !currentSession}
-                onClick={() => currentSession && joinSession(currentSession.id)}
+                disabled={
+                  isLoadingSession ||
+                  isJoining ||
+                  currentSession?.status !== "live"
+                }
+                onClick={() =>
+                  currentSession?.status === "live" && joinSession(currentSession.id)
+                }
                 className="w-full bg-[#6F219E] hover:bg-purple-800 disabled:opacity-50 text-white font-extrabold text-base py-4 px-8 rounded-2xl transition cursor-pointer shadow-md"
               >
                 {isLoadingSession
                   ? "Checking session..."
                   : isJoining
                   ? "Joining..."
-                  : currentSession
+                  : currentSession?.status === "live"
                   ? "Join session"
+                  : currentSession?.status === "scheduled"
+                  ? "Waiting for stream to go live"
+                  : currentSession?.status === "ended"
+                  ? "Session ended"
                   : "No active session right now"}
               </button>
             </div>
@@ -1059,48 +1113,65 @@ export default function LiveSessionsComponent({
                 className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4"
               >
                 <h3 className="text-lg font-extrabold text-gray-900">
-                  Register YouTube Live Session
+                  Find YouTube Live Session
                 </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Enter a lesson title and we will find the live or upcoming
+                  stream from the configured YouTube channel.
+                </p>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">
-                      YouTube Video ID
+                      Lesson Title
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. dQw4w9WgXcQ"
-                      value={newVideoId}
-                      onChange={(e) => setNewVideoId(e.target.value)}
-                      className="w-full text-xs border border-gray-300 rounded-xl p-2.5 outline-none focus:border-purple-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Lesson Title (optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Monday Live Music Lesson"
+                      placeholder="Beginner Piano Lesson"
                       value={newSessionTitle}
-                      onChange={(e) => setNewSessionTitle(e.target.value)}
+                      onChange={(e) => {
+                        setNewSessionTitle(e.target.value);
+                        setCreateSessionValidationError(null);
+                        clearCreateSessionError();
+                      }}
+                      disabled={isCreatingSession}
                       className="w-full text-xs border border-gray-300 rounded-xl p-2.5 outline-none focus:border-purple-600"
                     />
+                    <p className="mt-1 text-right text-[10px] text-gray-500">
+                      {[...newSessionTitle].length}/200
+                    </p>
                   </div>
                 </div>
+                {(createSessionValidationError || createSessionError) && (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                    {createSessionValidationError || createSessionError}
+                  </div>
+                )}
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowCreateSessionModal(false)}
-                    className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 cursor-pointer"
+                    onClick={() => {
+                      setShowCreateSessionModal(false);
+                      setCreateSessionValidationError(null);
+                      clearCreateSessionError();
+                    }}
+                    disabled={isCreatingSession}
+                    className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 cursor-pointer disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#6F219E] text-white text-xs font-bold rounded-xl cursor-pointer"
+                    disabled={
+                      isCreatingSession ||
+                      !newSessionTitle.trim() ||
+                      [...newSessionTitle.trim()].length > 200
+                    }
+                    className="px-5 py-2 bg-[#6F219E] text-white text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50"
                   >
-                    Create Session
+                    {isCreatingSession
+                      ? "Finding your YouTube livestream…"
+                      : "Find Stream & Create Session"}
                   </button>
                 </div>
               </form>
