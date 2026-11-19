@@ -146,7 +146,6 @@ export default function LiveSessionsComponent({
     restrictUser,
     unrestrictUser,
     registerHostSession,
-    syncYouTube,
   } = useLiveSession({
     currentUserId: currentUser.id,
     onReaction: triggerReaction,
@@ -348,14 +347,6 @@ export default function LiveSessionsComponent({
             </div>
 
             <div className="flex items-center gap-3">
-              {isHost && (
-                <button
-                  onClick={() => void syncYouTube()}
-                  className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold px-3 py-1.5 rounded-lg transition cursor-pointer"
-                >
-                  ↻ Sync YouTube
-                </button>
-              )}
               <a
                 href={directWatchUrl}
                 target="_blank"
