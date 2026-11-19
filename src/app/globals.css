@@ -74,13 +74,13 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   BETA & SCHOLARSHIP BANNERS
+   SCHOLARSHIP BANNER
    -------------------------------------------------------------------------- */
 :root {
-  --banners-h: 6rem;   /* 2 × h-12 */
+  --banners-h: 3rem;   /* h-12 */
 }
 @media (min-width: 640px) {
   :root {
-    --banners-h: 7rem; /* 2 × sm:h-14 */
+    --banners-h: 3.5rem; /* sm:h-14 */
   }
 }
