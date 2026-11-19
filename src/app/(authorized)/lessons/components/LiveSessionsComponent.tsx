@@ -1017,7 +1017,7 @@ export default function LiveSessionsComponent({
                 }}
                 className="bg-[#6F219E] hover:bg-purple-900 text-white text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer"
               >
-                + Find YouTube Session
+                + Create Session
               </button>
             )}
           </div>
@@ -1113,11 +1113,11 @@ export default function LiveSessionsComponent({
                 className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4"
               >
                 <h3 className="text-lg font-extrabold text-gray-900">
-                  Find YouTube Live Session
+                  Create Session
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  Enter a lesson title and we will find the live or upcoming
-                  stream from the configured YouTube channel.
+                  Enter a title for this session. Make sure the YouTube
+                  livestream is already scheduled or live before continuing.
                 </p>
                 <div className="space-y-3">
                   <div>
@@ -1171,7 +1171,7 @@ export default function LiveSessionsComponent({
                   >
                     {isCreatingSession
                       ? "Finding your YouTube livestream…"
-                      : "Find Stream & Create Session"}
+                      : "Create Session"}
                   </button>
                 </div>
               </form>
