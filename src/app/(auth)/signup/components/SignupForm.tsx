@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import SignupHeader from "./SignupHeader";
 import { useSetAtom } from "jotai";
-import { signupStepAtom, profileAtom } from "@/utils/stores";
+import { signupStepAtom, profileAtom, signupFormDataAtom } from "@/utils/stores";
 import TermsandCondition from "./TermsandCondition";
 import Checkbox from "@/components/atoms/Checkbox";
 import { signup } from "@/lib/api/authService";
@@ -40,6 +40,7 @@ export default function SignupForm() {
 
   const setSignupStep = useSetAtom(signupStepAtom);
   const setProfileAtom = useSetAtom(profileAtom);
+  const setSignupFormData = useSetAtom(signupFormDataAtom);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -56,13 +57,11 @@ export default function SignupForm() {
 
     const { data, ok } = await signup(fullName, email, password);
     if (ok) {
-      // ✅ Handle null state when initializing profileAtom during signup
-      setProfileAtom((obj: profileInterface | null) => ({
-        ...(obj || {}),
-        fullName: fullName,
-        email: email,
-      } as profileInterface));
-      
+      // Remember this signup's identity explicitly. Do NOT derive it from the
+      // session profile, which may still belong to a previously logged-in user.
+      setSignupFormData((prev) => ({ ...prev, fullName, email }));
+      setProfileAtom({ fullName, email } as profileInterface);
+
       setSignupStep((prev) => prev + 1);
     } else {
       console.log("Failed");

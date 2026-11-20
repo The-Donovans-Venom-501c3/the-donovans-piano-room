@@ -7,14 +7,11 @@ import Button1 from "@/components/atoms/Button1";
 import PaymentMethodForm, {
   PaymentMethodFormData,
 } from "@/components/payment/PaymentMethodForm";
-import { addPaymentMethod } from "@/lib/api/membershipService";
-import { completeSignup } from "@/lib/api/authService";
 import {
   membershipChoiceAtom,
   membershipTypes,
   signupPaymentMethodAtom,
   signupStepAtom,
-  profileAtom,
 } from "@/utils/stores";
 
 // Memberships that do not require a payment method during signup
@@ -23,20 +20,10 @@ const FREE_MEMBERSHIPS: string[] = [
   membershipTypes["basic-access"],
 ];
 
-// Membership IDs used by the backend when starting paid checkout / signup.
-const MEMBERSHIP_IDS: Record<string, string | number> = {
-  [membershipTypes["24-hours"]]: 1,
-  [membershipTypes["monthly-access"]]: 2,
-  [membershipTypes["scholarship"]]: "local-scholarship-001",
-  [membershipTypes["yearly-access"]]: 4,
-  [membershipTypes["basic-access"]]: 5,
-};
-
 export default function SignupPayment() {
   const setSignupStep = useSetAtom(signupStepAtom);
   const membershipChoice = useAtomValue(membershipChoiceAtom);
   const setPaymentMethod = useSetAtom(signupPaymentMethodAtom);
-  const profile = useAtomValue(profileAtom);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -55,50 +42,9 @@ export default function SignupPayment() {
     setErrorMessage(null);
     try {
       if (data.paymentMethodType === "paypal") {
-        // Start the PayPal subscription approval for the selected plan. The
-        // account/membership is created on the backend when PayPal redirects
-        // back, so there is nothing to save locally before redirecting.
-        const membershipId = MEMBERSHIP_IDS[membershipChoice];
-        const signupEmail = profile?.email || data.paypalEmail;
-
-        if (membershipId !== undefined && signupEmail) {
-          const result = await completeSignup(signupEmail, membershipId);
-          const payload = result?.data;
-
-          if (!result.ok) {
-            setErrorMessage(
-              payload?.message ||
-                "We couldn't start PayPal checkout. Please try again."
-            );
-            return;
-          }
-
-          if (payload?.approvalUrl) {
-            window.location.href = payload.approvalUrl;
-            return;
-          }
-
-          // Free/coupon signup completed without PayPal approval: the account
-          // already exists and a session was started.
-          window.location.href = "/dashboard?signup=success";
-          return;
-        }
-
-        // Fallback for plans that don't use a PayPal subscription approval:
-        // keep the legacy behaviour and continue to the summary step.
-        const result = await addPaymentMethod({
-          paymentMethodType: "paypal",
-          paypalEmail: data.paypalEmail,
-          email: signupEmail,
-        });
-        if (result?.approvalUrl) {
-          window.location.href = result.approvalUrl;
-          return;
-        }
         setPaymentMethod({
           paymentMethodType: "paypal",
           paypalEmail: data.paypalEmail,
-          vaultTokenId: result?.vaultTokenId || result?.data?.vaultTokenId,
         });
       } else {
         setPaymentMethod({

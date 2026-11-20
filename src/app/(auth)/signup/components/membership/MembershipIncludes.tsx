@@ -5,7 +5,6 @@ import {
   membershipTypes, 
   membershipChoiceAtom, 
   couponVerifiedAtom,
-  profileAtom,
   signupFormDataAtom
 } from "@/utils/stores";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -77,10 +76,9 @@ function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSe
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Safely retrieve user email dynamically using optional chaining
+  // Use the email captured for this signup, never a stale session profile.
   const formData = useAtomValue(signupFormDataAtom);
-  const profile = useAtomValue(profileAtom);
-  const userEmail = formData?.email || profile?.email || "";
+  const userEmail = formData?.email || "";
 
   const setIsCouponVerified = useSetAtom(couponVerifiedAtom);
   const isScholarship = currentKey === membershipTypes["scholarship"];
@@ -100,7 +98,7 @@ function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSe
 
     try {
       setIsLoading(true);
-      const isValid = await validateCouponCode(String(membershipId), userEmail, discountCode);
+      const isValid = await validateCouponCode(Number(membershipId), userEmail, discountCode);
       if (isValid) {
         setStatus("success");
         setIsCouponVerified(true);

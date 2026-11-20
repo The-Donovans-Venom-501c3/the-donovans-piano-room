@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { completeSignup } from "@/lib/api/authService";
-import { 
-  membershipChoiceAtom, 
-  membershipTypes, 
-  signupStepAtom, 
-  signupFormDataAtom, 
-  profileAtom 
+import {
+  membershipChoiceAtom,
+  membershipTypes,
+  signupStepAtom,
+  signupFormDataAtom,
+  signupPaymentMethodAtom,
+  resetSignupStateAtom,
 } from "@/utils/stores";
 
 interface SignupSummaryProps {
@@ -25,18 +26,19 @@ const membershipDetails: Record<string, { label: string; price: number; id: stri
 
 export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   const setSignupStep = useSetAtom(signupStepAtom);
+  const resetSignupState = useSetAtom(resetSignupStateAtom);
   const membershipChoice = useAtomValue(membershipChoiceAtom);
   const formData = useAtomValue(signupFormDataAtom);
-  const profile = useAtomValue(profileAtom);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selected = membershipChoice ? membershipDetails[membershipChoice] : null;
 
-  // Safely evaluate fields using optional chaining
-  const userEmail = formData?.email || profile?.email || "";
-  const userName = formData?.fullName || profile?.fullName || "";
+  // Use only the identity captured for THIS signup. Falling back to the
+  // session profile can display a previously logged-in user's details.
+  const userEmail = formData?.email || "";
+  const userName = formData?.fullName || "";
   const membershipId = selected ? selected.id : 3;
 
   // Fixed static end date regardless of sign-up timestamp
@@ -56,8 +58,6 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
         );
       }
 
-      // Paid recurring plans require PayPal approval before the account is
-      // created; send the user to PayPal and let the backend finish signup.
       if (payload?.approvalUrl) {
         window.location.href = payload.approvalUrl;
         return;
@@ -76,7 +76,9 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   };
 
   const handleCancel = () => {
-    setSignupStep(1);
+    // Nothing has been created yet — clear the whole wizard, including the
+    // persisted step and identity, so a fresh signup starts from step 1.
+    resetSignupState();
   };
 
   return (
