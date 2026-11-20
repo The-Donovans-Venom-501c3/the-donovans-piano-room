@@ -93,9 +93,6 @@ export default function PaymentMethodsPage() {
         ...data,
         setAsDefault: paymentMethods.length === 0,
       });
-      // PayPal requires a redirect to finish authorizing the billing agreement.
-      // If the backend doesn't return an approvalUrl yet, surface a clear error
-      // instead of claiming the method was saved.
       if (result?.approvalUrl) {
         window.location.href = result.approvalUrl;
         return;

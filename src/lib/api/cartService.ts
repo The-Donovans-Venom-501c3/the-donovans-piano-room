@@ -28,7 +28,7 @@ export interface CartQuoteResponse {
 
 export interface CheckoutResponse extends CartQuoteResponse {
   orderId?: string;
-  approvalUrl?: string; // PayPal redirect target for authorization
+  approvalUrl?: string;
   amount?: number;
   currency?: string;
 }
@@ -45,10 +45,6 @@ function toCartPayload(items: bookCartItemInterface[]) {
   };
 }
 
-/**
- * Server-priced cart totals. Used to show the coupon discount in the summary;
- * checkout recalculates the same values before creating the PayPal order.
- */
 export async function quoteCart(
   items: bookCartItemInterface[],
   couponCode?: string,
@@ -77,11 +73,6 @@ export async function quoteCart(
   }
 }
 
-/**
- * Start a store-cart checkout. Guests are welcome: the endpoint does not
- * require a login, and the backend prices every item from the database before
- * creating the PayPal order (including the flat shipping charge and coupon).
- */
 export async function checkoutCart(
   provider: CheckoutProvider,
   items: bookCartItemInterface[],

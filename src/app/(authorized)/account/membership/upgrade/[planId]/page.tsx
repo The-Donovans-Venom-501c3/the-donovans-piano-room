@@ -435,7 +435,6 @@ export default function UpgradeConfirmationPage() {
           }}
         />
 
-        {/* Payment Method Selection Popup */}
         <PaymentMethodSelectionPopup
           isOpen={showPaymentMethodPopup}
           onClose={() => setShowPaymentMethodPopup(false)}

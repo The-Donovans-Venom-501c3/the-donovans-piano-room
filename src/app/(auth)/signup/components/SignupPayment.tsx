@@ -14,7 +14,6 @@ import {
   signupStepAtom,
 } from "@/utils/stores";
 
-// Memberships that do not require a payment method during signup
 const FREE_MEMBERSHIPS: string[] = [
   membershipTypes["scholarship"],
   membershipTypes["basic-access"],
@@ -80,7 +79,6 @@ export default function SignupPayment() {
         }
       />
 
-      {/* Payment Form Area */}
       <div className="my-6">
         {errorMessage && (
           <div className="mb-4 rounded-xl border border-red-500 bg-red-500/20 p-4 text-sm font-semibold text-red-200">

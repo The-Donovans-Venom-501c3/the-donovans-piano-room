@@ -53,6 +53,18 @@ export const signupFormDataAtom = atomWithStorage<SignupFormData>(
 
 export const couponVerifiedAtom = atom<boolean>(false);
 
+export interface AppliedCoupon {
+  membershipId: string | number;
+  couponCode: string;
+  finalAmount: number;
+}
+
+export const appliedCouponAtom = atomWithStorage<AppliedCoupon | null>(
+  "signup_applied_coupon",
+  null,
+  createJSONStorage<AppliedCoupon | null>(getSessionStorage),
+);
+
 /** Clear every piece of persisted signup state in one place. */
 export const resetSignupStateAtom = atom(null, (_get, set) => {
   set(signupStepAtom, 1);
@@ -60,6 +72,7 @@ export const resetSignupStateAtom = atom(null, (_get, set) => {
   set(membershipChoiceAtom, "");
   set(signupPaymentMethodAtom, null);
   set(couponVerifiedAtom, false);
+  set(appliedCouponAtom, null);
 });
 
 export const membershipChoiceAtom = atomWithStorage<string>(
@@ -68,9 +81,6 @@ export const membershipChoiceAtom = atomWithStorage<string>(
   createJSONStorage<string>(getSessionStorage),
 );
 
-// Masked payment-method summary captured during signup (step 4).
-// TODO(backend/payments): once PSP tokenization is wired, store ONLY the
-// returned vault token id here — never raw card data.
 export interface SignupPaymentMethod {
   paymentMethodType: "card" | "paypal";
   cardholderName?: string;

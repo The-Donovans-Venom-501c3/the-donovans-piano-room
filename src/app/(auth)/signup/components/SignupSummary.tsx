@@ -10,6 +10,7 @@ import {
   signupFormDataAtom,
   signupPaymentMethodAtom,
   resetSignupStateAtom,
+  appliedCouponAtom,
 } from "@/utils/stores";
 
 interface SignupSummaryProps {
@@ -29,14 +30,20 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   const resetSignupState = useSetAtom(resetSignupStateAtom);
   const membershipChoice = useAtomValue(membershipChoiceAtom);
   const formData = useAtomValue(signupFormDataAtom);
+  const appliedCoupon = useAtomValue(appliedCouponAtom);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selected = membershipChoice ? membershipDetails[membershipChoice] : null;
+  const hasMatchingCoupon =
+    !!appliedCoupon &&
+    !!selected &&
+    String(appliedCoupon.membershipId) === String(selected.id);
+  const displayedPrice = hasMatchingCoupon
+    ? appliedCoupon.finalAmount
+    : selected?.price ?? 0;
 
-  // Use only the identity captured for THIS signup. Falling back to the
-  // session profile can display a previously logged-in user's details.
   const userEmail = formData?.email || "";
   const userName = formData?.fullName || "";
   const membershipId = selected ? selected.id : 3;
@@ -140,7 +147,7 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
               <div className="flex items-center justify-between">
                 <p className="text-[#FACC15] font-extrabold text-xl sm:text-2xl">Total</p>
                 <p className="text-white font-bold text-xl sm:text-2xl">
-                  ${selected ? selected.price.toFixed(2) : "0.00"}
+                  ${displayedPrice.toFixed(2)}
                 </p>
               </div>
               <p className="text-right text-sm sm:text-base text-purple-200/90 font-medium mt-1">

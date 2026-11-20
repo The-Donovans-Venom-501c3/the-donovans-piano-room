@@ -4,8 +4,6 @@ import { atomWithStorage, createJSONStorage } from 'jotai/utils';
 
 export const addedCartItemAtom = atom<null | bookInterface>(null)
 
-// Keep guest items through the PayPal redirect/return (a full page load).
-// A no-op storage is used during SSR so server and client hydrate identically.
 const noopStorage: Storage = {
   getItem: () => null,
   setItem: () => {},

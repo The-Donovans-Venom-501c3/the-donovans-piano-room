@@ -23,7 +23,6 @@ export default function PaymentCard() {
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
-  // PayPal redirects back to this page via the backend after approval/cancel.
   useEffect(() => {
     const status = new URLSearchParams(window.location.search).get("checkout");
     if (status === "success") {
@@ -128,7 +127,6 @@ export default function PaymentCard() {
     try {
       const result = await checkoutCart(provider, addedCartItems, appliedCoupon ?? undefined);
       if (result?.approvalUrl) {
-        // Buyer approves on PayPal; the backend then captures and records it.
         window.location.href = result.approvalUrl;
         return;
       }
@@ -214,8 +212,6 @@ export default function PaymentCard() {
       </div>
 
       <div className="flex flex-col gap-[16px] mt-[6%]">
-        {/* Credit-card checkout hidden for now: raw card collection is not PCI-compliant.
-            Re-enable once a PSP-hosted card element (Stripe/Braintree) is integrated. */}
         <Button4
           text={activeProvider === 'paypal' ? "Redirecting..." : "Check out with PayPal"}
           style={{ height: '40px', fontSize: '1.5rem' }}
