@@ -1,5 +1,5 @@
 export type SessionStatus = "scheduled" | "live" | "ended";
-export type ChatMode = "open" | "read_only" | "disabled";
+export type ChatMode = "enabled" | "read_only" | "disabled";
 
 export interface LiveSession {
   id: string;
@@ -21,13 +21,20 @@ export interface SessionJoinConfig {
     canReact: boolean;
     canVote: boolean;
   };
-  restriction?: ChatRestriction | null;
+  restriction?: CurrentUserRestriction | null;
+  allowedReactions: string[];
   activePoll: Poll | null;
+  pollLimits: PollLimits;
   limits: {
     maxMessageLength: number;
     typingWindowMs: number;
     heartbeatIntervalMs: number;
   };
+}
+
+export interface CurrentUserRestriction {
+  restricted: boolean;
+  expiresAt: string | null;
 }
 
 export interface ChatMessage {
@@ -36,9 +43,26 @@ export interface ChatMessage {
   name: string;
   avatarUrl?: string;
   pronouns?: string;
+  text: string | null;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  createdAt: string;
+  cursor?: string;
+  isHost?: boolean;
+}
+
+export interface ServerChatMessage {
+  id: string;
+  clientMessageId: string;
+  sender: {
+    id: string;
+    displayName: string;
+    picture?: string | null;
+    pronouns?: string | null;
+  };
   text: string;
   createdAt: string;
-  isHost?: boolean;
+  cursor: string;
 }
 
 export interface MessagesPage {
@@ -55,6 +79,31 @@ export interface Participant {
   isRestricted?: boolean;
 }
 
+export interface ServerParticipant {
+  userId: string;
+  displayName: string;
+  picture?: string | null;
+  role: string;
+}
+
+export interface ServerReaction {
+  id: string;
+  emoji: string;
+  sender: {
+    id: string;
+    displayName: string;
+    picture?: string | null;
+  };
+  createdAt: string;
+}
+
+export interface ReactionSendEvent {
+  version: 1;
+  type: "reaction.send";
+  requestId: string;
+  emoji: string;
+}
+
 export interface ChatRestriction {
   userId: string;
   userName?: string;
@@ -69,27 +118,117 @@ export interface PollOption {
   votes: number;
 }
 
+export interface PollLimits {
+  questionMaxCodePoints: number;
+  optionMinCount: number;
+  optionMaxCount: number;
+  optionMaxCodePoints: number;
+}
+
+export interface ServerPollSnapshot {
+  id: string;
+  question: string;
+  status: "active" | "closed";
+  revision: number;
+  closedAt?: string | null;
+  options: Array<{
+    id: string;
+    text: string;
+    voteCount: number;
+  }>;
+  myVoteOptionId?: string | null;
+  totalVotes: number;
+}
+
 export interface Poll {
   id: string;
   question: string;
   options: PollOption[];
+  revision: number;
   isClosed: boolean;
+  closedAt?: string | null;
   userVotedOptionId?: string | null;
-  totalVotes?: number;
+  totalVotes: number;
 }
 
 export type WsInboundEvent =
-  | { type: "presence.snapshot"; payload: { participants: Participant[]; count: number } }
-  | { type: "presence.updated"; payload: { participants: Participant[]; count: number } }
-  | { type: "chat.message"; payload: ChatMessage }
-  | { type: "chat.message_deleted"; payload: { messageId: string } }
-  | { type: "chat.mode_changed"; payload: { chatMode: ChatMode } }
+  | {
+      type: "session.ready";
+      role: "host" | "participant";
+      chatMode: ChatMode;
+      canSend: boolean;
+      restriction: CurrentUserRestriction;
+      reactions: {
+        enabled: boolean;
+        allowed: string[];
+      };
+      poll: {
+        active: boolean;
+        current: ServerPollSnapshot | null;
+        limits: PollLimits;
+      };
+    }
+  | {
+      type: "presence.snapshot";
+      participants: ServerParticipant[];
+      activeCount: number;
+    }
+  | {
+      type: "presence.joined";
+      participant: ServerParticipant;
+      activeCount: number;
+    }
+  | { type: "presence.left"; userId: string; activeCount: number }
+  | {
+      type: "chat.ack";
+      requestId: string;
+      clientMessageId: string;
+      messageId: string;
+      status: "accepted" | "duplicate";
+    }
+  | { type: "chat.message"; message: ServerChatMessage }
+  | {
+      type: "error";
+      requestId: string | null;
+      code: string;
+      message: string;
+      retryable: boolean;
+      retryAfterMs?: number;
+    }
+  | {
+      type: "chat.message_deleted";
+      sessionId: string;
+      messageId: string;
+      deletedAt: string;
+    }
+  | { type: "session.chat_mode"; chatMode: ChatMode }
   | { type: "typing.updated"; payload: { userId: string; name: string; isTyping: boolean } }
-  | { type: "reaction.created"; payload: { emoji: string; userId?: string } }
-  | { type: "poll.created"; payload: Poll }
-  | { type: "poll.updated"; payload: Poll }
-  | { type: "poll.closed"; payload: Poll }
-  | { type: "user.restricted"; payload: { userId: string; restriction: ChatRestriction } }
-  | { type: "user.unrestricted"; payload: { userId: string } }
+  | {
+      type: "reaction.ack";
+      requestId: string;
+      reactionId: string;
+      status: "accepted";
+    }
+  | { type: "reaction.created"; reaction: ServerReaction }
+  | { type: "poll.started"; poll: ServerPollSnapshot }
+  | {
+      type: "poll.vote_recorded";
+      pollId: string;
+      optionId: string;
+      revision: number;
+    }
+  | {
+      type: "poll.results_updated";
+      pollId: string;
+      revision: number;
+      results: Array<{ optionId: string; voteCount: number }>;
+      totalVotes: number;
+    }
+  | { type: "poll.closed"; poll: ServerPollSnapshot }
+  | {
+      type: "chat.restriction_updated";
+      restricted: boolean;
+      expiresAt: string | null;
+    }
   | { type: "session.ended"; payload: { sessionId: string; endedAt?: string } }
   | { type: "pong"; payload?: unknown };

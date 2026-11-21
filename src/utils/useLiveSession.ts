@@ -1,22 +1,75 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { apiBase } from "@/lib/api/api";
-import { liveSessionApi } from "@/lib/api/liveSessionService";
+import { ApiError, apiBase } from "@/lib/api/api";
+import {
+  liveSessionApi,
+  normalizeParticipant,
+  normalizePoll,
+} from "@/lib/api/liveSessionService";
 import {
   ChatMessage,
   ChatMode,
   ChatRestriction,
+  CurrentUserRestriction,
   LiveSession,
   Participant,
   Poll,
+  ReactionSendEvent,
+  ServerReaction,
   SessionJoinConfig,
   WsInboundEvent,
 } from "@/interfaces/liveSessionInterface";
 
 interface UseLiveSessionOptions {
   currentUserId: string;
-  onReaction: (emoji: string) => void;
+  onReaction: (reaction: ServerReaction) => void;
+}
+
+interface PendingChatRequest {
+  clientMessageId: string;
+  text: string;
+  resolve: (accepted: boolean) => void;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
+interface PendingReactionRequest {
+  emoji: string;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
+type PresenceStatus = "idle" | "loading" | "live" | "reconnecting" | "error";
+type PollOperation = "idle" | "creating" | "voting" | "closing";
+
+const DEFAULT_POLL_LIMITS = {
+  questionMaxCodePoints: 300,
+  optionMinCount: 2,
+  optionMaxCount: 10,
+  optionMaxCodePoints: 150,
+};
+
+function getCreateSessionErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return "Unable to create the live session. Please try again.";
+  }
+
+  switch (error.code) {
+    case "YOUTUBE_BROADCAST_NOT_FOUND":
+      return "No public live or upcoming YouTube stream was found. Create or start the stream in YouTube Studio and try again.";
+    case "MULTIPLE_YOUTUBE_BROADCASTS":
+      return "Multiple YouTube streams were found. Ensure only one applicable stream is live or scheduled, then try again.";
+    case "YOUTUBE_VIDEO_ALREADY_REGISTERED":
+      return "This YouTube stream is already registered, but the existing session could not be loaded. Please refresh and try again.";
+    case "YOUTUBE_UNAVAILABLE":
+      return "YouTube could not be reached. Please try again shortly.";
+    case "LIVE_SESSION_HOST_NOT_FOUND":
+      return "The configured live-session host could not be found. Please contact an administrator.";
+    default:
+      if (error.status === 400) return error.message;
+      if (error.status === 401) return "Your login has expired. Please sign in again.";
+      if (error.status === 403) return "Only the configured host can create a live session.";
+      return error.message || "Unable to create the live session. Please try again.";
+  }
 }
 
 function resolveWebSocketUrl(wsPath: string): string {
@@ -43,43 +96,108 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const [error, setError] = useState<string | null>(null);
 
   const [config, setConfig] = useState<SessionJoinConfig | null>(null);
-  const [chatMode, setChatMode] = useState<ChatMode>("open");
-  const [restriction, setRestriction] = useState<ChatRestriction | null>(null);
+  const [chatMode, setChatMode] = useState<ChatMode>("enabled");
+  const [restriction, setRestriction] = useState<CurrentUserRestriction | null>(null);
   const [activeRestrictions, setActiveRestrictions] = useState<ChatRestriction[]>([]);
 
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [activeParticipantCount, setActiveParticipantCount] = useState(0);
+  const [presenceStatus, setPresenceStatus] = useState<PresenceStatus>("idle");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
+  const [pollOperation, setPollOperation] = useState<PollOperation>("idle");
+  const [pollError, setPollError] = useState<string | null>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [createSessionError, setCreateSessionError] = useState<string | null>(null);
+  const [isSendingReaction, setIsSendingReaction] = useState(false);
+  const [isReactionRateLimited, setIsReactionRateLimited] = useState(false);
+  const [reactionError, setReactionError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<
     Record<string, { name: string; timeout: ReturnType<typeof setTimeout> }>
   >({});
 
   const wsRef = useRef<WebSocket | null>(null);
-  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
   const shouldReconnectRef = useRef(false);
-  const lastMessageIdRef = useRef<string | null>(null);
+  const hasLivePresenceRef = useRef(false);
+  const socketRoleRef = useRef<"host" | "participant">("participant");
+  const isCreatingSessionRef = useRef(false);
+  const pollOperationRef = useRef<PollOperation>("idle");
+  const lastMessageCursorRef = useRef<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingSentRef = useRef(false);
+  const pendingChatRequestsRef = useRef<Map<string, PendingChatRequest>>(new Map());
+  const pendingReactionRequestsRef = useRef<
+    Map<string, PendingReactionRequest>
+  >(new Map());
+  const reactionCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const reactionCooldownUntilRef = useRef(0);
+  const failedChatMessageRef = useRef<{
+    text: string;
+    clientMessageId: string;
+  } | null>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
-      lastMessageIdRef.current = messages[messages.length - 1].id;
+      lastMessageCursorRef.current = messages[messages.length - 1].cursor ?? null;
     }
   }, [messages]);
+
+  const applyPollSnapshot = useCallback((incoming: Poll) => {
+    setActivePoll((current) => {
+      if (
+        current?.id === incoming.id &&
+        incoming.revision < current.revision
+      ) {
+        return current;
+      }
+
+      return {
+        ...incoming,
+        userVotedOptionId:
+          incoming.userVotedOptionId === undefined && current?.id === incoming.id
+            ? current.userVotedOptionId
+            : incoming.userVotedOptionId ?? null,
+      };
+    });
+  }, []);
+
+  const markMessageDeleted = useCallback(
+    (messageId: string, deletedAt: string | null) => {
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === messageId
+            ? {
+                ...message,
+                text: null,
+                isDeleted: true,
+                deletedAt: deletedAt ?? message.deletedAt,
+              }
+            : message
+        )
+      );
+    },
+    []
+  );
 
   const refreshCurrentSession = useCallback(async () => {
     setIsLoadingSession(true);
     try {
       const session = await liveSessionApi.getCurrentSession();
       setCurrentSession(session);
+      setError(null);
+      return session;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load session");
+      return null;
     } finally {
       setIsLoadingSession(false);
     }
@@ -89,18 +207,64 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     refreshCurrentSession();
   }, [refreshCurrentSession]);
 
+  useEffect(() => {
+    if (currentSession?.status !== "scheduled" || isJoined) return;
+
+    let disposed = false;
+    const refreshScheduledSession = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const session = await liveSessionApi.getCurrentSession();
+        if (!disposed) setCurrentSession(session);
+      } catch {
+        // Preserve the scheduled session during a transient background refresh failure.
+      }
+    };
+    const interval = window.setInterval(refreshScheduledSession, 30_000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshScheduledSession();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [currentSession?.status, isJoined]);
+
   const cleanupSocket = useCallback(() => {
     shouldReconnectRef.current = false;
-    if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+    socketRoleRef.current = "participant";
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
+    for (const pending of pendingChatRequestsRef.current.values()) {
+      clearTimeout(pending.timeout);
+      failedChatMessageRef.current = {
+        text: pending.text,
+        clientMessageId: pending.clientMessageId,
+      };
+      pending.resolve(false);
     }
+    pendingChatRequestsRef.current.clear();
+    setIsSendingMessage(false);
+    for (const pending of pendingReactionRequestsRef.current.values()) {
+      clearTimeout(pending.timeout);
+    }
+    pendingReactionRequestsRef.current.clear();
+    setIsSendingReaction(false);
+    if (reactionCooldownTimerRef.current) {
+      clearTimeout(reactionCooldownTimerRef.current);
+      reactionCooldownTimerRef.current = null;
+    }
+    reactionCooldownUntilRef.current = 0;
+    setIsReactionRateLimited(false);
+    const socket = wsRef.current;
+    wsRef.current = null;
+    socket?.close();
   }, []);
 
   const connectWebSocket = useCallback(
-    (sessionId: string, wsUrl: string, heartbeatMs = 20000) => {
+    (sessionId: string, wsUrl: string) => {
       cleanupSocket();
       shouldReconnectRef.current = true;
       setConnectionState((prev) =>
@@ -111,24 +275,20 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       wsRef.current = ws;
 
       ws.onopen = async () => {
+        if (wsRef.current !== ws) return;
+
         const wasReconnecting = reconnectAttemptRef.current > 0;
         reconnectAttemptRef.current = 0;
         setConnectionState("connected");
         setError(null);
+        setReactionError(null);
 
-        heartbeatRef.current = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: "ping" }));
-          }
-        }, heartbeatMs);
-
-        if (wasReconnecting && lastMessageIdRef.current) {
+        if (wasReconnecting && lastMessageCursorRef.current) {
           try {
-            const [missed, latestPoll, reloadedSession] = await Promise.all([
+            const [missed, reloadedSession] = await Promise.all([
               liveSessionApi.getMessages(sessionId, {
-                after: lastMessageIdRef.current,
+                after: lastMessageCursorRef.current,
               }),
-              liveSessionApi.getCurrentPoll(sessionId),
               liveSessionApi.getSession(sessionId),
             ]);
             if (missed.items.length > 0) {
@@ -138,7 +298,6 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
                 return [...prev, ...fresh];
               });
             }
-            setActivePoll(latestPoll);
             setChatMode(reloadedSession.chatMode);
             setCurrentSession(reloadedSession);
           } catch {
@@ -148,30 +307,211 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       };
 
       ws.onmessage = (event) => {
+        if (wsRef.current !== ws) return;
+
         try {
           const parsed: WsInboundEvent = JSON.parse(event.data);
 
           switch (parsed.type) {
-            case "presence.snapshot":
-            case "presence.updated":
-              setParticipants(parsed.payload.participants);
+            case "session.ready":
+              socketRoleRef.current = parsed.role;
+              setChatMode(parsed.chatMode);
+              setRestriction(parsed.restriction.restricted ? parsed.restriction : null);
+              setConfig((previous) =>
+                previous
+                  ? {
+                      ...previous,
+                      pollLimits: parsed.poll.limits,
+                      permissions: {
+                        ...previous.permissions,
+                        isHost: parsed.role === "host",
+                        canChat: parsed.canSend,
+                        canReact: parsed.reactions.enabled,
+                      },
+                      allowedReactions: parsed.reactions.allowed,
+                    }
+                  : previous
+              );
+              if (parsed.poll.current) {
+                applyPollSnapshot(normalizePoll(parsed.poll.current)!);
+              } else {
+                setActivePoll((current) =>
+                  current?.isClosed ? current : null
+                );
+              }
               break;
 
-            case "chat.message":
+            case "presence.snapshot":
+              hasLivePresenceRef.current = true;
+              setParticipants(parsed.participants.map(normalizeParticipant));
+              setActiveParticipantCount(parsed.activeCount);
+              setPresenceStatus("live");
+              break;
+
+            case "presence.joined": {
+              hasLivePresenceRef.current = true;
+              const participant = normalizeParticipant(parsed.participant);
+              setParticipants((current) => {
+                const existingIndex = current.findIndex(
+                  (item) => item.id === participant.id
+                );
+                if (existingIndex === -1) return [...current, participant];
+
+                const next = [...current];
+                next[existingIndex] = participant;
+                return next;
+              });
+              setActiveParticipantCount(parsed.activeCount);
+              setPresenceStatus("live");
+              break;
+            }
+
+            case "presence.left":
+              hasLivePresenceRef.current = true;
+              setParticipants((current) =>
+                current.filter((participant) => participant.id !== parsed.userId)
+              );
+              setActiveParticipantCount(parsed.activeCount);
+              setPresenceStatus("live");
+              break;
+
+            case "chat.ack": {
+              const pending = pendingChatRequestsRef.current.get(parsed.requestId);
+              if (!pending) break;
+
+              clearTimeout(pending.timeout);
+              pendingChatRequestsRef.current.delete(parsed.requestId);
+              if (
+                failedChatMessageRef.current?.clientMessageId ===
+                pending.clientMessageId
+              ) {
+                failedChatMessageRef.current = null;
+              }
+              setIsSendingMessage(false);
+              setError(null);
+              pending.resolve(true);
+              break;
+            }
+
+            case "chat.message": {
+              const serverMessage = parsed.message;
+              const normalizedMessage: ChatMessage = {
+                id: serverMessage.id,
+                userId: serverMessage.sender.id,
+                name: serverMessage.sender.displayName,
+                avatarUrl: serverMessage.sender.picture ?? undefined,
+                pronouns: serverMessage.sender.pronouns ?? undefined,
+                text: serverMessage.text,
+                isDeleted: false,
+                deletedAt: null,
+                createdAt: serverMessage.createdAt,
+                cursor: serverMessage.cursor,
+              };
+
               setMessages((prev) => {
-                if (prev.some((m) => m.id === parsed.payload.id)) return prev;
-                return [...prev, parsed.payload];
+                if (prev.some((message) => message.id === normalizedMessage.id)) {
+                  return prev;
+                }
+                return [...prev, normalizedMessage];
               });
               break;
+            }
+
+            case "error": {
+              if (parsed.requestId) {
+                const pendingReaction = pendingReactionRequestsRef.current.get(
+                  parsed.requestId
+                );
+                if (pendingReaction) {
+                  clearTimeout(pendingReaction.timeout);
+                  pendingReactionRequestsRef.current.delete(parsed.requestId);
+                  setIsSendingReaction(
+                    pendingReactionRequestsRef.current.size > 0
+                  );
+                  setReactionError(parsed.message);
+
+                  if (parsed.code === "INVALID_REACTION") {
+                    setConfig((current) =>
+                      current
+                        ? {
+                            ...current,
+                            allowedReactions: current.allowedReactions.filter(
+                              (emoji) => emoji !== pendingReaction.emoji
+                            ),
+                          }
+                        : current
+                    );
+                  }
+                  if (parsed.code === "SESSION_NOT_LIVE") {
+                    setConfig((current) =>
+                      current
+                        ? {
+                            ...current,
+                            permissions: {
+                              ...current.permissions,
+                              canReact: false,
+                            },
+                          }
+                        : current
+                    );
+                  }
+
+                  if (parsed.code === "REACTION_RATE_LIMITED") {
+                    const retryAfterMs = Math.max(parsed.retryAfterMs ?? 3000, 0);
+                    reactionCooldownUntilRef.current = Date.now() + retryAfterMs;
+                    setIsReactionRateLimited(true);
+                    if (reactionCooldownTimerRef.current) {
+                      clearTimeout(reactionCooldownTimerRef.current);
+                    }
+                    reactionCooldownTimerRef.current = setTimeout(() => {
+                      reactionCooldownUntilRef.current = 0;
+                      setIsReactionRateLimited(false);
+                      setReactionError(null);
+                      reactionCooldownTimerRef.current = null;
+                    }, retryAfterMs);
+                  }
+                  break;
+                }
+              }
+
+              setError(parsed.message);
+              if (!parsed.requestId) break;
+
+              const pending = pendingChatRequestsRef.current.get(parsed.requestId);
+              if (!pending) break;
+
+              clearTimeout(pending.timeout);
+              pendingChatRequestsRef.current.delete(parsed.requestId);
+              failedChatMessageRef.current = {
+                text: pending.text,
+                clientMessageId: pending.clientMessageId,
+              };
+              setIsSendingMessage(false);
+              pending.resolve(false);
+              break;
+            }
 
             case "chat.message_deleted":
-              setMessages((prev) =>
-                prev.filter((m) => m.id !== parsed.payload.messageId)
-              );
+              markMessageDeleted(parsed.messageId, parsed.deletedAt);
               break;
 
-            case "chat.mode_changed":
-              setChatMode(parsed.payload.chatMode);
+            case "session.chat_mode":
+              setChatMode(parsed.chatMode);
+              setCurrentSession((current) =>
+                current ? { ...current, chatMode: parsed.chatMode } : current
+              );
+              setConfig((current) =>
+                current
+                  ? {
+                      ...current,
+                      session: { ...current.session, chatMode: parsed.chatMode },
+                      permissions: {
+                        ...current.permissions,
+                        canChat: parsed.chatMode === "enabled",
+                      },
+                    }
+                  : current
+              );
               break;
 
             case "typing.updated": {
@@ -199,38 +539,111 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
               break;
             }
 
+            case "reaction.ack": {
+              const pending = pendingReactionRequestsRef.current.get(
+                parsed.requestId
+              );
+              if (!pending) break;
+              clearTimeout(pending.timeout);
+              pendingReactionRequestsRef.current.delete(parsed.requestId);
+              setIsSendingReaction(
+                pendingReactionRequestsRef.current.size > 0
+              );
+              setReactionError(null);
+              break;
+            }
+
             case "reaction.created":
-              onReaction(parsed.payload.emoji);
+              onReaction(parsed.reaction);
               break;
 
-            case "poll.created":
-            case "poll.updated":
+            case "poll.started":
+              applyPollSnapshot(normalizePoll(parsed.poll)!);
+              setPollError(null);
+              break;
+
+            case "poll.vote_recorded":
+              setActivePoll((current) => {
+                if (!current || current.id !== parsed.pollId) return current;
+                if (parsed.revision < current.revision) return current;
+                return {
+                  ...current,
+                  revision: Math.max(current.revision, parsed.revision),
+                  userVotedOptionId: parsed.optionId,
+                };
+              });
+              setPollError(null);
+              break;
+
+            case "poll.results_updated": {
+              if (socketRoleRef.current !== "host") break;
+
+              const results = new Map(
+                parsed.results.map((result) => [result.optionId, result.voteCount])
+              );
+              setActivePoll((current) => {
+                if (!current || current.id !== parsed.pollId) return current;
+                if (parsed.revision < current.revision) return current;
+                return {
+                  ...current,
+                  revision: parsed.revision,
+                  totalVotes: parsed.totalVotes,
+                  options: current.options.map((option) => ({
+                    ...option,
+                    votes: results.get(option.id) ?? option.votes,
+                  })),
+                };
+              });
+              break;
+            }
+
             case "poll.closed":
-              setActivePoll(parsed.payload);
+              applyPollSnapshot(normalizePoll(parsed.poll)!);
+              setPollError(null);
               break;
 
-            case "user.restricted":
-              if (parsed.payload.userId === currentUserId) {
-                setRestriction(parsed.payload.restriction);
-              }
-              setActiveRestrictions((prev) => [
-                ...prev.filter((r) => r.userId !== parsed.payload.userId),
-                parsed.payload.restriction,
-              ]);
-              break;
-
-            case "user.unrestricted":
-              if (parsed.payload.userId === currentUserId) {
-                setRestriction(null);
-              }
-              setActiveRestrictions((prev) =>
-                prev.filter((r) => r.userId !== parsed.payload.userId)
+            case "chat.restriction_updated":
+              setRestriction(
+                parsed.restricted
+                  ? {
+                      restricted: true,
+                      expiresAt: parsed.expiresAt,
+                    }
+                  : null
+              );
+              setConfig((current) =>
+                current
+                  ? {
+                      ...current,
+                      permissions: {
+                        ...current.permissions,
+                        canChat:
+                          !parsed.restricted &&
+                          current.session.chatMode === "enabled",
+                      },
+                    }
+                  : current
               );
               break;
 
             case "session.ended":
               shouldReconnectRef.current = false;
               setConnectionState("ended");
+              setParticipants([]);
+              setActiveParticipantCount(0);
+              setPresenceStatus("idle");
+              for (const pending of pendingReactionRequestsRef.current.values()) {
+                clearTimeout(pending.timeout);
+              }
+              pendingReactionRequestsRef.current.clear();
+              setIsSendingReaction(false);
+              if (reactionCooldownTimerRef.current) {
+                clearTimeout(reactionCooldownTimerRef.current);
+                reactionCooldownTimerRef.current = null;
+              }
+              reactionCooldownUntilRef.current = 0;
+              setIsReactionRateLimited(false);
+              setReactionError("Reactions are unavailable because the session ended.");
               setActivePoll((prev) => (prev ? { ...prev, isClosed: true } : null));
               setCurrentSession((prev) =>
                 prev ? { ...prev, status: "ended" } : null
@@ -244,61 +657,118 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
       };
 
       ws.onclose = () => {
-        if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+        if (wsRef.current !== ws) return;
+        wsRef.current = null;
         if (!shouldReconnectRef.current) return;
 
+        for (const pending of pendingReactionRequestsRef.current.values()) {
+          clearTimeout(pending.timeout);
+        }
+        pendingReactionRequestsRef.current.clear();
+        setIsSendingReaction(false);
         setConnectionState("reconnecting");
+        setPresenceStatus("reconnecting");
         const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current, 15000);
         reconnectAttemptRef.current += 1;
         reconnectTimerRef.current = setTimeout(() => {
-          connectWebSocket(sessionId, wsUrl, heartbeatMs);
+          connectWebSocket(sessionId, wsUrl);
         }, delay);
       };
+
+      ws.onerror = () => {
+        if (wsRef.current !== ws) return;
+        setPresenceStatus((current) =>
+          current === "live" ? "reconnecting" : current
+        );
+      };
     },
-    [cleanupSocket, currentUserId, onReaction]
+    [applyPollSnapshot, cleanupSocket, currentUserId, markMessageDeleted, onReaction]
   );
 
   const joinSession = useCallback(
     async (sessionId: string) => {
       setIsJoining(true);
       setError(null);
+      setParticipants([]);
+      setActiveRestrictions([]);
+      setActiveParticipantCount(0);
+      setPresenceStatus("loading");
+      hasLivePresenceRef.current = false;
       try {
         const joinData = await liveSessionApi.joinSession(sessionId);
         setConfig(joinData);
         setCurrentSession(joinData.session);
         setChatMode(joinData.session.chatMode);
         setRestriction(joinData.restriction || null);
+        setReactionError(null);
         setActivePoll(joinData.activePoll);
+        pollOperationRef.current = "idle";
+        setPollOperation("idle");
+        setPollError(null);
+        setIsJoined(true);
+        connectWebSocket(sessionId, joinData.wsUrl);
 
-        const [historyPage, participantSnapshot] = await Promise.all([
+        const [historyResult, participantResult] = await Promise.allSettled([
           liveSessionApi.getMessages(sessionId, { limit: 50 }),
           liveSessionApi.getParticipants(sessionId),
         ]);
 
-        setMessages(historyPage.items);
-        setNextCursor(historyPage.nextCursor);
-        setHasMoreMessages(historyPage.hasMore);
-        setParticipants(participantSnapshot.participants);
-
-        if (joinData.permissions.isHost) {
-          const restrictions = await liveSessionApi.getRestrictions(sessionId);
-          setActiveRestrictions(restrictions);
+        if (historyResult.status === "fulfilled") {
+          setMessages(historyResult.value.items);
+          setNextCursor(historyResult.value.nextCursor);
+          setHasMoreMessages(historyResult.value.hasMore);
+        } else {
+          setError(
+            historyResult.reason instanceof Error
+              ? historyResult.reason.message
+              : "Unable to load chat history"
+          );
         }
 
-        setIsJoined(true);
-        connectWebSocket(
-          sessionId,
-          joinData.wsUrl,
-          joinData.limits?.heartbeatIntervalMs || 20000
-        );
+        if (participantResult.status === "fulfilled") {
+          if (!hasLivePresenceRef.current) {
+            setParticipants(participantResult.value.participants);
+            setActiveParticipantCount(participantResult.value.count);
+          }
+        } else if (!hasLivePresenceRef.current) {
+          setPresenceStatus("error");
+        }
+
       } catch (err) {
+        cleanupSocket();
+        setIsJoined(false);
+        setPresenceStatus("error");
         setError(err instanceof Error ? err.message : "Unable to join session");
       } finally {
         setIsJoining(false);
       }
     },
-    [connectWebSocket]
+    [cleanupSocket, connectWebSocket]
   );
+
+  useEffect(() => {
+    if (!isJoined || !currentSession || !config?.permissions.isHost) return;
+
+    let cancelled = false;
+    liveSessionApi
+      .getRestrictions(currentSession.id)
+      .then((restrictions) => {
+        if (!cancelled) setActiveRestrictions(restrictions);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load chat restrictions"
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [config?.permissions.isHost, currentSession, isJoined]);
 
   const leaveSession = useCallback(() => {
     cleanupSocket();
@@ -306,7 +776,15 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     setConnectionState("disconnected");
     setMessages([]);
     setParticipants([]);
+    setActiveRestrictions([]);
+    setActiveParticipantCount(0);
+    setPresenceStatus("idle");
+    hasLivePresenceRef.current = false;
     setActivePoll(null);
+    pollOperationRef.current = "idle";
+    setPollOperation("idle");
+    setPollError(null);
+    setReactionError(null);
     setConfig(null);
   }, [cleanupSocket]);
 
@@ -335,27 +813,91 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   }, [currentSession, nextCursor, isLoadingOlder, hasMoreMessages]);
 
   const sendMessage = useCallback(
-    (text: string) => {
+    (text: string): Promise<boolean> => {
       const trimmed = text.trim();
-      if (!trimmed || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)
-        return;
+      if (!trimmed) return Promise.resolve(false);
+
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        setError("Chat is reconnecting. Please try again in a moment.");
+        return Promise.resolve(false);
+      }
+
+      if (chatMode !== "enabled" || restriction || !config?.permissions.canChat) {
+        setError("You cannot send messages in the current chat state.");
+        return Promise.resolve(false);
+      }
 
       const maxLen = config?.limits?.maxMessageLength || 200;
-      const safeText = [...trimmed].slice(0, maxLen).join("");
+      if ([...trimmed].length > maxLen) {
+        setError(`Messages must be ${maxLen} characters or fewer.`);
+        return Promise.resolve(false);
+      }
 
-      wsRef.current.send(
-        JSON.stringify({
-          type: "chat.send",
-          payload: { text: safeText },
-        })
-      );
+      const requestId = crypto.randomUUID();
+      const clientMessageId =
+        failedChatMessageRef.current?.text === trimmed
+          ? failedChatMessageRef.current.clientMessageId
+          : crypto.randomUUID();
+
+      setError(null);
+      setIsSendingMessage(true);
+
+      const result = new Promise<boolean>((resolve) => {
+        const timeout = setTimeout(() => {
+          const pending = pendingChatRequestsRef.current.get(requestId);
+          if (!pending) return;
+
+          pendingChatRequestsRef.current.delete(requestId);
+          failedChatMessageRef.current = {
+            text: pending.text,
+            clientMessageId: pending.clientMessageId,
+          };
+          setIsSendingMessage(false);
+          setError("The message was not confirmed. Please try again.");
+          pending.resolve(false);
+        }, 10000);
+
+        pendingChatRequestsRef.current.set(requestId, {
+          clientMessageId,
+          text: trimmed,
+          resolve,
+          timeout,
+        });
+
+        try {
+          wsRef.current?.send(
+            JSON.stringify({
+              version: 1,
+              type: "chat.send",
+              requestId,
+              clientMessageId,
+              text: trimmed,
+            })
+          );
+        } catch {
+          clearTimeout(timeout);
+          pendingChatRequestsRef.current.delete(requestId);
+          failedChatMessageRef.current = { text: trimmed, clientMessageId };
+          setIsSendingMessage(false);
+          setError("The message could not be sent. Please try again.");
+          resolve(false);
+        }
+      });
 
       if (isTypingSentRef.current) {
         isTypingSentRef.current = false;
-        wsRef.current.send(JSON.stringify({ type: "typing.stop" }));
+        wsRef.current.send(
+          JSON.stringify({
+            version: 1,
+            type: "typing.stop",
+            requestId: crypto.randomUUID(),
+          })
+        );
       }
+
+      return result;
     },
-    [config]
+    [chatMode, config, restriction]
   );
 
   const notifyTyping = useCallback(() => {
@@ -363,103 +905,340 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
     if (!isTypingSentRef.current) {
       isTypingSentRef.current = true;
-      wsRef.current.send(JSON.stringify({ type: "typing.start" }));
+      wsRef.current.send(
+        JSON.stringify({
+          version: 1,
+          type: "typing.start",
+          requestId: crypto.randomUUID(),
+        })
+      );
     }
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN && isTypingSentRef.current) {
         isTypingSentRef.current = false;
-        wsRef.current.send(JSON.stringify({ type: "typing.stop" }));
+        wsRef.current.send(
+          JSON.stringify({
+            version: 1,
+            type: "typing.stop",
+            requestId: crypto.randomUUID(),
+          })
+        );
       }
     }, 3000);
   }, []);
 
-  const sendReaction = useCallback((emoji: string) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
+  const sendReaction = useCallback(
+    (emoji: string) => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        setReactionError("Reactions are unavailable while reconnecting.");
+        return false;
+      }
+      if (!config?.permissions.canReact) {
+        setReactionError("Reactions are not available for this session.");
+        return false;
+      }
+      if (!config.allowedReactions.includes(emoji)) {
+        setReactionError("That reaction is not supported.");
+        return false;
+      }
+      if (
+        pendingReactionRequestsRef.current.size > 0 ||
+        reactionCooldownUntilRef.current > Date.now()
+      ) {
+        return false;
+      }
+
+      const requestId = crypto.randomUUID();
+      const timeout = setTimeout(() => {
+        if (!pendingReactionRequestsRef.current.has(requestId)) return;
+        pendingReactionRequestsRef.current.delete(requestId);
+        setIsSendingReaction(false);
+        setReactionError("The reaction was not confirmed. Please try again.");
+      }, 5000);
+
+      pendingReactionRequestsRef.current.set(requestId, { emoji, timeout });
+      setIsSendingReaction(true);
+      setReactionError(null);
+
+      try {
+        const event: ReactionSendEvent = {
+          version: 1,
           type: "reaction.send",
-          payload: { emoji },
-        })
-      );
-    }
-  }, []);
+          requestId,
+          emoji,
+        };
+        wsRef.current.send(JSON.stringify(event));
+        return true;
+      } catch {
+        clearTimeout(timeout);
+        pendingReactionRequestsRef.current.delete(requestId);
+        setIsSendingReaction(false);
+        setReactionError("The reaction could not be sent. Please try again.");
+        return false;
+      }
+    },
+    [config]
+  );
 
   const createPoll = async (question: string, options: string[]) => {
-    if (!currentSession) return;
-    const poll = await liveSessionApi.createPoll(currentSession.id, {
-      question,
-      options,
-    });
-    setActivePoll(poll);
+    if (!currentSession || pollOperationRef.current !== "idle") return false;
+    pollOperationRef.current = "creating";
+    setPollOperation("creating");
+    setPollError(null);
+    try {
+      const poll = await liveSessionApi.createPoll(currentSession.id, {
+        question,
+        options,
+      });
+      applyPollSnapshot(poll);
+      return true;
+    } catch (err) {
+      if (
+        err instanceof ApiError &&
+        (err.code === "ACTIVE_POLL_ALREADY_EXISTS" ||
+          err.code === "POLL_SNAPSHOT_UNAVAILABLE")
+      ) {
+        try {
+          const current = await liveSessionApi.getCurrentPoll(currentSession.id);
+          if (current) {
+            applyPollSnapshot(current);
+            if (err.code === "POLL_SNAPSHOT_UNAVAILABLE") {
+              setPollError(null);
+              return true;
+            }
+          }
+        } catch {
+          // Preserve the original action error.
+        }
+      }
+      setPollError(err instanceof Error ? err.message : "Unable to launch poll");
+      return false;
+    } finally {
+      pollOperationRef.current = "idle";
+      setPollOperation("idle");
+    }
   };
 
   const votePoll = async (optionId: string) => {
-    if (!currentSession || !activePoll) return;
-    const updated = await liveSessionApi.votePoll(
-      currentSession.id,
-      activePoll.id,
-      optionId
-    );
-    setActivePoll(updated);
+    if (
+      !currentSession ||
+      !activePoll ||
+      activePoll.isClosed ||
+      activePoll.userVotedOptionId ||
+      pollOperationRef.current !== "idle"
+    ) {
+      return false;
+    }
+
+    pollOperationRef.current = "voting";
+    setPollOperation("voting");
+    setPollError(null);
+    try {
+      const updated = await liveSessionApi.votePoll(
+        currentSession.id,
+        activePoll.id,
+        optionId
+      );
+      applyPollSnapshot(updated);
+      return true;
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "POLL_CLOSED") {
+        setActivePoll((current) =>
+          current ? { ...current, isClosed: true } : current
+        );
+      } else if (
+        err instanceof ApiError &&
+        (err.code === "POLL_ALREADY_VOTED" ||
+          err.code === "POLL_OPTION_NOT_FOUND")
+      ) {
+        try {
+          const current = await liveSessionApi.getCurrentPoll(currentSession.id);
+          if (current) applyPollSnapshot(current);
+        } catch {
+          // Preserve the original action error.
+        }
+      }
+      setPollError(err instanceof Error ? err.message : "Unable to submit vote");
+      return false;
+    } finally {
+      pollOperationRef.current = "idle";
+      setPollOperation("idle");
+    }
   };
 
   const closePoll = async () => {
-    if (!currentSession || !activePoll) return;
-    const closed = await liveSessionApi.closePoll(
-      currentSession.id,
-      activePoll.id
-    );
-    setActivePoll(closed);
+    if (
+      !currentSession ||
+      !activePoll ||
+      activePoll.isClosed ||
+      pollOperationRef.current !== "idle"
+    ) {
+      return false;
+    }
+
+    pollOperationRef.current = "closing";
+    setPollOperation("closing");
+    setPollError(null);
+    try {
+      const closed = await liveSessionApi.closePoll(
+        currentSession.id,
+        activePoll.id
+      );
+      applyPollSnapshot(closed);
+      return true;
+    } catch (err) {
+      setPollError(err instanceof Error ? err.message : "Unable to close poll");
+      return false;
+    } finally {
+      pollOperationRef.current = "idle";
+      setPollOperation("idle");
+    }
+  };
+
+  const dismissClosedPoll = () => {
+    setActivePoll((current) => (current?.isClosed ? null : current));
+    setPollError(null);
   };
 
   const changeChatMode = async (mode: ChatMode) => {
     if (!currentSession) return;
-    const res = await liveSessionApi.updateChatMode(currentSession.id, mode);
-    setChatMode(res.chatMode);
+    try {
+      const session = await liveSessionApi.updateChatMode(currentSession.id, mode);
+      setCurrentSession(session);
+      setChatMode(session.chatMode);
+      setConfig((current) =>
+        current
+          ? {
+              ...current,
+              session,
+              permissions: {
+                ...current.permissions,
+                canChat: session.chatMode === "enabled",
+              },
+            }
+          : current
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to change chat mode");
+    }
   };
 
   const deleteMessage = async (messageId: string) => {
     if (!currentSession) return;
-    await liveSessionApi.deleteMessage(currentSession.id, messageId);
-    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    try {
+      const deleted = await liveSessionApi.deleteMessage(
+        currentSession.id,
+        messageId
+      );
+      markMessageDeleted(deleted.messageId, deleted.deletedAt);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete message");
+    }
   };
 
   const restrictUser = async (userId: string) => {
     if (!currentSession) return;
-    const res = await liveSessionApi.restrictUser(currentSession.id, userId);
-    setActiveRestrictions((prev) => [
-      ...prev.filter((r) => r.userId !== userId),
-      res,
-    ]);
+    try {
+      const restriction = await liveSessionApi.restrictUser(
+        currentSession.id,
+        userId
+      );
+      setActiveRestrictions((prev) => [
+        ...prev.filter((item) => item.userId !== userId),
+        restriction,
+      ]);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to mute participant");
+    }
   };
 
   const unrestrictUser = async (userId: string) => {
     if (!currentSession) return;
-    await liveSessionApi.unrestrictUser(currentSession.id, userId);
-    setActiveRestrictions((prev) => prev.filter((r) => r.userId !== userId));
+    try {
+      await liveSessionApi.unrestrictUser(currentSession.id, userId);
+      setActiveRestrictions((prev) =>
+        prev.filter((restriction) => restriction.userId !== userId)
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to unmute participant");
+    }
   };
 
-  const registerHostSession = async (youtubeVideoId: string, title?: string) => {
-    const created = await liveSessionApi.createSession({
-      youtubeVideoId,
-      title,
-    });
-    setCurrentSession(created);
-    return created;
+  const registerHostSession = async (title: string): Promise<LiveSession | null> => {
+    if (isCreatingSessionRef.current) return null;
+
+    isCreatingSessionRef.current = true;
+    setIsCreatingSession(true);
+    setCreateSessionError(null);
+    try {
+      const created = await liveSessionApi.createSession({ title });
+      setCurrentSession(created);
+      setError(null);
+      return created;
+    } catch (err) {
+      if (
+        err instanceof ApiError &&
+        err.code === "YOUTUBE_VIDEO_ALREADY_REGISTERED"
+      ) {
+        try {
+          const existing = await liveSessionApi.getCurrentSession();
+          if (existing) {
+            setCurrentSession(existing);
+            setError(null);
+            return existing;
+          }
+        } catch {
+          // Fall through to the duplicate-session recovery message below.
+        }
+      }
+
+      setCreateSessionError(getCreateSessionErrorMessage(err));
+      return null;
+    } finally {
+      isCreatingSessionRef.current = false;
+      setIsCreatingSession(false);
+    }
   };
+
+  const clearCreateSessionError = () => setCreateSessionError(null);
 
   const syncYouTube = async () => {
     if (!currentSession) return;
-    const synced = await liveSessionApi.syncSession(currentSession.id);
-    setCurrentSession(synced);
+    try {
+      const synced = await liveSessionApi.syncSession(currentSession.id);
+      setCurrentSession(synced);
+      setChatMode(synced.chatMode);
+      setConfig((current) =>
+        current
+          ? {
+              ...current,
+              session: synced,
+              permissions: {
+                ...current.permissions,
+                canChat: synced.chatMode === "enabled" && !restriction,
+              },
+            }
+          : current
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to sync YouTube");
+    }
   };
 
   return {
     currentSession,
     isLoadingSession,
     refreshCurrentSession,
+    isCreatingSession,
+    createSessionError,
+    clearCreateSessionError,
     isJoined,
     isJoining,
     connectionState,
@@ -469,11 +1248,22 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     restriction,
     activeRestrictions,
     participants,
+    activeParticipantCount,
+    presenceStatus,
     messages,
     hasMoreMessages,
     isLoadingOlder,
+    isSendingMessage,
     loadOlderMessages,
     activePoll,
+    pollLimits: config?.pollLimits ?? DEFAULT_POLL_LIMITS,
+    pollOperation,
+    pollError,
+    allowedReactions: config?.allowedReactions ?? [],
+    canReact: Boolean(config?.permissions.canReact),
+    isSendingReaction,
+    isReactionRateLimited,
+    reactionError,
     typingNames: Object.values(typingUsers).map((u) => u.name),
     joinSession,
     leaveSession,
@@ -483,6 +1273,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
     createPoll,
     votePoll,
     closePoll,
+    dismissClosedPoll,
     changeChatMode,
     deleteMessage,
     restrictUser,
