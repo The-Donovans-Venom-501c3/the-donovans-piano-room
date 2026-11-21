@@ -10,27 +10,77 @@ import type {
   ScoreSummary,
 } from "@/app/games/types";
 
+const dummyStorage: Storage = {
+  length: 0,
+  clear: () => {},
+  getItem: () => null,
+  key: () => null,
+  removeItem: () => {},
+  setItem: () => {},
+};
+
+const getSessionStorage = () =>
+  typeof window !== "undefined" ? sessionStorage : dummyStorage;
+
+const getLocalStorage = () =>
+  typeof window !== "undefined" ? localStorage : dummyStorage;
+
 ///////////////
 ////SIGN UP////
 ///////////////
 
-export const signupStepAtom = atom<number>(1);
-
-export const signupFormDataAtom = atom({
+const INITIAL_SIGNUP_FORM_DATA = {
   fullName: "",
   email: "",
-  password: "",
   scholarshipCode: "",
   totalCost: "0.00",
   endDate: "September 25, 2026",
-});
+};
+
+export type SignupFormData = typeof INITIAL_SIGNUP_FORM_DATA;
+
+export const signupStepAtom = atomWithStorage<number>(
+  "signup_step",
+  1,
+  createJSONStorage<number>(getSessionStorage),
+);
+
+export const signupFormDataAtom = atomWithStorage<SignupFormData>(
+  "signup_form_data",
+  INITIAL_SIGNUP_FORM_DATA,
+  createJSONStorage<SignupFormData>(getSessionStorage),
+);
 
 export const couponVerifiedAtom = atom<boolean>(false);
-export const membershipChoiceAtom = atom<string>("");
 
-// Masked payment-method summary captured during signup (step 4).
-// TODO(backend/payments): once PSP tokenization is wired, store ONLY the
-// returned vault token id here — never raw card data.
+export interface AppliedCoupon {
+  membershipId: string | number;
+  couponCode: string;
+  finalAmount: number;
+}
+
+export const appliedCouponAtom = atomWithStorage<AppliedCoupon | null>(
+  "signup_applied_coupon",
+  null,
+  createJSONStorage<AppliedCoupon | null>(getSessionStorage),
+);
+
+/** Clear every piece of persisted signup state in one place. */
+export const resetSignupStateAtom = atom(null, (_get, set) => {
+  set(signupStepAtom, 1);
+  set(signupFormDataAtom, INITIAL_SIGNUP_FORM_DATA);
+  set(membershipChoiceAtom, "");
+  set(signupPaymentMethodAtom, null);
+  set(couponVerifiedAtom, false);
+  set(appliedCouponAtom, null);
+});
+
+export const membershipChoiceAtom = atomWithStorage<string>(
+  "signup_membership_choice",
+  "",
+  createJSONStorage<string>(getSessionStorage),
+);
+
 export interface SignupPaymentMethod {
   paymentMethodType: "card" | "paypal";
   cardholderName?: string;
@@ -62,20 +112,6 @@ export const resetPasswordStepAtom = atom<number>(1);
 //****************//
 //***** SSR SAFE STORAGES *****//
 //****************//
-
-const dummyStorage: Storage = {
-  length: 0,
-  clear: () => {},
-  getItem: () => null,
-  key: () => null,
-  removeItem: () => {},
-  setItem: () => {},
-};
-
-const getSessionStorage = () =>
-  typeof window !== "undefined" ? sessionStorage : dummyStorage;
-const getLocalStorage = () =>
-  typeof window !== "undefined" ? localStorage : dummyStorage;
 
 //****************//
 //***** FORGOT PASSWORD *****//

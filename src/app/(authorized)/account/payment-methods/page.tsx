@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
@@ -19,6 +20,8 @@ import PaymentMethodForm, {
 import "@/styles/primary-purple-scrollbar.css";
 
 export default function PaymentMethodsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -47,6 +50,36 @@ export default function PaymentMethodsPage() {
     void loadPaymentMethods();
   }, [loadPaymentMethods]);
 
+  useEffect(() => {
+    const paypalStatus = searchParams?.get("paypal");
+    if (!paypalStatus) return;
+    if (paypalStatus === "linked") {
+      setActionError(null);
+      setActionMessage("PayPal payment method linked successfully. Linking a payment method does not start or change your membership — to activate a paid plan, go to Membership and confirm your plan selection (you’ll be asked to approve the PayPal subscription).");
+      void loadPaymentMethods();
+    } else if (paypalStatus === "cancelled") {
+      setActionMessage(null);
+      setActionError("PayPal linking was cancelled.");
+    } else if (paypalStatus === "expired") {
+      setActionMessage(null);
+      setActionError("PayPal linking session expired. Please try adding the payment method again.");
+    } else if (paypalStatus === "error") {
+      setActionMessage(null);
+      const reason = searchParams?.get("reason");
+      if (reason === "limit") {
+        setActionError("This PayPal payment method is already linked to the maximum number of accounts (5).");
+      } else {
+        setActionError("Failed to link PayPal payment method. Please try again.");
+      }
+    }
+    // Remove query params to avoid sticky messages
+    try {
+      router.replace("/account/payment-methods");
+    } catch {
+      // ignore
+    }
+  }, [searchParams, router, loadPaymentMethods]);
+
   const resetFeedback = () => {
     setActionError(null);
     setActionMessage(null);
@@ -60,9 +93,6 @@ export default function PaymentMethodsPage() {
         ...data,
         setAsDefault: paymentMethods.length === 0,
       });
-      // PayPal requires a redirect to finish authorizing the billing agreement.
-      // If the backend doesn't return an approvalUrl yet, surface a clear error
-      // instead of claiming the method was saved.
       if (result?.approvalUrl) {
         window.location.href = result.approvalUrl;
         return;

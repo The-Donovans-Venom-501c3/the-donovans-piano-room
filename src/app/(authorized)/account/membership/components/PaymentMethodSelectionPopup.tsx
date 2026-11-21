@@ -46,7 +46,6 @@ export default function PaymentMethodSelectionPopup({
           </button>
         </div>
         
-        {/* Payment Methods List */}
         <div className="space-y-4 mb-8">
           {isBeta || validMethods.length === 0 ? (
             <div className="py-8 text-center text-primary-gray text-xl bg-white/50 rounded-xl p-6 border border-[#F6E2D1]">

@@ -73,7 +73,7 @@ export async function getUserMembership() {
 }
 
 export async function validateCouponCode(
-  memberId: number,
+  memberId: string | number,
   email: string,
   couponCode: string,
 ) {
@@ -250,17 +250,12 @@ export interface NewPaymentMethodPayload {
   expiryYear?: string;
   billingZip?: string;
   paypalEmail?: string;
-  // TODO(backend/payments): replace cardNumber/cvv with a PSP token/nonce
-  // (Stripe paymentMethodId, Braintree nonce, PayPal billing agreement, ...)
   cardNumber?: string;
   cvv?: string;
   vaultTokenId?: string;
   setAsDefault?: boolean;
 }
 
-// TODO(backend): implement POST /api/payment-methods — vault/tokenize the
-// payment method with the PSP and persist it. May return { approvalUrl } when
-// the provider (e.g. PayPal) requires a redirect to complete authorization.
 export async function addPaymentMethod(payload: NewPaymentMethodPayload) {
   try {
     const response = await fetch("/api/payment-methods", {
@@ -285,8 +280,6 @@ export async function addPaymentMethod(payload: NewPaymentMethodPayload) {
   }
 }
 
-// TODO(backend): implement DELETE /api/payment-methods/:vaultTokenId — remove
-// the vaulted payment method from the PSP and the database.
 export async function removePaymentMethod(vaultTokenId: string) {
   try {
     const response = await fetch(
@@ -316,8 +309,6 @@ export async function removePaymentMethod(vaultTokenId: string) {
   }
 }
 
-// TODO(backend): implement PUT /api/payment-methods/:vaultTokenId/default —
-// mark the given payment method as the account default.
 export async function setDefaultPaymentMethod(vaultTokenId: string) {
   try {
     const response = await fetch(

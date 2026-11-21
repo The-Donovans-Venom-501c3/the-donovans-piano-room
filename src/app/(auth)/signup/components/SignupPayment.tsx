@@ -7,7 +7,6 @@ import Button1 from "@/components/atoms/Button1";
 import PaymentMethodForm, {
   PaymentMethodFormData,
 } from "@/components/payment/PaymentMethodForm";
-import { addPaymentMethod } from "@/lib/api/membershipService";
 import {
   membershipChoiceAtom,
   membershipTypes,
@@ -15,7 +14,6 @@ import {
   signupStepAtom,
 } from "@/utils/stores";
 
-// Memberships that do not require a payment method during signup
 const FREE_MEMBERSHIPS: string[] = [
   membershipTypes["scholarship"],
   membershipTypes["basic-access"],
@@ -26,6 +24,7 @@ export default function SignupPayment() {
   const membershipChoice = useAtomValue(membershipChoiceAtom);
   const setPaymentMethod = useSetAtom(signupPaymentMethodAtom);
   const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isFreeMembership = FREE_MEMBERSHIPS.includes(membershipChoice);
 
@@ -39,23 +38,12 @@ export default function SignupPayment() {
 
   const handlePaymentSubmit = async (data: PaymentMethodFormData) => {
     setIsSaving(true);
+    setErrorMessage(null);
     try {
       if (data.paymentMethodType === "paypal") {
-        // TODO(backend): POST /api/payment-methods should create a PayPal billing
-        // agreement and return { approvalUrl } to redirect the user to PayPal for
-        // authorization. Until it does, don't mark a method as saved.
-        const result = await addPaymentMethod({
-          paymentMethodType: "paypal",
-          paypalEmail: data.paypalEmail,
-        });
-        if (result?.approvalUrl) {
-          window.location.href = result.approvalUrl;
-          return;
-        }
         setPaymentMethod({
           paymentMethodType: "paypal",
           paypalEmail: data.paypalEmail,
-          vaultTokenId: result?.vaultTokenId || result?.data?.vaultTokenId,
         });
       } else {
         setPaymentMethod({
@@ -69,6 +57,11 @@ export default function SignupPayment() {
         });
       }
       setSignupStep(5);
+    } catch (error: any) {
+      console.error("Payment step failed:", error);
+      setErrorMessage(
+        error?.message || "Something went wrong. Please try again."
+      );
     } finally {
       setIsSaving(false);
     }
@@ -86,8 +79,12 @@ export default function SignupPayment() {
         }
       />
 
-      {/* Payment Form Area */}
       <div className="my-6">
+        {errorMessage && (
+          <div className="mb-4 rounded-xl border border-red-500 bg-red-500/20 p-4 text-sm font-semibold text-red-200">
+            {errorMessage}
+          </div>
+        )}
         {isFreeMembership ? (
           <div className="rounded-2xl bg-white/10 border border-white/20 p-6 text-white space-y-2">
             <p className="font-bold text-lg">No payment method required</p>

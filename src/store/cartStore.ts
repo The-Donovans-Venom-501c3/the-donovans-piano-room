@@ -1,10 +1,25 @@
 import { bookCartItemInterface, bookInterface } from '@/interfaces/bookInterface';
 import { atom, useAtom } from 'jotai';
+import { atomWithStorage, createJSONStorage } from 'jotai/utils';
 
-export const addedCartItemAtom = atom<null | bookInterface>(null) 
+export const addedCartItemAtom = atom<null | bookInterface>(null)
 
+const noopStorage: Storage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+  clear: () => {},
+  key: () => null,
+  length: 0,
+};
 
-export const addedCartItemsAtom = atom<bookCartItemInterface[]>([]);
+export const addedCartItemsAtom = atomWithStorage<bookCartItemInterface[]>(
+  'tdpr_store_cart',
+  [],
+  createJSONStorage<bookCartItemInterface[]>(() =>
+    typeof window === 'undefined' ? noopStorage : window.sessionStorage
+  )
+);
 
 export function useCartOperations() {
     const [cartItems, setCartItems] = useAtom(addedCartItemsAtom);

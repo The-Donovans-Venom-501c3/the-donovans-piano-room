@@ -2,50 +2,50 @@
 
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { 
-  membershipChoiceAtom, 
-  membershipTypes, 
-  signupStepAtom, 
-  signupFormDataAtom, 
-  profileAtom,
-  signupPaymentMethodAtom
+import { completeSignup } from "@/lib/api/authService";
+import {
+  membershipChoiceAtom,
+  membershipTypes,
+  signupStepAtom,
+  signupFormDataAtom,
+  signupPaymentMethodAtom,
+  resetSignupStateAtom,
+  appliedCouponAtom,
 } from "@/utils/stores";
 
 interface SignupSummaryProps {
   onComplete?: () => void;
 }
 
-const membershipDetails: Record<string, { label: string; price: number; id: number }> = {
+const membershipDetails: Record<string, { label: string; price: number; id: string | number }> = {
   [membershipTypes["24-hours"]]: { label: "24-Hour Membership", price: 1.99, id: 1 },
   [membershipTypes["monthly-access"]]: { label: "Monthly Membership", price: 29.99, id: 2 },
-  [membershipTypes["scholarship"]]: { label: "Scholarship Membership", price: 0, id: 3 },
+  [membershipTypes["scholarship"]]: { label: "Scholarship Membership", price: 0, id: "local-scholarship-001" },
   [membershipTypes["yearly-access"]]: { label: "Yearly Membership", price: 239.88, id: 4 },
   [membershipTypes["basic-access"]]: { label: "Basic Membership", price: 0, id: 5 },
 };
 
 export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   const setSignupStep = useSetAtom(signupStepAtom);
+  const resetSignupState = useSetAtom(resetSignupStateAtom);
   const membershipChoice = useAtomValue(membershipChoiceAtom);
   const formData = useAtomValue(signupFormDataAtom);
-  const profile = useAtomValue(profileAtom);
-  const paymentMethod = useAtomValue(signupPaymentMethodAtom);
+  const appliedCoupon = useAtomValue(appliedCouponAtom);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selected = membershipChoice ? membershipDetails[membershipChoice] : null;
-  const needsPayment = !!selected && selected.price > 0;
-  const canFinish = !needsPayment || !!paymentMethod;
+  const hasMatchingCoupon =
+    !!appliedCoupon &&
+    !!selected &&
+    String(appliedCoupon.membershipId) === String(selected.id);
+  const displayedPrice = hasMatchingCoupon
+    ? appliedCoupon.finalAmount
+    : selected?.price ?? 0;
 
-  const paymentLabel = paymentMethod
-    ? paymentMethod.paymentMethodType === "paypal"
-      ? `PayPal (${paymentMethod.paypalEmail || "linked account"})`
-      : `${(paymentMethod.brand || "Card").toUpperCase()} •••• ${paymentMethod.last4}`
-    : "No payment method added";
-
-  // Safely evaluate fields using optional chaining
-  const userEmail = formData?.email || profile?.email || "";
-  const userName = formData?.fullName || profile?.fullName || "";
+  const userEmail = formData?.email || "";
+  const userName = formData?.fullName || "";
   const membershipId = selected ? selected.id : 3;
 
   // Fixed static end date regardless of sign-up timestamp
@@ -56,29 +56,18 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/auth/complete-signup/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          membershipId: membershipId,
-          // TODO(backend/payments): send the PSP vault token id, never raw card data.
-          paymentMethod: paymentMethod
-            ? {
-                paymentMethodType: paymentMethod.paymentMethodType,
-                vaultTokenId: paymentMethod.vaultTokenId,
-                brand: paymentMethod.brand,
-                last4: paymentMethod.last4,
-              }
-            : undefined,
-        }),
-      });
+      const result = await completeSignup(userEmail, membershipId);
+      const payload = result?.data;
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to create account and membership.");
+      if (!result.ok) {
+        throw new Error(
+          payload?.message || "Failed to create account and membership."
+        );
+      }
+
+      if (payload?.approvalUrl) {
+        window.location.href = payload.approvalUrl;
+        return;
       }
 
       if (onComplete) {
@@ -94,7 +83,9 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   };
 
   const handleCancel = () => {
-    setSignupStep(1);
+    // Nothing has been created yet — clear the whole wizard, including the
+    // persisted step and identity, so a fresh signup starts from step 1.
+    resetSignupState();
   };
 
   return (
@@ -151,31 +142,12 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
               </button>
             </div>
 
-            {/* Payment Method */}
-            {needsPayment && (
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[#FACC15] font-extrabold text-xl sm:text-2xl">Payment method</p>
-                  <p className={`font-semibold text-lg sm:text-xl mt-1 ${paymentMethod ? "text-white" : "text-red-300"}`}>
-                    {paymentLabel}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSignupStep(4)}
-                  className="text-white text-base sm:text-lg font-bold underline hover:opacity-80 transition-opacity shrink-0 mt-0.5 cursor-pointer"
-                >
-                  Edit
-                </button>
-              </div>
-            )}
-
             {/* Total & Fixed End Date */}
             <div>
               <div className="flex items-center justify-between">
                 <p className="text-[#FACC15] font-extrabold text-xl sm:text-2xl">Total</p>
                 <p className="text-white font-bold text-xl sm:text-2xl">
-                  ${selected ? selected.price.toFixed(2) : "0.00"}
+                  ${displayedPrice.toFixed(2)}
                 </p>
               </div>
               <p className="text-right text-sm sm:text-base text-purple-200/90 font-medium mt-1">
@@ -189,20 +161,15 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
             <button
               type="button"
               onClick={handleFinish}
-              disabled={isLoading || !canFinish}
+              disabled={isLoading}
               className={`w-full py-4 px-6 rounded-full font-extrabold text-lg sm:text-xl transition-all shadow-md text-center ${
-                isLoading || !canFinish
+                isLoading
                   ? "bg-[#BBB5C6] text-gray-700 cursor-not-allowed"
                   : "bg-[#EAB308] hover:bg-[#d97706] text-black cursor-pointer"
               }`}
             >
               {isLoading ? "Setting up membership..." : "Complete Setting up Membership"}
             </button>
-            {!canFinish && (
-              <p className="text-center text-sm text-red-300 font-semibold">
-                Add a payment method (step 4) to complete a paid membership.
-              </p>
-            )}
             <button
               type="button"
               onClick={handleCancel}
