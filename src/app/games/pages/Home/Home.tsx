@@ -97,6 +97,12 @@ const colorImg = "/games/Color.png";
 const linksImg = "/games/Links.png";
 const speechImg = "/games/Speech.png";
 
+// Game End Screen Button Icons
+const gamesIcon = "/games/gameEndGamesIcon.svg";
+const lessonIcon = "/games/gameEndLessonIcon.svg";
+const playAgainIcon = "/games/gameEndPlayAgainIcon.svg";
+const reviewIcon = "/games/gameEndReviewIcon.svg";
+
 type GameFlowStage =
   | "dashboard"
   | "banner"
@@ -918,31 +924,45 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={() => handleSelectLevel(nextLevel)}
-                          className="next-level-btn"
+                          className="finish-btn-lg"
                         >
-                          Next Level
+                          Next Level <span aria-hidden="true">&rarr;</span>
                         </button>
                       )}
                       <button
                         type="button"
                         onClick={playAgain}
-                        className="play-again-btn"
+                        className={lives > 0 && nextLevel ? "finish-btn-sm" : "finish-btn-lg"}
                       >
+                        {lives > 0 && nextLevel && (
+                          <img src={playAgainIcon} className="finish-icon" alt="" />
+                        )}
                         Play Again
                       </button>
                       <button
                         type="button"
-                        onClick={confirmExitGame}
-                        className="back-btn"
+                        onClick={startReview}
+                        className="finish-btn-sm"
                       >
-                        Back to Games
+                        <img src={reviewIcon} className="finish-icon" alt="" />
+                        Review
                       </button>
                       <button
                         type="button"
-                        onClick={startReview}
-                        className="review-btn"
+                        className="finish-btn-sm"
+                        title="Coming Soon!"
+                        disabled
                       >
-                        Review Your Questions
+                        <img src={lessonIcon} className="finish-icon" alt="" />
+                        Lesson
+                      </button>
+                      <button
+                        type="button"
+                        onClick={confirmExitGame}
+                        className="finish-btn-sm"
+                      >
+                        <img src={gamesIcon} className="finish-icon" alt="" />
+                        Games
                       </button>
                     </div>
                   </div>
