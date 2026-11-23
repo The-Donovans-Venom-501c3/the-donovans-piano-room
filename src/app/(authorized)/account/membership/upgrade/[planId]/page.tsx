@@ -20,6 +20,7 @@ import Payment from "@/app/(authorized)/account/membership/components/Payment";
 import PlanCard from "@/app/(authorized)/account/membership/components/PlanCard";
 import Popup from "@/app/(authorized)/account/membership/components/Popup";
 import PaymentMethodSelectionPopup from "@/app/(authorized)/account/membership/components/PaymentMethodSelectionPopup";
+import PaymentReceipt from "@/components/payment/PaymentReceipt";
 import { 
   UserMembership, 
   MembershipLevelId, 
@@ -59,6 +60,7 @@ export default function UpgradeConfirmationPage() {
   const [switchError, setSwitchError] = useState<string | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [effectiveDate, setEffectiveDate] = useState<string | null>(null);
+  const [showReceipt, setShowReceipt] = useState<boolean>(false);
 
   const levelId = PLAN_ID_MAP[planId];
 
@@ -201,17 +203,16 @@ export default function UpgradeConfirmationPage() {
 
         setSwitchSuccess(true);
         setEffectiveDate(response.effectiveDate || null);
-        
-        setTimeout(async () => {
-          try {
-            const updatedMembership = await getUserMembership();
-            setMembership(updatedMembership);
-          } catch (error) {
-            console.warn('Failed to refresh membership:', error);
-          }
-          router.push('/account/membership');
-        }, 2000);
+        setTransactionId(response.membershipHistoryId || null);
+        setShowReceipt(true);
 
+        try {
+          const updatedMembership = await getUserMembership();
+          setMembership(updatedMembership);
+        } catch (error) {
+          console.warn('Failed to refresh membership:', error);
+        }
+        
       } else {
         const error = new Error(response.error || 'Switch failed');
         (error as any).transactionId = response.membershipHistoryId;
@@ -456,6 +457,20 @@ export default function UpgradeConfirmationPage() {
             text: "Change Plan"
           }}
         />
+
+        {/* Payment Receipt Modal */}
+        {switchSuccess && showReceipt && (
+          <PaymentReceipt
+            open={showReceipt}
+            category="membership"
+            title={`${selectedPlan?.planName || "Membership"} membership payment`}
+            amount={upgradePreview?.proration?.netAmount ?? selectedPlan?.price ?? null}
+            currency="USD"
+            transactionId={transactionId}
+            effectiveDate={effectiveDate}
+            onClose={() => setShowReceipt(false)}
+          />
+        )}
       </div>
     </AuthorizedWrapper1>
   );

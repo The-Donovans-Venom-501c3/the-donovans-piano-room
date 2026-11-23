@@ -9,7 +9,9 @@ import {
   quoteCart,
   CheckoutProvider,
   CartQuoteResponse,
+  CheckoutResponse,
 } from "@/lib/api/cartService";
+import PaymentReceipt from "@/components/payment/PaymentReceipt";
 
 export default function PaymentCard() {
   const addedCartItems = useAtomValue(addedCartItemsAtom)
@@ -22,11 +24,14 @@ export default function PaymentCard() {
   const [quote, setQuote] = useState<CartQuoteResponse | null>(null);
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState<CheckoutResponse | null>(null);
 
   useEffect(() => {
     const status = new URLSearchParams(window.location.search).get("checkout");
     if (status === "success") {
       setAddedCartItems([]);
+      setShowReceipt(true);
       setCheckoutMessage("Payment complete - thank you for your order!");
     } else if (status === "cancelled") {
       setCheckoutMessage("Checkout was cancelled. No payment was taken.");
@@ -131,11 +136,18 @@ export default function PaymentCard() {
         return;
       }
       setCheckoutMessage(result?.message || "Order placed successfully.");
+      setReceiptData(result);
+      setShowReceipt(true);
     } catch (error: any) {
       setCheckoutError(error?.message || "Checkout is unavailable right now. Please try again.");
     } finally {
       setActiveProvider(null);
     }
+  };
+
+  const handleCloseReceipt = () => {
+    setShowReceipt(false);
+    setReceiptData(null);
   };
 
   return (
@@ -241,6 +253,23 @@ export default function PaymentCard() {
           <p className="text-center text-[1.3rem] font-semibold text-green-700">{checkoutMessage}</p>
         )}
       </div>
+
+      {showReceipt && (
+        <PaymentReceipt
+          open={showReceipt}
+          category="cart"
+          title="Cart order"
+          amount={receiptData?.amount ?? receiptData?.total ?? null}
+          currency={receiptData?.currency}
+          transactionId={receiptData?.orderId}
+          items={addedCartItems.map((item) => ({
+            title: item.title,
+            quantity: item.quantity,
+            totalPrice: item.price * item.quantity,
+          }))}
+          onClose={handleCloseReceipt}
+        />
+      )}
     </div>
   );
 }
