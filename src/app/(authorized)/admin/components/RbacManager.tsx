@@ -252,7 +252,7 @@ function ResourcesSection({ catalog, run, busy }: SectionProps) {
 
       <section className="panel form-panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">{editing ? "Edit resource" : "Create resource"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : "POST · New resource"}</div></div>
+          <div><h2 className="panel-title">{editing ? "Edit resource" : "Create resource"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : ""}</div></div>
           {editing && <button className="button secondary" onClick={reset}>Cancel</button>}
         </div>
         <form onSubmit={submit}>
@@ -466,7 +466,7 @@ function PermissionsSection({ catalog, run, busy }: SectionProps) {
 
       <section className="panel form-panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">{editing ? "Edit permission" : "Create permission"}</h2><div className="panel-subtitle">{editing ? `Editing ${permissionCode}` : "POST · Pair a resource with an action"}</div></div>
+          <div><h2 className="panel-title">{editing ? "Edit permission" : "Create permission"}</h2><div className="panel-subtitle">{editing ? `Editing ${permissionCode}` : "Pair a resource with an action"}</div></div>
           {editing && <button className="button secondary" onClick={reset}>Cancel</button>}
         </div>
         <form onSubmit={submit}>
@@ -584,7 +584,7 @@ function RolesSection({ catalog, run, busy }: SectionProps) {
 
       <section className="panel form-panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">{editing ? "Edit role" : "Create role"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : "POST · New role"}</div></div>
+          <div><h2 className="panel-title">{editing ? "Edit role" : "Create role"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : ""}</div></div>
           {editing && <button className="button secondary" onClick={reset}>Cancel</button>}
         </div>
         <form onSubmit={submit}>
@@ -699,7 +699,7 @@ function PersonasSection({ catalog, run, busy }: SectionProps) {
 
       <section className="panel form-panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">{editing ? "Edit persona" : "Create persona"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : "POST · New persona"}</div></div>
+          <div><h2 className="panel-title">{editing ? "Edit persona" : "Create persona"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : ""}</div></div>
           {editing && <button className="button secondary" onClick={reset}>Cancel</button>}
         </div>
         <form onSubmit={submit}>
