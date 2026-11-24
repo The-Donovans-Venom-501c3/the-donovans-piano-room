@@ -20,6 +20,7 @@ export interface PaymentReceiptProps {
   currency?: string;
   status?: string;
   transactionId?: string | null;
+  paymentDate?: string | Date | null;
   effectiveDate?: string | null;
   items?: PaymentReceiptItem[];
   onClose: () => void;
@@ -46,29 +47,26 @@ export default function PaymentReceipt({
   currency,
   status = "completed",
   transactionId,
+  paymentDate,
   effectiveDate,
   items,
   onClose,
 }: PaymentReceiptProps) {
   const [latest, setLatest] = useState<PaymentHistoryItem | null>(null);
 
-  const shouldLoadLatest =
-    amount == null && !transactionId && (!items || items.length === 0);
-
   useEffect(() => {
-    if (!open) return;
-
-    if (shouldLoadLatest) {
-      void getPaymentHistory()
-        .then((history) => {
-          const match = history.find((entry) => entry.category === category);
-          setLatest(match || null);
-        })
-        .catch(() => setLatest(null));
-    } else {
+    if (!open || paymentDate) {
       setLatest(null);
+      return;
     }
-  }, [open, category, amount, transactionId, shouldLoadLatest]);
+
+    void getPaymentHistory()
+      .then((history) => {
+        const match = history.find((entry) => entry.category === category);
+        setLatest(match || null);
+      })
+      .catch(() => setLatest(null));
+  }, [open, category, paymentDate]);
 
   if (!open) return null;
 
@@ -78,6 +76,7 @@ export default function PaymentReceipt({
   const receiptCurrency = currency || receipt?.currency || "USD";
   const receiptStatus = status || receipt?.status || "completed";
   const receiptTransactionId = transactionId || receipt?.transactionId || null;
+  const receiptPaymentDate = paymentDate || receipt?.date || null;
   const receiptItems = items?.length
     ? items
     : receipt?.items.map((item) => ({
@@ -124,9 +123,27 @@ export default function PaymentReceipt({
             </p>
           </div>
 
+          {receiptPaymentDate && (
+            <p className="mt-3 text-sm font-semibold text-primary-gray">
+              Paid on: {new Date(receiptPaymentDate).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </p>
+          )}
+
           {effectiveDate && (
             <p className="mt-3 text-sm font-semibold text-primary-gray">
-              Effective date: {new Date(effectiveDate).toLocaleDateString()}
+              Effective date: {new Date(effectiveDate).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
             </p>
           )}
 

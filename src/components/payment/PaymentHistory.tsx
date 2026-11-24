@@ -10,10 +10,12 @@ function formatDate(value: string | Date) {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? "Date unavailable"
-    : date.toLocaleDateString(undefined, {
+    : date.toLocaleString(undefined, {
         year: "numeric",
         month: "short",
         day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
       });
 }
 
