@@ -317,9 +317,13 @@ export default function Page() {
               open={true}
               category="membership"
               title={`${currentPlan.planName} membership payment`}
-              amount={currentPlan.price}
+              amount={
+                currentPlan.levelId === MembershipLevelId.YEAR
+                  ? Number(currentPlan.yearlyPrice || currentPlan.price)
+                  : currentPlan.price
+              }
               currency="USD"
-              effectiveDate={membership?.nextRenewalAt}
+              effectiveDate={searchParams?.get("effectiveDate")}
               onClose={() => {
                 setShowPaymentReceipt(false);
                 router.replace("/account/membership");

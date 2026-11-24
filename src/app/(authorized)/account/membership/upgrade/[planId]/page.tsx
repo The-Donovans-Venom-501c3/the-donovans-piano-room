@@ -464,7 +464,13 @@ export default function UpgradeConfirmationPage() {
             open={showReceipt}
             category="membership"
             title={`${selectedPlan?.planName || "Membership"} membership payment`}
-            amount={upgradePreview?.proration?.netAmount ?? selectedPlan?.price ?? null}
+            amount={
+              upgradePreview?.proration?.netAmount ??
+              (selectedPlan?.levelId === MembershipLevelId.YEAR
+                ? Number(selectedPlan.yearlyPrice || selectedPlan.price)
+                : selectedPlan?.price) ??
+              null
+            }
             currency="USD"
             transactionId={transactionId}
             effectiveDate={effectiveDate}
