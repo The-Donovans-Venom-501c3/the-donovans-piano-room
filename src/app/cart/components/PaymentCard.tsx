@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Button4 from "@/components/atoms/Button4";
 import InputForm from "@/components/atoms/form-input";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { addedCartItemsAtom } from "@/store/cartStore";
 import {
   checkoutCart,
@@ -16,7 +16,6 @@ import PaymentReceipt from "@/components/payment/PaymentReceipt";
 
 export default function PaymentCard() {
   const addedCartItems = useAtomValue(addedCartItemsAtom)
-  const setAddedCartItems = useSetAtom(addedCartItemsAtom);
   const [activeProvider, setActiveProvider] = useState<CheckoutProvider | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
@@ -30,16 +29,12 @@ export default function PaymentCard() {
 
   useEffect(() => {
     const status = new URLSearchParams(window.location.search).get("checkout");
-    if (status === "success") {
-      setAddedCartItems([]);
-      setShowReceipt(true);
-      setCheckoutMessage("Payment complete - thank you for your order!");
-    } else if (status === "cancelled") {
+    if (status === "cancelled") {
       setCheckoutMessage("Checkout was cancelled. No payment was taken.");
     } else if (status === "error" || status === "expired") {
       setCheckoutError("We couldn't complete that payment. Please try again.");
     }
-  }, [setAddedCartItems]);
+  }, []);
 
   const cartItemsPrice = useMemo(() => {
     let total = 0.00

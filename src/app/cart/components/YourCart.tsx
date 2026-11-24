@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import ItemsAddedCart from "./ItemsAddedCart";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import EmptyCart from "./EmptyCart";
-import { addedCartItemsAtom } from "@/store/cartStore";
+import { addedCartItemsAtom, CART_ITEMS_STORAGE_KEY } from "@/store/cartStore";
 import PaymentReceipt, { type PaymentReceiptItem } from "@/components/payment/PaymentReceipt";
 import { CART_CHECKOUT_RECEIPT_STORAGE_KEY } from "@/lib/api/cartService";
 
@@ -17,11 +17,19 @@ interface CartReceiptData {
 
 export default function YourCart() {
   const addedCartItems = useAtomValue(addedCartItemsAtom);
+  const setAddedCartItems = useSetAtom(addedCartItemsAtom);
   const [receiptData, setReceiptData] = useState<CartReceiptData | null>(null);
 
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.get("checkout") !== "success") return;
+
+    setAddedCartItems([]);
+    try {
+      sessionStorage.setItem(CART_ITEMS_STORAGE_KEY, "[]");
+    } catch {
+      // The in-memory cart is still cleared if storage is unavailable.
+    }
 
     try {
       const storedReceipt = sessionStorage.getItem(CART_CHECKOUT_RECEIPT_STORAGE_KEY);
@@ -38,7 +46,7 @@ export default function YourCart() {
       url.searchParams.delete("checkout");
       window.history.replaceState({}, "", url.toString());
     }
-  }, []);
+  }, [setAddedCartItems]);
 
   return (
     <>

@@ -1,8 +1,13 @@
-import { bookCartItemInterface, bookInterface } from '@/interfaces/bookInterface';
-import { atom, useAtom } from 'jotai';
-import { atomWithStorage, createJSONStorage } from 'jotai/utils';
+import {
+  bookCartItemInterface,
+  bookInterface,
+} from "@/interfaces/bookInterface";
+import { atom, useAtom } from "jotai";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
-export const addedCartItemAtom = atom<null | bookInterface>(null)
+export const addedCartItemAtom = atom<null | bookInterface>(null);
+
+export const CART_ITEMS_STORAGE_KEY = "tdpr_store_cart";
 
 const noopStorage: Storage = {
   getItem: () => null,
@@ -14,70 +19,70 @@ const noopStorage: Storage = {
 };
 
 export const addedCartItemsAtom = atomWithStorage<bookCartItemInterface[]>(
-  'tdpr_store_cart',
+  CART_ITEMS_STORAGE_KEY,
   [],
   createJSONStorage<bookCartItemInterface[]>(() =>
-    typeof window === 'undefined' ? noopStorage : window.sessionStorage
-  )
+    typeof window === "undefined" ? noopStorage : window.sessionStorage,
+  ),
 );
 
 export function useCartOperations() {
-    const [cartItems, setCartItems] = useAtom(addedCartItemsAtom);
-  
-    // Add item to cart
-    const addToCart = (item: bookInterface, quantity = 1) => {
-      setCartItems((prevItems) => {
-        const existingItemIndex = prevItems.findIndex((i) => i.id === item.id);
-        
-        if (existingItemIndex >= 0) {
-          // Item exists, update quantity
-          const newItems = [...prevItems];
-          newItems[existingItemIndex] = {
-            ...newItems[existingItemIndex],
-            quantity: newItems[existingItemIndex].quantity + quantity,
-          };
-          return newItems;
-        } else {
-          // Item doesn't exist, add new
-          return [...prevItems, { ...item, quantity }];
-        }
-      });
-    };
-  
-    // Remove item from cart
-    const removeFromCart = (itemId: string) => {
-      setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-    };
-  
-    // Update item quantity
-    const updateQuantity = (itemId: string, quantity: number) => {
-      if (quantity <= 0) {
-        removeFromCart(itemId);
-        return;
-      }
-  
-      setCartItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === itemId ? { ...item, quantity } : item
-        )
-      );
-    };
-  
-    // Clear cart
-    const clearCart = () => {
-      setCartItems([]);
-    };
+  const [cartItems, setCartItems] = useAtom(addedCartItemsAtom);
 
-    const isAdded = (book:bookInterface)=>{
-      return cartItems.find((item) => item.id === book.id)
+  // Add item to cart
+  const addToCart = (item: bookInterface, quantity = 1) => {
+    setCartItems((prevItems) => {
+      const existingItemIndex = prevItems.findIndex((i) => i.id === item.id);
+
+      if (existingItemIndex >= 0) {
+        // Item exists, update quantity
+        const newItems = [...prevItems];
+        newItems[existingItemIndex] = {
+          ...newItems[existingItemIndex],
+          quantity: newItems[existingItemIndex].quantity + quantity,
+        };
+        return newItems;
+      } else {
+        // Item doesn't exist, add new
+        return [...prevItems, { ...item, quantity }];
+      }
+    });
+  };
+
+  // Remove item from cart
+  const removeFromCart = (itemId: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+  };
+
+  // Update item quantity
+  const updateQuantity = (itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(itemId);
+      return;
     }
-  
-    return {
-      cartItems,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      isAdded,
-    };
-  }
+
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId ? { ...item, quantity } : item,
+      ),
+    );
+  };
+
+  // Clear cart
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const isAdded = (book: bookInterface) => {
+    return cartItems.find((item) => item.id === book.id);
+  };
+
+  return {
+    cartItems,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    isAdded,
+  };
+}
