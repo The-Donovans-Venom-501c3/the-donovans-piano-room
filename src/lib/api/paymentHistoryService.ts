@@ -1,7 +1,7 @@
 export interface PaymentHistoryItem {
   id: string;
   date: string | Date;
-  amount: number | null;
+  amount: number | string | null;
   currency: string;
   status: string;
   paymentMethod: string;

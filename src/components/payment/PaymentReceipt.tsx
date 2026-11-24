@@ -25,8 +25,9 @@ export interface PaymentReceiptProps {
   onClose: () => void;
 }
 
-function formatAmount(amount: number | null | undefined, currency = "USD") {
-  const value = typeof amount === "number" ? amount : 0;
+function formatAmount(amount: number | string | null | undefined, currency = "USD") {
+  const parsedAmount = amount == null ? null : Number(amount);
+  const value = parsedAmount != null && Number.isFinite(parsedAmount) ? parsedAmount : 0;
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",
