@@ -10,6 +10,7 @@ import {
   CheckoutProvider,
   CartQuoteResponse,
   CheckoutResponse,
+  CART_CHECKOUT_RECEIPT_STORAGE_KEY,
 } from "@/lib/api/cartService";
 import PaymentReceipt from "@/components/payment/PaymentReceipt";
 
@@ -132,6 +133,23 @@ export default function PaymentCard() {
     try {
       const result = await checkoutCart(provider, addedCartItems, appliedCoupon ?? undefined);
       if (result?.approvalUrl) {
+        try {
+          sessionStorage.setItem(
+            CART_CHECKOUT_RECEIPT_STORAGE_KEY,
+            JSON.stringify({
+              amount: result.amount ?? result.total ?? null,
+              currency: result.currency || "USD",
+              orderId: result.orderId || null,
+              items: addedCartItems.map((item) => ({
+                title: item.title,
+                quantity: item.quantity,
+                totalPrice: item.price * item.quantity,
+              })),
+            })
+          );
+        } catch {
+          // Continue checkout even if the browser blocks session storage.
+        }
         window.location.href = result.approvalUrl;
         return;
       }

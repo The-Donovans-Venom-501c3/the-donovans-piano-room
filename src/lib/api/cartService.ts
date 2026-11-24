@@ -2,6 +2,8 @@ import { bookCartItemInterface } from "@/interfaces/bookInterface";
 
 export type CheckoutProvider = "card" | "paypal" | "venmo";
 
+export const CART_CHECKOUT_RECEIPT_STORAGE_KEY = "tdpr_cart_checkout_receipt";
+
 export interface CartQuoteItem {
   product_id: string;
   name: string;
