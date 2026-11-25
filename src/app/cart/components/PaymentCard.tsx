@@ -1,28 +1,55 @@
 "use client";
+
 import React, { useMemo, useState } from "react";
 import Button4 from "@/components/atoms/Button4";
 import { useAtomValue } from "jotai";
 import { addedCartItemsAtom } from "@/store/cartStore";
 import { checkoutCart, CheckoutProvider } from "@/lib/api/cartService";
+import { BillingAddressData } from "./PaymentForm";
 
-export default function PaymentCard() {
-  const addedCartItems = useAtomValue(addedCartItemsAtom)
+export default function PaymentCard({
+  billingAddress,
+}: {
+  billingAddress?: BillingAddressData | null;
+}) {
+  const addedCartItems = useAtomValue(addedCartItemsAtom);
   const [activeProvider, setActiveProvider] = useState<CheckoutProvider | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
 
   const cartItemsPrice = useMemo(() => {
-    let total = 0.00
-    addedCartItems.forEach(item => {
-      total += item.price * item.quantity
-    })
-    return total
-  }, [addedCartItems])
+    let total = 0.0;
+    addedCartItems.forEach((item) => {
+      total += item.price * item.quantity;
+    });
+    return total;
+  }, [addedCartItems]);
 
   const isCartEmpty = addedCartItems.length === 0;
 
+  const isBillingValid = (): boolean => {
+    if (!billingAddress) return false;
+    const requiredFields = [
+      billingAddress.firstName,
+      billingAddress.lastName,
+      billingAddress.country,
+      billingAddress.address,
+      billingAddress.city,
+      billingAddress.state,
+      billingAddress.zip,
+    ];
+    return requiredFields.every((field) => field.trim() !== "");
+  };
+
   const handleCheckout = async (provider: CheckoutProvider) => {
     if (isCartEmpty || activeProvider) return;
+
+    if (!isBillingValid()) {
+      setCheckoutError("Please complete all required billing address fields.");
+      setCheckoutMessage(null);
+      return;
+    }
+
     setActiveProvider(provider);
     setCheckoutError(null);
     setCheckoutMessage(null);
@@ -33,9 +60,13 @@ export default function PaymentCard() {
         window.location.href = result.approvalUrl;
         return;
       }
-      setCheckoutMessage(result?.message || "Order placed! Check your email for confirmation.");
+      setCheckoutMessage(
+        result?.message || "Order placed! Check your email for confirmation."
+      );
     } catch (error: any) {
-      setCheckoutError(error?.message || "Checkout is unavailable right now. Please try again.");
+      setCheckoutError(
+        error?.message || "Checkout is unavailable right now. Please try again."
+      );
     } finally {
       setActiveProvider(null);
     }
@@ -47,25 +78,36 @@ export default function PaymentCard() {
         Order Summary
       </h4>
 
-
       <div className="flex flex-col gap-[1vh]">
         <div className="flex flex-col gap-[0.5vh]">
           <div className="flex justify-between items-center">
-            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">Original Price</p>
-            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">${cartItemsPrice.toFixed(2)}</p>
+            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">
+              Original Price
+            </p>
+            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">
+              ${cartItemsPrice.toFixed(2)}
+            </p>
           </div>
 
           <div className="flex justify-between items-center">
-            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">Shipping</p>
-            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">$3.00</p>
+            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">
+              Shipping
+            </p>
+            <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">
+              $3.00
+            </p>
           </div>
         </div>
 
         <div className="border-t-2 border-[#D8BCFD]"></div>
 
         <div className="flex justify-between items-center font-bold">
-          <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">Total</p>
-          <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">${(cartItemsPrice + 3.00).toFixed(2)}</p>
+          <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">
+            Total
+          </p>
+          <p className="font-roboto text-[1.6rem] leading-[24px] text-[#1C1A1A]">
+            ${(cartItemsPrice + 3.0).toFixed(2)}
+          </p>
         </div>
       </div>
 
@@ -73,16 +115,24 @@ export default function PaymentCard() {
         {/* Credit-card checkout hidden for now: raw card collection is not PCI-compliant.
             Re-enable once a PSP-hosted card element (Stripe/Braintree) is integrated. */}
         <Button4
-          text={activeProvider === 'paypal' ? "Redirecting..." : "Check out with PayPal"}
-          style={{ height: '40px', fontSize: '1.5rem' }}
+          text={
+            activeProvider === "paypal"
+              ? "Redirecting..."
+              : "Check out with PayPal"
+          }
+          style={{ height: "40px", fontSize: "1.5rem" }}
           disabled={isCartEmpty || activeProvider !== null}
-          onClick={() => void handleCheckout('paypal')}
+          onClick={() => void handleCheckout("paypal")}
         />
         <Button4
-          text={activeProvider === 'venmo' ? "Redirecting..." : "Check out with Venmo"}
-          style={{ height: '40px', fontSize: '1.5rem' }}
+          text={
+            activeProvider === "venmo"
+              ? "Redirecting..."
+              : "Check out with Venmo"
+          }
+          style={{ height: "40px", fontSize: "1.5rem" }}
           disabled={isCartEmpty || activeProvider !== null}
-          onClick={() => void handleCheckout('venmo')}
+          onClick={() => void handleCheckout("venmo")}
         />
 
         {isCartEmpty && (
@@ -91,10 +141,14 @@ export default function PaymentCard() {
           </p>
         )}
         {checkoutError && (
-          <p className="text-center text-[1.3rem] font-semibold text-red-600">{checkoutError}</p>
+          <p className="text-center text-[1.3rem] font-semibold text-red-600">
+            {checkoutError}
+          </p>
         )}
         {checkoutMessage && (
-          <p className="text-center text-[1.3rem] font-semibold text-green-700">{checkoutMessage}</p>
+          <p className="text-center text-[1.3rem] font-semibold text-green-700">
+            {checkoutMessage}
+          </p>
         )}
       </div>
     </div>
