@@ -1,106 +1,84 @@
-import { bookCartItemInterface } from "@/interfaces/bookInterface";
+export interface BillingAddressData {
+  firstName: string;
+  lastName: string;
+  country: string;
+  address: string;
+  apartment?: string;
+  city: string;
+  state: string;
+  zip: string;
+}
 
-export type CheckoutProvider = "card" | "paypal" | "venmo";
+async function apiFetch<T>(url: string, options: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 
-export const CART_CHECKOUT_RECEIPT_STORAGE_KEY = "tdpr_cart_checkout_receipt";
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
 
-export interface CartQuoteItem {
-  product_id: string;
-  name: string;
+  return response.json() as Promise<T>;
+}
+
+export type CheckoutProvider = "paypal" | "venmo";
+
+export interface CartCheckoutItem {
+  bookId?: string | number;
+  title?: string;
+  price: number;
   quantity: number;
-  unit_price: number;
-  line_total: number;
-  discount: number;
 }
 
 export interface CartQuoteResponse {
-  success?: boolean;
-  items?: CartQuoteItem[];
-  itemTotal?: number;
-  subtotal?: number;
-  discount?: number;
-  discountAmt?: number;
-  shipping?: number;
-  total?: number;
-  totalAmt?: number;
+  itemTotal: number;
+  discount: number;
+  shipping: number;
+  total: number;
   couponCode?: string | null;
-  message?: string;
-  error?: string;
 }
 
-export interface CheckoutResponse extends CartQuoteResponse {
-  orderId?: string;
+export interface CheckoutResponse {
+  message?: string;
   approvalUrl?: string;
+  orderId?: string;
   amount?: number;
+  total?: number;
   currency?: string;
 }
 
-function toCartPayload(items: bookCartItemInterface[]) {
-  return {
-    items: items.map((item) => ({
-      product_id: item.id,
-      name: item.title,
-      quantity: item.quantity,
-      // Display hint only - the backend re-prices the book before charging.
-      price: item.price,
-    })),
-  };
-}
+export const CART_CHECKOUT_RECEIPT_STORAGE_KEY = "cart_checkout_receipt";
 
 export async function quoteCart(
-  items: bookCartItemInterface[],
-  couponCode?: string,
+  items: CartCheckoutItem[],
+  couponCode?: string
 ): Promise<CartQuoteResponse> {
-  try {
-    const response = await fetch("/api/cart/quote", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        cart: toCartPayload(items),
-        couponCode: couponCode?.trim() || undefined,
-      }),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.error) {
-      throw new Error(data.error || data.message || "Could not apply coupon");
-    }
-
-    return data;
-  } catch (error: any) {
-    throw new Error(error.message || "Could not apply coupon");
-  }
+  return apiFetch<CartQuoteResponse>("/api/cart/quote", {
+    method: "POST",
+    body: JSON.stringify({
+      items,
+      couponCode: couponCode || undefined,
+    }),
+  });
 }
 
 export async function checkoutCart(
   provider: CheckoutProvider,
-  items: bookCartItemInterface[],
+  items: CartCheckoutItem[],
   couponCode?: string,
+  billingAddress?: BillingAddressData
 ): Promise<CheckoutResponse> {
-  try {
-    const response = await fetch("/api/cart/checkout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        provider,
-        cart: toCartPayload(items),
-        couponCode: couponCode?.trim() || undefined,
-      }),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.error) {
-      throw new Error(data.error || data.message || "Checkout failed");
-    }
-
-    return data;
-  } catch (error: any) {
-    throw new Error(error.message || "An error occurred during checkout");
-  }
+  return apiFetch<CheckoutResponse>("/api/cart/checkout", {
+    method: "POST",
+    body: JSON.stringify({
+      provider,
+      items,
+      couponCode: couponCode || undefined,
+      billingAddress: billingAddress || undefined,
+    }),
+  });
 }
