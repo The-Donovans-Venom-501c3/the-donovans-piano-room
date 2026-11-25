@@ -1,4 +1,5 @@
 import { bookCartItemInterface } from "@/interfaces/bookInterface";
+import type { BillingAddressData } from "@/app/cart/components/PaymentForm";
 
 export type CheckoutProvider = "card" | "paypal" | "venmo";
 
