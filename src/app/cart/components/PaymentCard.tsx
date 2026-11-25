@@ -13,9 +13,14 @@ import {
   CART_CHECKOUT_RECEIPT_STORAGE_KEY,
 } from "@/lib/api/cartService";
 import PaymentReceipt from "@/components/payment/PaymentReceipt";
+import { BillingAddressData } from "./PaymentForm";
 
-export default function PaymentCard() {
-  const addedCartItems = useAtomValue(addedCartItemsAtom)
+export default function PaymentCard({
+  billingAddress,
+}: {
+  billingAddress?: BillingAddressData | null;
+}) {
+  const addedCartItems = useAtomValue(addedCartItemsAtom);
   const [activeProvider, setActiveProvider] = useState<CheckoutProvider | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
@@ -37,12 +42,12 @@ export default function PaymentCard() {
   }, []);
 
   const cartItemsPrice = useMemo(() => {
-    let total = 0.00
-    addedCartItems.forEach(item => {
-      total += item.price * item.quantity
-    })
-    return total
-  }, [addedCartItems])
+    let total = 0.0;
+    addedCartItems.forEach((item) => {
+      total += item.price * item.quantity;
+    });
+    return total;
+  }, [addedCartItems]);
 
   // Re-price an applied coupon when quantities/items change. The backend is
   // always the source of truth for both the discount and the final total.
@@ -86,6 +91,20 @@ export default function PaymentCard() {
   const total = quote?.total ?? subtotal + shipping;
   const isCartEmpty = addedCartItems.length === 0;
 
+  const isBillingValid = (): boolean => {
+    if (!billingAddress) return false;
+    const requiredFields = [
+      billingAddress.firstName,
+      billingAddress.lastName,
+      billingAddress.country,
+      billingAddress.address,
+      billingAddress.city,
+      billingAddress.state,
+      billingAddress.zip,
+    ];
+    return requiredFields.every((field) => field.trim() !== "");
+  };
+
   const handleApplyCoupon = async () => {
     const code = couponInput.trim();
     if (!code) {
@@ -118,6 +137,11 @@ export default function PaymentCard() {
 
   const handleCheckout = async (provider: CheckoutProvider) => {
     if (isCartEmpty || activeProvider) return;
+    if (!isBillingValid()) {
+      setCheckoutError("Please complete all required billing address fields.");
+      setCheckoutMessage(null);
+      return;
+    }
     if (provider !== "paypal") {
       setCheckoutError("Venmo checkout isn't available yet - please use PayPal.");
       return;
@@ -126,7 +150,12 @@ export default function PaymentCard() {
     setCheckoutError(null);
     setCheckoutMessage(null);
     try {
-      const result = await checkoutCart(provider, addedCartItems, appliedCoupon ?? undefined);
+      const result = await checkoutCart(
+        provider,
+        addedCartItems,
+        appliedCoupon ?? undefined,
+        billingAddress ?? undefined
+      );
       if (result?.approvalUrl) {
         try {
           sessionStorage.setItem(
@@ -152,7 +181,9 @@ export default function PaymentCard() {
       setReceiptData(result);
       setShowReceipt(true);
     } catch (error: any) {
-      setCheckoutError(error?.message || "Checkout is unavailable right now. Please try again.");
+      setCheckoutError(
+        error?.message || "Checkout is unavailable right now. Please try again."
+      );
     } finally {
       setActiveProvider(null);
     }
@@ -238,16 +269,20 @@ export default function PaymentCard() {
 
       <div className="flex flex-col gap-[16px] mt-[6%]">
         <Button4
-          text={activeProvider === 'paypal' ? "Redirecting..." : "Check out with PayPal"}
-          style={{ height: '40px', fontSize: '1.5rem' }}
+          text={
+            activeProvider === "paypal"
+              ? "Redirecting..."
+              : "Check out with PayPal"
+          }
+          style={{ height: "40px", fontSize: "1.5rem" }}
           disabled={isCartEmpty || activeProvider !== null}
-          onClick={() => void handleCheckout('paypal')}
+          onClick={() => void handleCheckout("paypal")}
         />
         <Button4
           text="Check out with Venmo (coming soon)"
           style={{ height: '40px', fontSize: '1.5rem' }}
           disabled={isCartEmpty || activeProvider !== null}
-          onClick={() => void handleCheckout('venmo')}
+          onClick={() => void handleCheckout("venmo")}
         />
 
         <p className="text-center text-[1.3rem] font-medium text-primary-gray">
@@ -260,10 +295,14 @@ export default function PaymentCard() {
           </p>
         )}
         {checkoutError && (
-          <p className="text-center text-[1.3rem] font-semibold text-red-600">{checkoutError}</p>
+          <p className="text-center text-[1.3rem] font-semibold text-red-600">
+            {checkoutError}
+          </p>
         )}
         {checkoutMessage && (
-          <p className="text-center text-[1.3rem] font-semibold text-green-700">{checkoutMessage}</p>
+          <p className="text-center text-[1.3rem] font-semibold text-green-700">
+            {checkoutMessage}
+          </p>
         )}
       </div>
 
