@@ -14,7 +14,7 @@ export interface LiveSession {
 
 export interface SessionJoinConfig {
   session: LiveSession;
-  wsUrl: string;
+  socket: LiveSessionSocketTicket;
   permissions: {
     isHost: boolean;
     canChat: boolean;
@@ -30,6 +30,13 @@ export interface SessionJoinConfig {
     typingWindowMs: number;
     heartbeatIntervalMs: number;
   };
+}
+
+export interface LiveSessionSocketTicket {
+  url: string;
+  ticket: string;
+  ticketExpiresInSeconds: number;
+  protocolVersion: number;
 }
 
 export interface CurrentUserRestriction {
