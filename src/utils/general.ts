@@ -30,6 +30,7 @@ export const settingsNavigation = {
   profile: "Profile",
   membership: "Membership",
   paymentMethods: "PaymentMethods",
+  paymentHistory: "PaymentHistory",
   notification: "Notification",
   timeSpent: "TimeSpent",
 };
