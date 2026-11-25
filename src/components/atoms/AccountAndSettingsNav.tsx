@@ -1,3 +1,5 @@
+"use client";
+
 import { settingsNavigation } from "@/utils/general";
 import { hasUnreadAtom } from "@/utils/stores";
 import { useAtomValue } from "jotai";
@@ -21,6 +23,11 @@ export default function AccountAndSettingsNav({currentPage}: {currentPage: strin
           <p className="text-primary-gray text-xl 3xl:text-2xl 4xl:text-3xl py-[.5vh] px-[1vw] rounded-xl"
           style={currentPage === settingsNavigation.paymentMethods ? {background: "#D8BCFD", fontWeight: "600", color: "#6F219E"} : {}}
           >Payment methods</p>
+        </Link>
+        <Link href="/account/payment-history">
+          <p className="text-primary-gray text-xl 3xl:text-2xl 4xl:text-3xl py-[.5vh] px-[1vw] rounded-xl"
+          style={currentPage === settingsNavigation.paymentHistory ? {background: "#D8BCFD", fontWeight: "600", color: "#6F219E"} : {}}
+          >Payment history</p>
         </Link>
         <Link href="/account/notifications">
           <p className="relative text-primary-gray text-xl 3xl:text-2xl 4xl:text-3xl py-[.5vh] px-[1vw] rounded-xl"

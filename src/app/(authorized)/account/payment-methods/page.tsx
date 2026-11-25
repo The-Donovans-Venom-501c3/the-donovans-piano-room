@@ -17,7 +17,6 @@ import { getPaymentMethodIcon } from "@/app/(authorized)/account/membership/conf
 import PaymentMethodForm, {
   PaymentMethodFormData,
 } from "@/components/payment/PaymentMethodForm";
-import PaymentHistory from "@/components/payment/PaymentHistory";
 import "@/styles/primary-purple-scrollbar.css";
 
 export default function PaymentMethodsPage() {
@@ -346,7 +345,6 @@ export default function PaymentMethodsPage() {
             </div>
           )}
 
-          <PaymentHistory />
         </div>
       </div>
     </AuthorizedWrapper1>
