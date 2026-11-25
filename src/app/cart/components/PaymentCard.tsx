@@ -14,12 +14,8 @@ import {
 } from "@/lib/api/cartService";
 import PaymentReceipt from "@/components/payment/PaymentReceipt";
 
-export default function PaymentCard({
-  billingAddress,
-}: {
-  billingAddress?: BillingAddressData | null;
-}) {
-  const addedCartItems = useAtomValue(addedCartItemsAtom);
+export default function PaymentCard() {
+  const addedCartItems = useAtomValue(addedCartItemsAtom)
   const [activeProvider, setActiveProvider] = useState<CheckoutProvider | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
@@ -41,12 +37,12 @@ export default function PaymentCard({
   }, []);
 
   const cartItemsPrice = useMemo(() => {
-    let total = 0.0;
-    addedCartItems.forEach((item) => {
-      total += item.price * item.quantity;
-    });
-    return total;
-  }, [addedCartItems]);
+    let total = 0.00
+    addedCartItems.forEach(item => {
+      total += item.price * item.quantity
+    })
+    return total
+  }, [addedCartItems])
 
   // Re-price an applied coupon when quantities/items change. The backend is
   // always the source of truth for both the discount and the final total.
@@ -156,9 +152,7 @@ export default function PaymentCard({
       setReceiptData(result);
       setShowReceipt(true);
     } catch (error: any) {
-      setCheckoutError(
-        error?.message || "Checkout is unavailable right now. Please try again."
-      );
+      setCheckoutError(error?.message || "Checkout is unavailable right now. Please try again.");
     } finally {
       setActiveProvider(null);
     }
@@ -174,6 +168,7 @@ export default function PaymentCard({
       <h4 className="font-roboto text-4xl font-semibold leading-[28px] text-[#59371D]">
         Order Summary
       </h4>
+
 
       <div className="flex flex-col gap-[1vh]">
         <div className="flex flex-col gap-[0.5vh]">
@@ -243,20 +238,16 @@ export default function PaymentCard({
 
       <div className="flex flex-col gap-[16px] mt-[6%]">
         <Button4
-          text={
-            activeProvider === "paypal"
-              ? "Redirecting..."
-              : "Check out with PayPal"
-          }
-          style={{ height: "40px", fontSize: "1.5rem" }}
+          text={activeProvider === 'paypal' ? "Redirecting..." : "Check out with PayPal"}
+          style={{ height: '40px', fontSize: '1.5rem' }}
           disabled={isCartEmpty || activeProvider !== null}
-          onClick={() => void handleCheckout("paypal")}
+          onClick={() => void handleCheckout('paypal')}
         />
         <Button4
           text="Check out with Venmo (coming soon)"
           style={{ height: '40px', fontSize: '1.5rem' }}
           disabled={isCartEmpty || activeProvider !== null}
-          onClick={() => void handleCheckout("venmo")}
+          onClick={() => void handleCheckout('venmo')}
         />
 
         <p className="text-center text-[1.3rem] font-medium text-primary-gray">
@@ -269,14 +260,10 @@ export default function PaymentCard({
           </p>
         )}
         {checkoutError && (
-          <p className="text-center text-[1.3rem] font-semibold text-red-600">
-            {checkoutError}
-          </p>
+          <p className="text-center text-[1.3rem] font-semibold text-red-600">{checkoutError}</p>
         )}
         {checkoutMessage && (
-          <p className="text-center text-[1.3rem] font-semibold text-green-700">
-            {checkoutMessage}
-          </p>
+          <p className="text-center text-[1.3rem] font-semibold text-green-700">{checkoutMessage}</p>
         )}
       </div>
 
