@@ -3,15 +3,14 @@
 import React, { useState } from "react";
 import PaymentCard from "./PaymentCard";
 import ListedItemCard from "./ListedItemCard";
-import PaymentForm, { BillingAddressData } from "./PaymentForm";
+import PaymentForm, { ShippingAddressData } from "./PaymentForm";
 import { useAtom } from "jotai";
 import { addedCartItemsAtom } from "@/store/cartStore";
 
 export default function ItemsAddedCart() {
   const [addedCartItems] = useAtom(addedCartItemsAtom);
-  const [billingAddress, setBillingAddress] = useState<BillingAddressData | null>(
-    null
-  );
+  const [shippingAddress, setShippingAddress] =
+    useState<ShippingAddressData | null>(null);
 
   return (
     <div className="flex flex-col lg:flex-row w-full h-full justify-between tablet:gap-8 laptop:gap-10 desktop:gap-12 tablet:pb-[6%]">
@@ -20,10 +19,12 @@ export default function ItemsAddedCart() {
           <ListedItemCard key={index} book={book} index={index} />
         ))}
 
-        <PaymentForm onBillingChange={(billing) => setBillingAddress(billing)} />
+        <PaymentForm
+          onShippingChange={(shipping) => setShippingAddress(shipping)}
+        />
       </div>
 
-      <PaymentCard billingAddress={billingAddress} />
+      <PaymentCard shippingAddress={shippingAddress} />
     </div>
   );
 }

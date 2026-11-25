@@ -3,10 +3,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { BillingAddressData } from "@/lib/api/cartService";
 
-export type { BillingAddressData };
+export type ShippingAddressData = BillingAddressData;
 
 interface PaymentFormProps {
-  onBillingChange?: (billing: BillingAddressData | null) => void;
+  onShippingChange?: (shipping: ShippingAddressData | null) => void;
 }
 
 interface CountryOption {
@@ -147,10 +147,10 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
 };
 
-export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
+export default function PaymentForm({ onShippingChange }: PaymentFormProps) {
   const countries = useMemo(() => getCountries(), []);
-  const onBillingChangeRef = useRef(onBillingChange);
-  onBillingChangeRef.current = onBillingChange;
+  const onShippingChangeRef = useRef(onShippingChange);
+  onShippingChangeRef.current = onShippingChange;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -162,10 +162,10 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
   const [zip, setZip] = useState("");
 
   useEffect(() => {
-    const callback = onBillingChangeRef.current;
+    const callback = onShippingChangeRef.current;
     if (!callback) return;
 
-    const payload: BillingAddressData = {
+    const payload: ShippingAddressData = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       country,
@@ -197,12 +197,12 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
 
   return (
     <section
-      aria-label="Billing Address"
+      aria-label="Shipping Address"
       className="flex flex-col rounded-[12px] bg-white p-[32px] gap-[18px] shadow-md w-full"
     >
       <div className="flex flex-col gap-1">
         <h4 className="font-roboto text-4xl font-semibold leading-[28px] text-[#59371D]">
-          Billing Address
+          Shipping Address
         </h4>
         <p style={{ fontSize: "1.25rem", lineHeight: "1.6rem" }} className="text-primary-gray">
           Required fields are marked with <span className="text-red-600 font-semibold">*</span>.
@@ -211,14 +211,14 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
         <div className="flex flex-col gap-[6px]">
-          <label htmlFor="billing-first-name" style={labelStyle}>
+          <label htmlFor="shipping-first-name" style={labelStyle}>
             First Name <span className="text-red-600">*</span>
           </label>
           <input
-            id="billing-first-name"
-            name="billingFirstName"
+            id="shipping-first-name"
+            name="shippingFirstName"
             type="text"
-            autoComplete="given-name"
+            autoComplete="shipping given-name"
             placeholder="First name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
@@ -227,14 +227,14 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
         </div>
 
         <div className="flex flex-col gap-[6px]">
-          <label htmlFor="billing-last-name" style={labelStyle}>
+          <label htmlFor="shipping-last-name" style={labelStyle}>
             Last Name <span className="text-red-600">*</span>
           </label>
           <input
-            id="billing-last-name"
-            name="billingLastName"
+            id="shipping-last-name"
+            name="shippingLastName"
             type="text"
-            autoComplete="family-name"
+            autoComplete="shipping family-name"
             placeholder="Last name"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
@@ -244,13 +244,13 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
       </div>
 
       <div className="flex flex-col gap-[6px]">
-        <label htmlFor="billing-country" style={labelStyle}>
+        <label htmlFor="shipping-country" style={labelStyle}>
           Country / Region <span className="text-red-600">*</span>
         </label>
         <select
-          id="billing-country"
-          name="billingCountry"
-          autoComplete="country"
+          id="shipping-country"
+          name="shippingCountry"
+          autoComplete="shipping country"
           value={country}
           onChange={(e) => handleCountryChange(e.target.value)}
           style={inputStyle}
@@ -264,14 +264,14 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
       </div>
 
       <div className="flex flex-col gap-[6px]">
-        <label htmlFor="billing-address" style={labelStyle}>
+        <label htmlFor="shipping-address" style={labelStyle}>
           Street Address <span className="text-red-600">*</span>
         </label>
         <input
-          id="billing-address"
-          name="billingAddress"
+          id="shipping-address"
+          name="shippingAddress"
           type="text"
-          autoComplete="address-line1"
+          autoComplete="shipping address-line1"
           placeholder="Street address"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
@@ -280,14 +280,14 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
       </div>
 
       <div className="flex flex-col gap-[6px]">
-        <label htmlFor="billing-apartment" style={labelStyle}>
+        <label htmlFor="shipping-apartment" style={labelStyle}>
           Apartment, suite, unit, etc. (optional)
         </label>
         <input
-          id="billing-apartment"
-          name="billingApartment"
+          id="shipping-apartment"
+          name="shippingApartment"
           type="text"
-          autoComplete="address-line2"
+          autoComplete="shipping address-line2"
           placeholder="Apartment, suite, unit, etc."
           value={apartment}
           onChange={(e) => setApartment(e.target.value)}
@@ -297,14 +297,14 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px]">
         <div className="flex flex-col gap-[6px]">
-          <label htmlFor="billing-city" style={labelStyle}>
+          <label htmlFor="shipping-city" style={labelStyle}>
             City <span className="text-red-600">*</span>
           </label>
           <input
-            id="billing-city"
-            name="billingCity"
+            id="shipping-city"
+            name="shippingCity"
             type="text"
-            autoComplete="address-level2"
+            autoComplete="shipping address-level2"
             placeholder="City"
             value={city}
             onChange={(e) => setCity(e.target.value)}
@@ -313,15 +313,15 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
         </div>
 
         <div className="flex flex-col gap-[6px]">
-          <label htmlFor="billing-state" style={labelStyle}>
+          <label htmlFor="shipping-state" style={labelStyle}>
             {country === "US" ? "State" : "State / Province"}{" "}
             <span className="text-red-600">*</span>
           </label>
           {country === "US" ? (
             <select
-              id="billing-state"
-              name="billingState"
-              autoComplete="address-level1"
+              id="shipping-state"
+              name="shippingState"
+              autoComplete="shipping address-level1"
               value={stateRegion}
               onChange={(e) => setStateRegion(e.target.value)}
               style={inputStyle}
@@ -335,10 +335,10 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
             </select>
           ) : (
             <input
-              id="billing-state"
-              name="billingState"
+              id="shipping-state"
+              name="shippingState"
               type="text"
-              autoComplete="address-level1"
+              autoComplete="shipping address-level1"
               placeholder="State / Province / Region"
               value={stateRegion}
               onChange={(e) => setStateRegion(e.target.value)}
@@ -348,15 +348,15 @@ export default function PaymentForm({ onBillingChange }: PaymentFormProps) {
         </div>
 
         <div className="flex flex-col gap-[6px]">
-          <label htmlFor="billing-zip" style={labelStyle}>
+          <label htmlFor="shipping-zip" style={labelStyle}>
             {country === "US" ? "ZIP Code" : "Postal Code"}{" "}
             <span className="text-red-600">*</span>
           </label>
           <input
-            id="billing-zip"
-            name="billingZip"
+            id="shipping-zip"
+            name="shippingZip"
             type="text"
-            autoComplete="postal-code"
+            autoComplete="shipping postal-code"
             placeholder={country === "US" ? "ZIP code" : "Postal code"}
             value={zip}
             onChange={(e) => setZip(e.target.value)}
