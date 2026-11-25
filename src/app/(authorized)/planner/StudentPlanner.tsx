@@ -169,23 +169,7 @@ async function calendarApiRequest<T>(
   pathWithoutPrefix: string,
   init?: RequestInit
 ): Promise<T> {
-  const candidates = [
-    `/api/calendar${pathWithoutPrefix}`,
-    `/calendar${pathWithoutPrefix}`,
-  ];
-  let lastError: unknown;
-  for (const url of candidates) {
-    try {
-      return await apiRequest<T>(url, init);
-    } catch (err) {
-      lastError = err;
-      const msg = err instanceof Error ? err.message : "";
-      if (!msg.includes("404")) {
-        throw err;
-      }
-    }
-  }
-  throw lastError ?? new Error("Calendar endpoint not found");
+  return apiRequest<T>(`/calendar${pathWithoutPrefix}`, init);
 }
 
 function buildFallbackSessions(
