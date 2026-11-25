@@ -24,6 +24,8 @@ interface CurrentUserProp {
   pronouns?: string;
 }
 
+const LIVE_SESSION_HOST_USER_ID = "p7xfhhe7le9rswpz4wace1eh";
+
 const sections: NavItem[] = [
   { name: "E-books", id: "ebooks" },
   { name: "Videos", id: "videos" },
@@ -47,18 +49,17 @@ function LessonsPageContent() {
 
   // Load logged-in user for LiveSessionsComponent
   useEffect(() => {
-    apiRequest<Record<string, unknown>>("/users/me")
+    apiRequest<Record<string, unknown>>("/user/", { cache: "no-store" })
       .then((res) => {
         const user = (res?.user as Record<string, unknown>) || res;
         if (!user || !user.id) return;
 
         const userId = String(user.id);
-        const hostId = process.env.NEXT_PUBLIC_LIVE_SESSION_HOST_USER_ID;
         const isHost =
           Boolean(user.isHost) ||
           user.role === "host" ||
           user.role === "admin" ||
-          (Boolean(hostId) && hostId === userId);
+          LIVE_SESSION_HOST_USER_ID === userId;
 
         setCurrentUser({
           id: userId,

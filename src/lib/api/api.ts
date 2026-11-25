@@ -84,6 +84,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -160,7 +161,11 @@ export async function apiRequest<T>(
       payload && typeof payload === "object" && "message" in payload
         ? String((payload as { message: unknown }).message)
         : `Request to ${path} failed with status ${response.status}`;
-    throw new ApiError(message, response.status);
+    const code =
+      payload && typeof payload === "object" && "code" in payload
+        ? String((payload as { code: unknown }).code)
+        : undefined;
+    throw new ApiError(message, response.status, code);
   }
 
   // --- CACHE WRITE LAYER ---

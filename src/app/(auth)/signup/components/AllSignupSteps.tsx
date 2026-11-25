@@ -1,7 +1,13 @@
 "use client";
 
-import { useAtomValue } from "jotai";
-import { signupStepAtom } from "@/utils/stores";
+import { useEffect } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  membershipChoiceAtom,
+  resetSignupStateAtom,
+  signupFormDataAtom,
+  signupStepAtom,
+} from "@/utils/stores";
 
 import SignupForm from "./SignupForm";
 import EmailVerificationContent from "./email-verification/components/EmailVerificationContent";
@@ -12,6 +18,14 @@ import SignUpConfirmation from "./SignUpConfirmation";
 
 export default function AllSignupSteps() {
   const step = useAtomValue(signupStepAtom);
+  const formData = useAtomValue(signupFormDataAtom);
+  const membershipChoice = useAtomValue(membershipChoiceAtom);
+  const resetSignupState = useSetAtom(resetSignupStateAtom);
+
+  useEffect(() => {
+    if (step >= 2 && !formData.email) resetSignupState();
+    else if (step >= 5 && !membershipChoice) resetSignupState();
+  }, [step, formData.email, membershipChoice, resetSignupState]);
 
   return (
     <div className="w-full min-h-[calc(100vh-160px)] flex flex-col items-center justify-center px-4 py-8">

@@ -106,7 +106,6 @@ export default function Payment({
         </p>
       )}
 
-      {/* 3. Payment Method Details Card */}
       {!errorMessage && (
         <div className="rounded-2xl border border-[#F6E2D1] bg-[#FFEBD5] p-4 shadow-custom">
           {isBeta ? (

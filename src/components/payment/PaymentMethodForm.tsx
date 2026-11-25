@@ -2,15 +2,6 @@
 
 import { FormEvent, useState } from "react";
 
-/**
- * Reusable payment-method entry form (credit/debit card or PayPal).
- *
- * TODO(backend/payments): This form currently collects raw card data for UI
- * development only. Before going live, swap the card inputs for a PSP-hosted
- * solution (Stripe PaymentElement, Braintree Hosted Fields, PayPal Buttons, ...)
- * so raw PAN/CVV never touches our servers. The submit handler should then emit
- * the PSP token/nonce instead of `cardNumber`/`cvv`.
- */
 
 export interface CardPaymentData {
   paymentMethodType: "card";
@@ -20,8 +11,8 @@ export interface CardPaymentData {
   expiryMonth: string;
   expiryYear: string;
   billingZip: string;
-  cardNumber: string; // TODO(backend/payments): replace with PSP token/nonce
-  cvv: string; // TODO(backend/payments): replace with PSP token/nonce
+  cardNumber: string;
+  cvv: string;
 }
 
 export interface PaypalPaymentData {
@@ -74,9 +65,6 @@ interface PaymentMethodFormProps {
   submitLabel?: string;
   isLoading?: boolean;
   allowPayPal?: boolean;
-  /** Show the credit/debit card entry form. Disabled by default — the raw card
-   *  inputs are NOT PCI-compliant and must be replaced with PSP-hosted fields
-   *  (Stripe PaymentElement, Braintree Hosted Fields, ...) before enabling. */
   allowCard?: boolean;
 }
 

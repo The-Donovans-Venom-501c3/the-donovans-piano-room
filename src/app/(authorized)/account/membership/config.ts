@@ -149,7 +149,6 @@ export const MEMBERSHIP_UI_CONFIG: Record<MembershipLevelId, PlanCardUIConfig> =
 };
 
 
-// Payment method brand icons configuration
 export const PAYMENT_METHOD_ICONS: Record<PaymentMethodBrand, string> = {
   [PaymentMethodBrand.VISA]: "/memberships/Payment/Visa.svg",
   [PaymentMethodBrand.AMEX]: "/memberships/Payment/Amex.svg",
@@ -169,7 +168,6 @@ export const DATE_FORMATS = {
   }
 } as const;
 
-// Helper function to get payment method icon
 export const getPaymentMethodIcon = (brand: string): string => {
   // Normalize the brand name and try to match it to our enum values
   const normalizedBrand = brand.toLowerCase().trim();

@@ -80,7 +80,6 @@ export async function middleware(request: NextRequest) {
 
       if (refreshResponse.status === 200) {
         isSessionValid = true;
-        // Capture the new set-cookie header sent back by the backend refresh route
         newSetCookieHeader = refreshResponse.headers.get("set-cookie");
       }
     } catch (error) {

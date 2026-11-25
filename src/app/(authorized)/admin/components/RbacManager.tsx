@@ -353,7 +353,7 @@ function ActionsSection({ catalog, run, busy }: SectionProps) {
 
       <section className="panel form-panel">
         <div className="panel-head">
-          <div><h2 className="panel-title">{editing ? "Edit action" : "Create action"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : "POST · New action"}</div></div>
+          <div><h2 className="panel-title">{editing ? "Edit action" : "Create action"}</h2><div className="panel-subtitle">{editing ? `Editing ${editing}` : ""}</div></div>
           {editing && <button className="button secondary" onClick={reset}>Cancel</button>}
         </div>
         <form onSubmit={submit}>

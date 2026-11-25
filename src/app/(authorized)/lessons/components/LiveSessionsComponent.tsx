@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useLiveSession } from "@/utils/useLiveSession";
-import { ChatMode } from "@/interfaces/liveSessionInterface";
+import { ChatMode, ServerReaction } from "@/interfaces/liveSessionInterface";
 
 interface LiveSessionsComponentProps {
   currentUser?: {
@@ -19,12 +19,10 @@ interface LiveSessionsComponentProps {
 type SidePanelTab = "people" | "chat" | "react" | "poll" | null;
 
 interface FloatingReaction {
-  id: number;
+  id: string;
   emoji: string;
   leftPercent: number;
 }
-
-const SUPPORTED_REACTIONS = ["👏", "❤️", "🎉", "🔥", "😂", "👍"];
 
 function extractYouTubeChannelId(input?: string): { id: string; type: "channel" | "handle" | "none" } {
   const channelInput = input?.trim() || process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_NAME?.trim() || "";
@@ -54,40 +52,60 @@ export default function LiveSessionsComponent({
   const [participantSearch, setParticipantSearch] = useState("");
 
   const [showCreateSessionModal, setShowCreateSessionModal] = useState(false);
-  const [newVideoId, setNewVideoId] = useState("");
   const [newSessionTitle, setNewSessionTitle] = useState("");
+  const [createSessionValidationError, setCreateSessionValidationError] = useState<string | null>(null);
 
   const [newQuestion, setNewQuestion] = useState("");
   const [newOptions, setNewOptions] = useState(["", ""]);
   const [pollSelected, setPollSelected] = useState<string | null>(null);
+  const [pollValidationError, setPollValidationError] = useState<string | null>(null);
 
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [hasEmbedError, setHasEmbedError] = useState(false);
 
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const reactionTimersRef = useRef<
+    Map<string, ReturnType<typeof setTimeout>>
+  >(new Map());
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const triggerReaction = useCallback((emoji: string) => {
-    const newId = Date.now() + Math.random();
+  const triggerReaction = useCallback((reaction: ServerReaction) => {
+    if (reactionTimersRef.current.has(reaction.id)) return;
     const randomLeft = Math.floor(Math.random() * 70) + 15;
 
     setFloatingReactions((prev) => [
       ...prev,
-      { id: newId, emoji, leftPercent: randomLeft },
+      { id: reaction.id, emoji: reaction.emoji, leftPercent: randomLeft },
     ]);
 
-    setTimeout(() => {
-      setFloatingReactions((prev) => prev.filter((item) => item.id !== newId));
+    const timeout = setTimeout(() => {
+      setFloatingReactions((prev) =>
+        prev.filter((item) => item.id !== reaction.id)
+      );
+      reactionTimersRef.current.delete(reaction.id);
     }, 2000);
+    reactionTimersRef.current.set(reaction.id, timeout);
+  }, []);
+
+  useEffect(() => {
+    const reactionTimers = reactionTimersRef.current;
+    return () => {
+      for (const timeout of reactionTimers.values()) clearTimeout(timeout);
+      reactionTimers.clear();
+    };
   }, []);
 
   const {
     currentSession,
     isLoadingSession,
+    refreshCurrentSession,
+    isCreatingSession,
+    createSessionError,
+    clearCreateSessionError,
     isJoined,
     isJoining,
     connectionState,
@@ -97,11 +115,22 @@ export default function LiveSessionsComponent({
     restriction,
     activeRestrictions,
     participants,
+    activeParticipantCount,
+    presenceStatus,
     messages,
     hasMoreMessages,
     isLoadingOlder,
+    isSendingMessage,
     loadOlderMessages,
     activePoll,
+    pollLimits,
+    pollOperation,
+    pollError,
+    allowedReactions,
+    canReact,
+    isSendingReaction,
+    isReactionRateLimited,
+    reactionError,
     typingNames,
     joinSession,
     leaveSession,
@@ -111,12 +140,12 @@ export default function LiveSessionsComponent({
     createPoll,
     votePoll,
     closePoll,
+    dismissClosedPoll,
     changeChatMode,
     deleteMessage,
     restrictUser,
     unrestrictUser,
     registerHostSession,
-    syncYouTube,
   } = useLiveSession({
     currentUserId: currentUser.id,
     onReaction: triggerReaction,
@@ -164,11 +193,16 @@ export default function LiveSessionsComponent({
     }
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatMessage.trim()) return;
-    sendMessage(chatMessage);
-    setChatMessage("");
+    const submittedDraft = chatMessage;
+    const accepted = await sendMessage(submittedDraft);
+    if (accepted) {
+      setChatMessage((currentDraft) =>
+        currentDraft === submittedDraft ? "" : currentDraft
+      );
+    }
   };
 
   const handleChatScroll = () => {
@@ -180,22 +214,83 @@ export default function LiveSessionsComponent({
 
   const handleCreatePoll = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validOptions = newOptions.filter((opt) => opt.trim() !== "");
-    if (!newQuestion.trim() || validOptions.length < 2) return;
+    const question = newQuestion.trim();
+    const validOptions = newOptions
+      .map((option) => option.trim())
+      .filter(Boolean);
 
-    await createPoll(newQuestion.trim(), validOptions);
-    setNewQuestion("");
-    setNewOptions(["", ""]);
-    setPollSelected(null);
+    if (!question) {
+      setPollValidationError("Enter a poll question.");
+      return;
+    }
+    if ([...question].length > pollLimits.questionMaxCodePoints) {
+      setPollValidationError(
+        `The question must be ${pollLimits.questionMaxCodePoints} characters or fewer.`
+      );
+      return;
+    }
+    if (
+      validOptions.length < pollLimits.optionMinCount ||
+      validOptions.length > pollLimits.optionMaxCount
+    ) {
+      setPollValidationError(
+        `Add between ${pollLimits.optionMinCount} and ${pollLimits.optionMaxCount} options.`
+      );
+      return;
+    }
+    if (
+      validOptions.some(
+        (option) => [...option].length > pollLimits.optionMaxCodePoints
+      )
+    ) {
+      setPollValidationError(
+        `Each option must be ${pollLimits.optionMaxCodePoints} characters or fewer.`
+      );
+      return;
+    }
+
+    const normalizedOptions = validOptions.map((option) =>
+      option.normalize("NFKC").toLowerCase()
+    );
+    if (new Set(normalizedOptions).size !== normalizedOptions.length) {
+      setPollValidationError("Poll options must be unique.");
+      return;
+    }
+
+    setPollValidationError(null);
+    const launched = await createPoll(question, validOptions);
+    if (launched) {
+      setNewQuestion("");
+      setNewOptions(["", ""]);
+      setPollSelected(null);
+    }
+  };
+
+  const handleVotePoll = async () => {
+    if (!pollSelected) return;
+    const recorded = await votePoll(pollSelected);
+    if (recorded) setPollSelected(null);
   };
 
   const handleCreateSessionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newVideoId.trim()) return;
-    await registerHostSession(newVideoId.trim(), newSessionTitle.trim() || undefined);
-    setShowCreateSessionModal(false);
-    setNewVideoId("");
-    setNewSessionTitle("");
+    const title = newSessionTitle.trim();
+    if (!title) {
+      setCreateSessionValidationError("Enter a lesson title.");
+      return;
+    }
+    if ([...title].length > 200) {
+      setCreateSessionValidationError("The title must be 200 characters or fewer.");
+      return;
+    }
+
+    setCreateSessionValidationError(null);
+    const session = await registerHostSession(title);
+    if (session) {
+      setShowCreateSessionModal(false);
+      setNewSessionTitle("");
+      clearCreateSessionError();
+    }
   };
 
   const filteredParticipants = useMemo(() => {
@@ -209,11 +304,29 @@ export default function LiveSessionsComponent({
     [activeRestrictions]
   );
 
+  useEffect(() => {
+    setPollSelected(null);
+    setPollValidationError(null);
+  }, [activePoll?.id]);
+
+  useEffect(() => {
+    if (activePoll?.isClosed || activePoll?.userVotedOptionId) {
+      setPollSelected(null);
+    }
+  }, [activePoll?.isClosed, activePoll?.userVotedOptionId]);
+
   const codePointCount = [...chatMessage].length;
   const isChatDisabled =
     connectionState !== "connected" ||
+    isSendingMessage ||
     Boolean(restriction) ||
-    (!isHost && chatMode !== "open");
+    (!isHost && chatMode !== "enabled");
+  const areReactionsDisabled =
+    connectionState !== "connected" ||
+    !canReact ||
+    isSendingReaction ||
+    isReactionRateLimited;
+  const canDisplayPollResults = isHost || Boolean(activePoll?.isClosed);
 
   return (
     <div className="w-full flex flex-col justify-start items-start">
@@ -234,14 +347,6 @@ export default function LiveSessionsComponent({
             </div>
 
             <div className="flex items-center gap-3">
-              {isHost && (
-                <button
-                  onClick={syncYouTube}
-                  className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold px-3 py-1.5 rounded-lg transition cursor-pointer"
-                >
-                  ↻ Sync YouTube
-                </button>
-              )}
               <a
                 href={directWatchUrl}
                 target="_blank"
@@ -345,7 +450,7 @@ export default function LiveSessionsComponent({
                       activePanel === "people" ? "bg-purple-600 text-white" : "bg-[#41285E]/90 text-white hover:bg-purple-800"
                     }`}
                   >
-                    <span>👥</span> People ({participants.length})
+                    <span>👥</span> People ({activeParticipantCount})
                   </button>
                   <button
                     onClick={() => handlePanelOpen("chat")}
@@ -392,7 +497,7 @@ export default function LiveSessionsComponent({
                   <div className="bg-[#6B21A8] text-[#FDE047] rounded-t-3xl px-6 py-4 flex items-center justify-between w-full lg:w-[320px] xl:w-[350px] shadow-2xl border-t border-x border-purple-400/30">
                     <span className="font-extrabold text-sm md:text-base tracking-wide">
                       {activePanel === "chat" && "Meeting chat"}
-                      {activePanel === "people" && `Participants (${participants.length})`}
+                      {activePanel === "people" && `Participants (${activeParticipantCount})`}
                       {activePanel === "react" && "Reactions"}
                       {activePanel === "poll" && "Poll"}
                     </span>
@@ -405,7 +510,7 @@ export default function LiveSessionsComponent({
                   <div className="w-full lg:w-[320px] xl:w-[350px] bg-[#F8F5FB] rounded-3xl p-4 flex flex-col justify-between shadow-xl shrink-0 border border-purple-100/50 h-full">
                     <div className="flex items-center justify-between pb-2 shrink-0 px-1">
                       <h3 className="font-extrabold text-lg text-[#4A1D0B]">
-                        {activePanel === "people" && `Participants (${participants.length})`}
+                        {activePanel === "people" && `Participants (${activeParticipantCount})`}
                         {activePanel === "chat" && "Meeting chat"}
                         {activePanel === "react" && "Reactions"}
                         {activePanel === "poll" && "Poll"}
@@ -427,7 +532,7 @@ export default function LiveSessionsComponent({
                               onChange={(e) => changeChatMode(e.target.value as ChatMode)}
                               className="bg-white border border-purple-200 rounded-lg px-2 py-0.5 font-bold text-purple-900 outline-none cursor-pointer"
                             >
-                              <option value="open">Open</option>
+                              <option value="enabled">Open</option>
                               <option value="read_only">Read-only</option>
                               <option value="disabled">Disabled</option>
                             </select>
@@ -481,9 +586,9 @@ export default function LiveSessionsComponent({
                                             minute: "2-digit",
                                           })}
                                         </span>
-                                        {isHost && (
+                                        {isHost && !m.isDeleted && (
                                           <button
-                                            onClick={() => deleteMessage(m.id)}
+                                            onClick={() => void deleteMessage(m.id)}
                                             className="text-[10px] text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition cursor-pointer"
                                             title="Delete message"
                                           >
@@ -497,7 +602,15 @@ export default function LiveSessionsComponent({
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-700 font-medium pl-1 break-words">{m.text}</p>
+                                {m.isDeleted ? (
+                                  <p className="text-xs text-gray-400 italic font-medium pl-1">
+                                    This message was deleted by the host.
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-gray-700 font-medium pl-1 break-words">
+                                    {m.text}
+                                  </p>
+                                )}
                               </div>
                             ))
                           )}
@@ -517,14 +630,22 @@ export default function LiveSessionsComponent({
                           </p>
                         )}
 
+                        {error && (
+                          <p className="text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-1.5 mt-1 font-semibold">
+                            {error}
+                          </p>
+                        )}
+
                         <form onSubmit={handleSendMessage} className="relative mt-2 shrink-0">
                           <input
                             type="text"
                             placeholder={
                               restriction
                                 ? "Chat restricted"
-                                : chatMode !== "open" && !isHost
+                                : chatMode !== "enabled" && !isHost
                                 ? "Chat is read-only"
+                                : isSendingMessage
+                                ? "Sending message..."
                                 : "Send a message"
                             }
                             disabled={isChatDisabled}
@@ -559,6 +680,28 @@ export default function LiveSessionsComponent({
                           />
                         )}
                         <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                          {presenceStatus === "loading" && (
+                            <p className="text-center text-[11px] text-purple-700 font-semibold py-2">
+                              Connecting to live participant updates...
+                            </p>
+                          )}
+                          {presenceStatus === "reconnecting" && (
+                            <p className="text-center text-[11px] text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
+                              Reconnecting. Showing the last known participant list.
+                            </p>
+                          )}
+                          {presenceStatus === "error" && filteredParticipants.length === 0 && (
+                            <p className="text-center text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2">
+                              Unable to load participants. Live updates will retry automatically.
+                            </p>
+                          )}
+                          {presenceStatus === "live" && filteredParticipants.length === 0 && (
+                            <p className="text-center text-xs text-gray-400 py-4">
+                              {participantSearch.trim()
+                                ? "No participants found."
+                                : "No active participants."}
+                            </p>
+                          )}
                           {filteredParticipants.map((user) => {
                             const isUserRestricted =
                               user.isRestricted || restrictedUserIds.has(user.id);
@@ -604,24 +747,51 @@ export default function LiveSessionsComponent({
 
                     {/* REACTIONS PANEL */}
                     {activePanel === "react" && (
-                      <div className="flex-1 flex items-center justify-center py-4">
-                        <div className="grid grid-cols-3 gap-3 text-3xl bg-white p-4 rounded-3xl w-full text-center border border-purple-50">
-                          {SUPPORTED_REACTIONS.map((emoji) => (
-                            <button
-                              key={emoji}
-                              onClick={() => sendReaction(emoji)}
-                              className="p-2 hover:scale-125 transition transform active:scale-95 cursor-pointer"
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
+                      <div className="flex-1 flex flex-col items-center justify-center gap-3 py-4">
+                        {reactionError && (
+                          <p className="w-full text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2 font-semibold text-center">
+                            {reactionError}
+                          </p>
+                        )}
+                        {connectionState === "reconnecting" && !reactionError && (
+                          <p className="w-full text-[11px] text-amber-700 bg-amber-50 rounded-xl px-3 py-2 text-center">
+                            Reconnecting. Reactions will be available shortly.
+                          </p>
+                        )}
+                        {allowedReactions.length > 0 ? (
+                          <div className="grid grid-cols-3 gap-3 text-3xl bg-white p-4 rounded-3xl w-full text-center border border-purple-50">
+                            {allowedReactions.map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => sendReaction(emoji)}
+                                disabled={areReactionsDisabled}
+                                className="p-2 hover:scale-125 transition transform active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-xs text-gray-400">
+                            Reactions are not available for this session.
+                          </p>
+                        )}
+                        {isSendingReaction && (
+                          <p className="text-[10px] text-purple-700 font-semibold">
+                            Sending reaction...
+                          </p>
+                        )}
                       </div>
                     )}
 
                     {/* POLL PANEL */}
                     {activePanel === "poll" && (
                       <div className="flex-1 my-2 flex flex-col justify-between overflow-y-auto">
+                        {pollError && (
+                          <p className="text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2 mb-2 font-semibold">
+                            {pollError}
+                          </p>
+                        )}
                         {activePoll ? (
                           <div className="space-y-3 flex-1 flex flex-col justify-between">
                             <div className="space-y-2">
@@ -637,27 +807,28 @@ export default function LiveSessionsComponent({
                               </div>
 
                               {activePoll.options.map((opt) => {
-                                const total =
-                                  activePoll.totalVotes ??
-                                  activePoll.options.reduce((sum, o) => sum + o.votes, 0);
+                                const total = activePoll.totalVotes;
                                 const pct = total > 0 ? Math.round((opt.votes / total) * 100) : 0;
-                                const showResults =
-                                  isHost || activePoll.isClosed || Boolean(activePoll.userVotedOptionId);
+                                const canSelect =
+                                  !isHost &&
+                                  !activePoll.isClosed &&
+                                  !activePoll.userVotedOptionId &&
+                                  pollOperation === "idle";
                                 const isChosen =
                                   activePoll.userVotedOptionId === opt.id || pollSelected === opt.id;
 
                                 return (
                                   <button
                                     key={opt.id}
-                                    disabled={showResults}
+                                    disabled={!canSelect}
                                     onClick={() => setPollSelected(opt.id)}
                                     className={`w-full text-left p-2.5 rounded-2xl border text-xs font-semibold transition relative overflow-hidden ${
                                       isChosen
                                         ? "border-purple-600 bg-purple-100 text-purple-900"
                                         : "border-gray-200 bg-white text-gray-800"
-                                    } ${!showResults ? "cursor-pointer" : "cursor-default"}`}
+                                    } ${canSelect ? "cursor-pointer" : "cursor-default"}`}
                                   >
-                                    {showResults && (
+                                    {canDisplayPollResults && (
                                       <div
                                         className="absolute inset-y-0 left-0 bg-purple-200/50 transition-all"
                                         style={{ width: `${pct}%` }}
@@ -665,7 +836,7 @@ export default function LiveSessionsComponent({
                                     )}
                                     <div className="relative flex items-center justify-between">
                                       <span>{opt.text}</span>
-                                      {showResults && (
+                                      {canDisplayPollResults && (
                                         <span className="text-[11px] font-extrabold text-purple-900">
                                           {pct}% ({opt.votes})
                                         </span>
@@ -674,24 +845,42 @@ export default function LiveSessionsComponent({
                                   </button>
                                 );
                               })}
+
+                              {!isHost &&
+                                !activePoll.isClosed &&
+                                activePoll.userVotedOptionId && (
+                                  <p className="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2 font-semibold">
+                                    Your answer has been submitted. Results will appear when the poll closes.
+                                  </p>
+                                )}
                             </div>
 
                             {!isHost && !activePoll.isClosed && !activePoll.userVotedOptionId && (
                               <button
-                                onClick={() => pollSelected && votePoll(pollSelected)}
-                                disabled={!pollSelected}
+                                onClick={handleVotePoll}
+                                disabled={!pollSelected || pollOperation !== "idle"}
                                 className="w-full bg-purple-700 text-white font-extrabold text-xs py-2.5 rounded-2xl disabled:opacity-50 mt-2 transition cursor-pointer"
                               >
-                                Submit Answer
+                                {pollOperation === "voting" ? "Submitting..." : "Submit Answer"}
                               </button>
                             )}
 
                             {isHost && !activePoll.isClosed && (
                               <button
                                 onClick={closePoll}
-                                className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs py-2.5 rounded-2xl mt-2 transition cursor-pointer"
+                                disabled={pollOperation !== "idle"}
+                                className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs py-2.5 rounded-2xl mt-2 transition cursor-pointer disabled:opacity-50"
                               >
-                                Close Poll
+                                {pollOperation === "closing" ? "Closing..." : "Close Poll"}
+                              </button>
+                            )}
+
+                            {isHost && activePoll.isClosed && (
+                              <button
+                                onClick={dismissClosedPoll}
+                                className="w-full bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs py-2.5 rounded-2xl mt-2 transition cursor-pointer"
+                              >
+                                Create Another Poll
                               </button>
                             )}
                           </div>
@@ -705,32 +894,62 @@ export default function LiveSessionsComponent({
                               onChange={(e) => setNewQuestion(e.target.value)}
                               className="w-full bg-white text-xs border border-gray-200 rounded-xl p-2.5 outline-none focus:border-purple-600"
                             />
+                            <p className={`text-right text-[10px] ${[...newQuestion].length > pollLimits.questionMaxCodePoints ? "text-red-600" : "text-gray-400"}`}>
+                              {[...newQuestion].length}/{pollLimits.questionMaxCodePoints}
+                            </p>
                             {newOptions.map((opt, i) => (
-                              <input
-                                key={i}
-                                type="text"
-                                placeholder={`Option ${i + 1}`}
-                                value={opt}
-                                onChange={(e) => {
-                                  const updated = [...newOptions];
-                                  updated[i] = e.target.value;
-                                  setNewOptions(updated);
-                                }}
-                                className="w-full bg-white text-xs border border-gray-200 rounded-xl p-2.5 outline-none focus:border-purple-600"
-                              />
+                              <div key={i} className="space-y-1">
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder={`Option ${i + 1}`}
+                                    value={opt}
+                                    onChange={(e) => {
+                                      const updated = [...newOptions];
+                                      updated[i] = e.target.value;
+                                      setNewOptions(updated);
+                                    }}
+                                    className="min-w-0 flex-1 bg-white text-xs border border-gray-200 rounded-xl p-2.5 outline-none focus:border-purple-600"
+                                  />
+                                  {newOptions.length > pollLimits.optionMinCount && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setNewOptions((current) =>
+                                          current.filter((_, index) => index !== i)
+                                        )
+                                      }
+                                      className="text-red-600 text-xs font-bold px-1 cursor-pointer"
+                                      aria-label={`Remove option ${i + 1}`}
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                                <p className={`text-right text-[10px] ${[...opt].length > pollLimits.optionMaxCodePoints ? "text-red-600" : "text-gray-400"}`}>
+                                  {[...opt].length}/{pollLimits.optionMaxCodePoints}
+                                </p>
+                              </div>
                             ))}
                             <button
                               type="button"
                               onClick={() => setNewOptions([...newOptions, ""])}
-                              className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer"
+                              disabled={newOptions.length >= pollLimits.optionMaxCount}
+                              className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer disabled:opacity-40 disabled:cursor-default"
                             >
                               + Add Option
                             </button>
+                            {pollValidationError && (
+                              <p className="text-[11px] text-red-600 bg-red-50 rounded-xl px-3 py-2 font-semibold">
+                                {pollValidationError}
+                              </p>
+                            )}
                             <button
                               type="submit"
-                              className="w-full bg-purple-700 text-white font-extrabold text-xs py-2.5 rounded-2xl transition cursor-pointer mt-2"
+                              disabled={pollOperation !== "idle"}
+                              className="w-full bg-purple-700 text-white font-extrabold text-xs py-2.5 rounded-2xl transition cursor-pointer mt-2 disabled:opacity-50"
                             >
-                              Launch Poll
+                              {pollOperation === "creating" ? "Launching..." : "Launch Poll"}
                             </button>
                           </form>
                         ) : (
@@ -779,12 +998,17 @@ export default function LiveSessionsComponent({
             <h2 className="text-xl font-extrabold text-[#632200]">
               Live session
             </h2>
-            {currentUser.role === "Presenter" && (
+            {currentUser.role === "Presenter" &&
+              (!currentSession || currentSession.status === "ended") && (
               <button
-                onClick={() => setShowCreateSessionModal(true)}
+                onClick={() => {
+                  setCreateSessionValidationError(null);
+                  clearCreateSessionError();
+                  setShowCreateSessionModal(true);
+                }}
                 className="bg-[#6F219E] hover:bg-purple-900 text-white text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer"
               >
-                + Register YouTube Session
+                + Create Session
               </button>
             )}
           </div>
@@ -831,17 +1055,42 @@ export default function LiveSessionsComponent({
             </div>
 
             <div>
+              {currentSession?.status === "scheduled" && (
+                <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-xs font-semibold text-amber-800">
+                    The YouTube stream was found. You can join when it goes live.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void refreshCurrentSession()}
+                    disabled={isLoadingSession}
+                    className="shrink-0 text-xs font-bold text-purple-800 hover:text-purple-950 disabled:opacity-50 cursor-pointer"
+                  >
+                    Check status
+                  </button>
+                </div>
+              )}
               <button
-                disabled={isLoadingSession || isJoining || !currentSession}
-                onClick={() => currentSession && joinSession(currentSession.id)}
+                disabled={
+                  isLoadingSession ||
+                  isJoining ||
+                  currentSession?.status !== "live"
+                }
+                onClick={() =>
+                  currentSession?.status === "live" && joinSession(currentSession.id)
+                }
                 className="w-full bg-[#6F219E] hover:bg-purple-800 disabled:opacity-50 text-white font-extrabold text-base py-4 px-8 rounded-2xl transition cursor-pointer shadow-md"
               >
                 {isLoadingSession
                   ? "Checking session..."
                   : isJoining
                   ? "Joining..."
-                  : currentSession
+                  : currentSession?.status === "live"
                   ? "Join session"
+                  : currentSession?.status === "scheduled"
+                  ? "Waiting for stream to go live"
+                  : currentSession?.status === "ended"
+                  ? "Session ended"
                   : "No active session right now"}
               </button>
             </div>
@@ -855,48 +1104,65 @@ export default function LiveSessionsComponent({
                 className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4"
               >
                 <h3 className="text-lg font-extrabold text-gray-900">
-                  Register YouTube Live Session
+                  Create Session
                 </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Enter a title for this session. Make sure the YouTube
+                  livestream is already scheduled or live before continuing.
+                </p>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">
-                      YouTube Video ID
+                      Lesson Title
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. dQw4w9WgXcQ"
-                      value={newVideoId}
-                      onChange={(e) => setNewVideoId(e.target.value)}
-                      className="w-full text-xs border border-gray-300 rounded-xl p-2.5 outline-none focus:border-purple-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Lesson Title (optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Monday Live Music Lesson"
+                      placeholder="Beginner Piano Lesson"
                       value={newSessionTitle}
-                      onChange={(e) => setNewSessionTitle(e.target.value)}
+                      onChange={(e) => {
+                        setNewSessionTitle(e.target.value);
+                        setCreateSessionValidationError(null);
+                        clearCreateSessionError();
+                      }}
+                      disabled={isCreatingSession}
                       className="w-full text-xs border border-gray-300 rounded-xl p-2.5 outline-none focus:border-purple-600"
                     />
+                    <p className="mt-1 text-right text-[10px] text-gray-500">
+                      {[...newSessionTitle].length}/200
+                    </p>
                   </div>
                 </div>
+                {(createSessionValidationError || createSessionError) && (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                    {createSessionValidationError || createSessionError}
+                  </div>
+                )}
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowCreateSessionModal(false)}
-                    className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 cursor-pointer"
+                    onClick={() => {
+                      setShowCreateSessionModal(false);
+                      setCreateSessionValidationError(null);
+                      clearCreateSessionError();
+                    }}
+                    disabled={isCreatingSession}
+                    className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 cursor-pointer disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#6F219E] text-white text-xs font-bold rounded-xl cursor-pointer"
+                    disabled={
+                      isCreatingSession ||
+                      !newSessionTitle.trim() ||
+                      [...newSessionTitle.trim()].length > 200
+                    }
+                    className="px-5 py-2 bg-[#6F219E] text-white text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50"
                   >
-                    Create Session
+                    {isCreatingSession
+                      ? "Finding your YouTube livestream…"
+                      : "Create Session"}
                   </button>
                 </div>
               </form>

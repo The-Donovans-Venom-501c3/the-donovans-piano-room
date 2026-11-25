@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AccountAndSettingsNav from "@/components/atoms/AccountAndSettingsNav";
 import AuthorizedWrapper1 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper1";
 import {
@@ -11,6 +11,7 @@ import {
 import { getUserMembership } from "@/lib/api/membershipService";
 import { UserMembership, MembershipLevelId, Plan } from "@/interfaces/membershipInterface";
 import PlanCard from "./components/PlanCard";
+import PaymentReceipt from "@/components/payment/PaymentReceipt";
 import "@/styles/primary-purple-scrollbar.css";
 
 // Normalize backend plan identifier (levelId, membershipId, slug, etc.)
@@ -60,9 +61,11 @@ function resolveMembershipLevelId(membership: any): MembershipLevelId {
 
 export default function Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [membership, setMembership] = useState<UserMembership | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showPlanSelection, setShowPlanSelection] = useState<boolean>(false);
+  const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
 
   // Derive the user's current level from their membership
   const currentLevelId = resolveMembershipLevelId(membership);
@@ -147,6 +150,12 @@ export default function Page() {
   const currentPlan =
     availablePlans.find((p) => p.levelId === currentLevelId) ||
     availablePlans[3];
+
+  useEffect(() => {
+    if (searchParams?.get("payment") === "success") {
+      setShowPaymentReceipt(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -302,6 +311,25 @@ export default function Page() {
               </div>
             </div>
           )}
+
+          {showPaymentReceipt ? (
+            <PaymentReceipt
+              open={true}
+              category="membership"
+              title={`${currentPlan.planName} membership payment`}
+              amount={
+                currentPlan.levelId === MembershipLevelId.YEAR
+                  ? Number(currentPlan.yearlyPrice || currentPlan.price)
+                  : currentPlan.price
+              }
+              currency="USD"
+              effectiveDate={searchParams?.get("effectiveDate")}
+              onClose={() => {
+                setShowPaymentReceipt(false);
+                router.replace("/account/membership");
+              }}
+            />
+          ) : null}
         </div>
       </div>
     </AuthorizedWrapper1>
