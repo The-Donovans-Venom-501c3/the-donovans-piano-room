@@ -13,12 +13,12 @@ import {
   CART_CHECKOUT_RECEIPT_STORAGE_KEY,
 } from "@/lib/api/cartService";
 import PaymentReceipt from "@/components/payment/PaymentReceipt";
-import { BillingAddressData } from "./PaymentForm";
+import { ShippingAddressData } from "./PaymentForm";
 
 export default function PaymentCard({
-  billingAddress,
+  shippingAddress,
 }: {
-  billingAddress?: BillingAddressData | null;
+  shippingAddress?: ShippingAddressData | null;
 }) {
   const addedCartItems = useAtomValue(addedCartItemsAtom);
   const [activeProvider, setActiveProvider] = useState<CheckoutProvider | null>(null);
@@ -91,16 +91,16 @@ export default function PaymentCard({
   const total = quote?.total ?? subtotal + shipping;
   const isCartEmpty = addedCartItems.length === 0;
 
-  const isBillingValid = (): boolean => {
-    if (!billingAddress) return false;
+  const isShippingValid = (): boolean => {
+    if (!shippingAddress) return false;
     const requiredFields = [
-      billingAddress.firstName,
-      billingAddress.lastName,
-      billingAddress.country,
-      billingAddress.address,
-      billingAddress.city,
-      billingAddress.state,
-      billingAddress.zip,
+      shippingAddress.firstName,
+      shippingAddress.lastName,
+      shippingAddress.country,
+      shippingAddress.address,
+      shippingAddress.city,
+      shippingAddress.state,
+      shippingAddress.zip,
     ];
     return requiredFields.every((field) => field.trim() !== "");
   };
@@ -137,8 +137,8 @@ export default function PaymentCard({
 
   const handleCheckout = async (provider: CheckoutProvider) => {
     if (isCartEmpty || activeProvider) return;
-    if (!isBillingValid()) {
-      setCheckoutError("Please complete all required billing address fields.");
+    if (!isShippingValid()) {
+      setCheckoutError("Please complete all required shipping address fields.");
       setCheckoutMessage(null);
       return;
     }
@@ -154,7 +154,7 @@ export default function PaymentCard({
         provider,
         addedCartItems,
         appliedCoupon ?? undefined,
-        billingAddress ?? undefined
+        shippingAddress ?? undefined
       );
       if (result?.approvalUrl) {
         try {
