@@ -1,7 +1,7 @@
 "use client";
 
 import AuthorizedWrapper2 from "@/components/ContentWrappers/authorized-1/AuthorizedWrapper2";
-import Calendar from "../admin/components/Calendar";
+import StudentPlanner from "./StudentPlanner";
 import { authorizedWrapperTitles } from "@/utils/general";
 import { nav4leftLinks } from "@/utils/stores";
 
@@ -10,15 +10,8 @@ export default function PlannerPage() {
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Planner}
       openedLink={nav4leftLinks.planner}
-      contentClassName="admin-ui"
     >
-      <Calendar
-        title="My planner (work in progress)"
-        eyebrow="Make time for music"
-        description="Create and manage your own private events and reminders. Organization events and reminders are visible here."
-        showPermissionBadges={false}
-        personalEditsOnly
-      />
+      <StudentPlanner />
     </AuthorizedWrapper2>
   );
 }
