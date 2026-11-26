@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Metronome from "./components/Metronome";
 import TempoSetting from "./components/TempoSetting";
+import MembershipContentGate from "@/components/membership/MembershipContentGate";
 
 export default function VirtualMetronomePage() {
   const [tempoNum, setTempo] = useState<number>(160);
@@ -50,14 +51,15 @@ export default function VirtualMetronomePage() {
   }, []);
 
   return (
-    <div
-      ref={fullScreenRef}
-      className={`w-full flex flex-col items-center justify-start transition-all ${
-        isExpanded
-          ? "fixed inset-0 z-[9999] bg-[#5B0D86] h-screen w-screen p-0 overflow-hidden"
-          : "px-2 md:px-6 py-4"
-      }`}
-    >
+    <MembershipContentGate>
+      <div
+        ref={fullScreenRef}
+        className={`w-full flex flex-col items-center justify-start transition-all ${
+          isExpanded
+            ? "fixed inset-0 z-[9999] bg-[#5B0D86] h-screen w-screen p-0 overflow-hidden"
+            : "px-2 md:px-6 py-4"
+        }`}
+      >
       {!isExpanded ? (
         /* STANDARD VIEW */
         <div className="w-full max-w-[1000px] mx-auto py-10 px-4">
@@ -178,6 +180,7 @@ export default function VirtualMetronomePage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </MembershipContentGate>
   );
 }

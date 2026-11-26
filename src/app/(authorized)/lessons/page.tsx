@@ -209,6 +209,7 @@ function LessonsPageContent() {
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Lessons}
       openedLink={nav4leftLinks.lessons}
+      requiresMembership
     >
       <div ref={topRef} />
 

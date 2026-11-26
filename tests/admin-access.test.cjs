@@ -19,11 +19,19 @@ function loadTypeScript(relativePath, overrides = {}) {
 }
 
 const access = loadTypeScript("src/lib/auth/adminAccess.ts");
-const route = loadTypeScript("src/lib/auth/adminRoute.ts", { "./adminAccess": access });
-const middleware = loadTypeScript("src/middleware.ts", { "./lib/auth/adminRoute": route });
+const membership = loadTypeScript("src/lib/membershipExpiration.ts");
+const route = loadTypeScript("src/lib/auth/adminRoute.ts", {
+  "./adminAccess": access,
+  "../membershipExpiration": membership,
+});
+const middleware = loadTypeScript("src/middleware.ts", {
+  "./lib/auth/adminRoute": route,
+  "./lib/membershipExpiration": membership,
+});
 const originalFetch = global.fetch;
 afterEach(() => { global.fetch = originalFetch; });
 const admin = { userId: "user-1", personas: [{ id: "persona-uuid", code: "admin", name: "Administrator" }] };
+const activeMembership = { status: "active", nextRenewalAt: "2099-01-01" };
 const backend = "http://backend.test";
 const request = (cookie = "access_token=valid", pathname = "/admin") => new NextRequest(
   `http://frontend.test${pathname}`, { headers: { Cookie: cookie } },
@@ -50,8 +58,8 @@ test("Planner requires login but does not require the administrator persona", as
   const anonymous = await middleware.middleware(request("", "/planner"));
   assert.equal(anonymous.headers.get("location"), "http://frontend.test/login");
   global.fetch = async (url) => {
-    assert.ok(url.endsWith("/api/user/"));
-    return Response.json({ id: "student-1" });
+    if (url.endsWith("/api/user/")) return Response.json({ id: "student-1" });
+    return Response.json(activeMembership);
   };
   const signedIn = await middleware.middleware(request("access_token=student", "/planner"));
   assert.equal(signedIn.headers.get("x-middleware-next"), "1");
@@ -77,10 +85,11 @@ test("non-admin direct links and prefetches are redirected before rendering", as
 
 test("administrator passes only after trusted uncached self-RBAC verification", async () => {
   global.fetch = async (url, init) => {
-    assert.equal(url, `${backend}/api/rbac/me`);
     assert.equal(init.headers.Cookie, "access_token=valid");
     assert.equal(init.cache, "no-store");
-    return Response.json(admin);
+    if (url === `${backend}/api/rbac/me`) return Response.json(admin);
+    assert.equal(url, `${backend}/api/membership/user`);
+    return Response.json(activeMembership);
   };
   const response = await route.authorizeAdminRequest(request(), backend);
   assert.equal(response.headers.get("x-middleware-next"), "1");
@@ -96,12 +105,16 @@ test("refresh must re-check persona using the new token and forward both cookies
         "Set-Cookie": "access_token=new-access; Path=/; HttpOnly; Expires=Wed, 28 Oct 2026 10:00:00 GMT, refresh_token=new-refresh; Path=/; HttpOnly",
       } });
     }
+    if (url.endsWith("/api/membership/user")) {
+      assert.equal(init.headers.Cookie, "access_token=new-access");
+      return Response.json(activeMembership);
+    }
     if (init.headers.Cookie === "access_token=expired") return new Response(null, { status: 401 });
     assert.equal(init.headers.Cookie, "access_token=new-access");
     return Response.json(admin);
   };
   const response = await route.authorizeAdminRequest(request("access_token=expired; refresh_token=refresh"), backend);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.equal(response.headers.get("x-middleware-next"), "1");
   assert.match(response.headers.get("set-cookie"), /refresh_token=new-refresh/);
   assert.match(response.headers.get("x-middleware-request-cookie"), /access_token=new-access/);
@@ -138,4 +151,48 @@ test("unavailable, malformed, and denied authorization never renders admin", asy
     assert.equal(response.headers.get("x-middleware-next"), null);
     assert.ok([307, 503].includes(response.status));
   }
+});
+
+test("inactive membership blocks app routes but leaves Contact and all Account pages available", async () => {
+  global.fetch = async (url) => {
+    if (url.endsWith("/api/user/")) return Response.json({ id: "student-1" });
+    return Response.json({ status: "inactive", nextRenewalAt: "2099-01-01" });
+  };
+
+  const restricted = await middleware.middleware(request("access_token=student", "/games"));
+  assert.equal(restricted.headers.get("location"), "http://frontend.test/contact-page");
+
+  global.fetch = async (url) => {
+    assert.ok(url.endsWith("/api/user/"));
+    return Response.json({ id: "student-1" });
+  };
+  for (const pathname of [
+    "/contact-page",
+    "/account/settings/profile",
+    "/account/membership",
+    "/account/payment-methods",
+    "/account/payment-history",
+    "/account/notifications",
+  ]) {
+    const allowed = await middleware.middleware(request("access_token=student", pathname));
+    assert.equal(allowed.headers.get("x-middleware-next"), "1");
+  }
+});
+
+test("expired scholarship membership blocks non-exempt routes", async () => {
+  global.fetch = async (url) => {
+    if (url.endsWith("/api/user/")) return Response.json({ id: "student-1" });
+    return Response.json({ status: "active", levelId: "lvl_free", nextRenewalAt: "2020-01-01" });
+  };
+  const response = await middleware.middleware(request("access_token=student", "/dashboard"));
+  assert.equal(response.headers.get("location"), "http://frontend.test/contact-page");
+});
+
+test("active, unexpired scholarship membership retains app access", async () => {
+  global.fetch = async (url) => {
+    if (url.endsWith("/api/user/")) return Response.json({ id: "student-1" });
+    return Response.json({ status: "active", levelId: "lvl_free", nextRenewalAt: "2099-01-01" });
+  };
+  const response = await middleware.middleware(request("access_token=student", "/dashboard"));
+  assert.equal(response.headers.get("x-middleware-next"), "1");
 });

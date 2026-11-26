@@ -9,6 +9,7 @@ import {
   settingsNavigation,
 } from "@/utils/general";
 import { getUserMembership } from "@/lib/api/membershipService";
+import { isMembershipRestricted } from "@/lib/membershipExpiration";
 import { UserMembership, MembershipLevelId, Plan } from "@/interfaces/membershipInterface";
 import PlanCard from "./components/PlanCard";
 import PaymentReceipt from "@/components/payment/PaymentReceipt";
@@ -68,7 +69,10 @@ export default function Page() {
   const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
 
   // Derive the user's current level from their membership
-  const currentLevelId = resolveMembershipLevelId(membership);
+  const hasActiveMembership = !isMembershipRestricted(membership);
+  const currentLevelId = hasActiveMembership
+    ? resolveMembershipLevelId(membership)
+    : null;
 
   const availablePlans = [
     {
@@ -81,7 +85,7 @@ export default function Page() {
       period: "annually",
       yearlyPrice: "239.88",
       isPopular: true,
-      isCurrent: currentLevelId === MembershipLevelId.YEAR,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.YEAR,
       benefits: [
         "Best value, biggest savings",
         "Save $120 every year",
@@ -100,7 +104,7 @@ export default function Page() {
       period: "monthly",
       yearlyPrice: "359.88",
       isRecommended: true,
-      isCurrent: currentLevelId === MembershipLevelId.MONTH,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.MONTH,
       benefits: [
         "No long-term commitment",
         "Save $29.70 vs daily pass",
@@ -118,7 +122,7 @@ export default function Page() {
       formattedPrice: "1.99",
       period: "one day",
       yearlyPrice: "726.35",
-      isCurrent: currentLevelId === MembershipLevelId.DAY,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.DAY,
       benefits: [
         "Try before you commit",
         "24 hours, full access",
@@ -135,7 +139,7 @@ export default function Page() {
       price: 0,
       formattedPrice: "FREE",
       period: "Scholarship",
-      isCurrent: currentLevelId === MembershipLevelId.FREE,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.FREE,
       benefits: [
         "100% cost covered",
         "For eligible low-income families",
@@ -147,9 +151,9 @@ export default function Page() {
   ];
 
   // Dynamically resolve the active plan (no hardcoded Scholarship override)
-  const currentPlan =
-    availablePlans.find((p) => p.levelId === currentLevelId) ||
-    availablePlans[3];
+  const currentPlan = hasActiveMembership
+    ? availablePlans.find((p) => p.levelId === currentLevelId)
+    : undefined;
 
   useEffect(() => {
     if (searchParams?.get("payment") === "success") {
@@ -166,7 +170,7 @@ export default function Page() {
         if (!isMounted) return;
         setMembership(userMembership);
 
-        if (userMembership && resolveMembershipLevelId(userMembership)) {
+        if (userMembership && !isMembershipRestricted(userMembership)) {
           setShowPlanSelection(false); // Show Dashboard (View 2)
         } else {
           setShowPlanSelection(true); // Show Selection Grid (View 1) for non-members
@@ -184,7 +188,7 @@ export default function Page() {
   }, []);
 
   const handleRenewClick = () => {
-    if (currentPlan.levelId === MembershipLevelId.FREE) {
+    if (!currentPlan || currentPlan.levelId === MembershipLevelId.FREE) {
       setShowPlanSelection(true);
     } else {
       router.push(`/account/membership/upgrade/${currentPlan.slug}`);
@@ -268,7 +272,7 @@ export default function Page() {
                   <PlanCard
                     plan={currentPlan as unknown as Plan}
                     isScholarship={
-                      currentPlan.levelId === MembershipLevelId.FREE
+                      currentPlan?.levelId === MembershipLevelId.FREE
                     }
                     showExpirationMessage={false}
                   />
@@ -312,7 +316,7 @@ export default function Page() {
             </div>
           )}
 
-          {showPaymentReceipt ? (
+          {showPaymentReceipt && currentPlan ? (
             <PaymentReceipt
               open={true}
               category="membership"

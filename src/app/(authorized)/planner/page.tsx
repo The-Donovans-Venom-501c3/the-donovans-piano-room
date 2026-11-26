@@ -11,6 +11,7 @@ export default function PlannerPage() {
       pageTitle={authorizedWrapperTitles.Planner}
       openedLink={nav4leftLinks.planner}
       contentClassName="admin-ui"
+      requiresMembership
     >
       <Calendar
         title="My planner (work in progress)"

@@ -9,6 +9,7 @@ import {
   settingsNavigation,
 } from "@/utils/general";
 import { getUserMembership } from "@/lib/api/membershipService";
+import { isMembershipRestricted } from "@/lib/membershipExpiration";
 import { UserMembership, MembershipLevelId, Plan } from "@/interfaces/membershipInterface";
 import PlanCard from "../components/PlanCard";
 import RenewMembership from "../components/RenewMembership";
@@ -30,6 +31,7 @@ export default function MembershipPage() {
         const userMembership = await getUserMembership().catch(() => null);
         if (!isMounted) return;
         setMembership(userMembership);
+        setShowPlanSelection(isMembershipRestricted(userMembership));
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -41,7 +43,8 @@ export default function MembershipPage() {
   }, []);
 
   // Map backend levelId or fallback to FREE if unassigned
-  const currentLevelId = membership?.levelId || MembershipLevelId.FREE;
+  const hasActiveMembership = !isMembershipRestricted(membership);
+  const currentLevelId = hasActiveMembership ? membership?.levelId : null;
 
   const availablePlans = [
     {
@@ -54,7 +57,7 @@ export default function MembershipPage() {
       period: "annually",
       yearlyPrice: "239.88",
       isPopular: true,
-      isCurrent: currentLevelId === MembershipLevelId.YEAR,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.YEAR,
       benefits: [
         "Best value, biggest savings",
         "Save $120 every year",
@@ -73,7 +76,7 @@ export default function MembershipPage() {
       period: "monthly",
       yearlyPrice: "359.88",
       isRecommended: true,
-      isCurrent: currentLevelId === MembershipLevelId.MONTH,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.MONTH,
       benefits: [
         "No long-term commitment",
         "Save $29.70 vs daily pass",
@@ -91,7 +94,7 @@ export default function MembershipPage() {
       formattedPrice: "1.99",
       period: "one day",
       yearlyPrice: "726.35",
-      isCurrent: currentLevelId === MembershipLevelId.DAY,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.DAY,
       benefits: [
         "Try before you commit",
         "24 hours, full access",
@@ -108,7 +111,7 @@ export default function MembershipPage() {
       price: 0,
       formattedPrice: "FREE",
       period: "Scholarship",
-      isCurrent: currentLevelId === MembershipLevelId.FREE,
+      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.FREE,
       benefits: [
         "100% cost covered",
         "For eligible low-income families",
@@ -119,7 +122,7 @@ export default function MembershipPage() {
     },
   ];
 
-  const currentPlan = availablePlans.find((p) => p.isCurrent) || availablePlans[3];
+  const currentPlan = availablePlans.find((p) => p.isCurrent);
 
   const handleSelectPlanToUpgrade = (slug: string) => {
     router.push(`/account/membership/upgrade/${slug}`);
@@ -127,7 +130,7 @@ export default function MembershipPage() {
 
   const handleRenewClick = () => {
     // If the current plan is Scholarship (FREE), open the plan selection view
-    if (currentPlan.levelId === MembershipLevelId.FREE) {
+    if (!currentPlan || currentPlan.levelId === MembershipLevelId.FREE) {
       setShowPlanSelection(true);
     } else {
       handleSelectPlanToUpgrade(currentPlan.slug);
@@ -202,7 +205,7 @@ export default function MembershipPage() {
                   <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-6">Current Plan</h2>
                   <PlanCard
                     plan={currentPlan as unknown as Plan}
-                    isScholarship={currentPlan.levelId === MembershipLevelId.FREE}
+                    isScholarship={currentPlan?.levelId === MembershipLevelId.FREE}
                     showExpirationMessage={false}
                     showCurrentInHeader={true}
                   />

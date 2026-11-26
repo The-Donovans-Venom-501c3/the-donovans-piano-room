@@ -7,6 +7,7 @@ import Link from "next/link";
 
 export default function AccountAndSettingsNav({currentPage}: {currentPage: string}) {
   const hasUnread = useAtomValue(hasUnreadAtom)
+
   return (
     <div className="bg-primary-skin w-full p-[1.5vh] mt-[3vh] rounded-xl flex gap-[2vw] relative z-30">
         <Link href="/account/settings/profile">

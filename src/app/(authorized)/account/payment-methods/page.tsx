@@ -135,7 +135,12 @@ export default function PaymentMethodsPage() {
       setActionMessage("Payment method removed.");
       await loadPaymentMethods();
     } catch (e: any) {
-      setActionError(e?.message || "Could not remove the payment method");
+      const message = e?.message || "Could not remove the payment method";
+      setActionError(
+        /only payment method/i.test(message)
+          ? "This is your only saved payment method. Add another payment method first, then you can remove this one."
+          : message,
+      );
     } finally {
       setBusyToken(null);
     }
@@ -143,6 +148,9 @@ export default function PaymentMethodsPage() {
 
   const isPaypal = (method: PaymentMethod) =>
     method.paymentMethodType?.toLowerCase() === "paypal";
+  const activePaymentMethodCount = paymentMethods.filter(
+    (method) => method.status?.toLowerCase() === "active",
+  ).length;
 
   return (
     <AuthorizedWrapper1
@@ -241,6 +249,9 @@ export default function PaymentMethodsPage() {
               {paymentMethods.map((method) => {
                 const busy = busyToken === method.vaultTokenId;
                 const confirming = confirmRemoveToken === method.vaultTokenId;
+                const isOnlyActiveMethod =
+                  method.status?.toLowerCase() === "active" &&
+                  activePaymentMethodCount <= 1;
                 return (
                   <div
                     key={method.vaultTokenId}
@@ -307,24 +318,34 @@ export default function PaymentMethodsPage() {
                         </button>
                       )}
                       {confirming ? (
-                        <>
+                        isOnlyActiveMethod ? (
                           <button
                             type="button"
-                            disabled={busy}
-                            onClick={() => void handleRemove(method.vaultTokenId)}
-                            className="rounded-full bg-red-600 px-5 py-2 text-white font-bold hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-60"
-                          >
-                            {busy ? "Removing..." : "Confirm remove"}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={busy}
                             onClick={() => setConfirmRemoveToken(null)}
-                            className="rounded-full border border-gray-300 px-5 py-2 text-gray-700 font-bold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60"
+                            className="rounded-full border border-gray-300 px-5 py-2 text-gray-700 font-bold hover:bg-gray-50 transition-colors cursor-pointer"
                           >
-                            Keep
+                            Keep payment method
                           </button>
-                        </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void handleRemove(method.vaultTokenId)}
+                              className="rounded-full bg-red-600 px-5 py-2 text-white font-bold hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-60"
+                            >
+                              {busy ? "Removing..." : "Confirm remove"}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => setConfirmRemoveToken(null)}
+                              className="rounded-full border border-gray-300 px-5 py-2 text-gray-700 font-bold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60"
+                            >
+                              Keep
+                            </button>
+                          </>
+                        )
                       ) : (
                         <button
                           type="button"
@@ -339,6 +360,24 @@ export default function PaymentMethodsPage() {
                         </button>
                       )}
                     </div>
+                    {confirming && isOnlyActiveMethod && (
+                      <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+                        <p className="font-semibold">
+                          This is your only active saved payment method, so it can’t be removed yet. Add another payment method first; this one will stay available until then.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setConfirmRemoveToken(null);
+                            setShowAddForm(true);
+                            resetFeedback();
+                          }}
+                          className="mt-3 rounded-full bg-primary-purple px-5 py-2 font-bold text-white hover:bg-[#601D86] transition-colors"
+                        >
+                          Add another payment method
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
