@@ -60,6 +60,7 @@ export default function Page() {
         <AuthorizedWrapper2
             pageTitle={authorizedWrapperTitles.Dashboard}
             openedLink={nav4leftLinks.dashboard}
+            requiresMembership
         >
             <div className="relative flex h-[75vh] mt-[1.5%] overflow-y-auto z-[30] gap-[8%]">
                 <div className="w-[60%]">

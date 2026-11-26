@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { hasAdministratorPersona } from "./adminAccess";
+import { isMembershipRestricted } from "../membershipExpiration";
 
 // This runs before the admin route is rendered, including client navigation and
 // prefetch requests. A client-side profile is not an authorization boundary.
@@ -61,6 +62,26 @@ export async function authorizeAdminRequest(
     if (!authorization.ok) throw new Error("Authorization service unavailable");
     if (!hasAdministratorPersona(await authorization.json())) {
       return finish(NextResponse.redirect(new URL("/dashboard", request.url)));
+    }
+
+    const membershipResponse = await fetch(
+      `${backendBaseUrl}/api/membership/user`,
+      {
+        headers: { Cookie: `access_token=${accessToken}` },
+        cache: "no-store",
+        redirect: "error",
+      },
+    );
+    let membershipRestricted =
+      membershipResponse.status === 404 || membershipResponse.status === 410;
+    if (membershipResponse.ok) {
+      const membership = await membershipResponse.json();
+      membershipRestricted = isMembershipRestricted(membership);
+    }
+    if (membershipRestricted) {
+      return finish(
+        NextResponse.redirect(new URL("/contact-page", request.url)),
+      );
     }
 
     // Make refreshed credentials available to any downstream server components.

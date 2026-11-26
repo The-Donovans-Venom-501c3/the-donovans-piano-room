@@ -74,6 +74,7 @@ function AdminPageContent() {
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Admin}
       openedLink={nav4leftLinks.admin}
+      requiresMembership
       contentHeader={
         <NavBar
           items={sections}

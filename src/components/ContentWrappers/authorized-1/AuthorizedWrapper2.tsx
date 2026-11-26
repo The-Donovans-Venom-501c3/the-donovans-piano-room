@@ -4,6 +4,7 @@ import React from "react";
 import Footer4 from "../../footers/Footer4";
 import Navbar4Left from "../../navbars/Navbar4Left";
 import Image from "next/image";
+import MembershipContentGate from "@/components/membership/MembershipContentGate";
 
 export default function AuthorizedWrapper2({
   children,
@@ -11,6 +12,7 @@ export default function AuthorizedWrapper2({
   openedLink = "",
   contentHeader,
   contentClassName,
+  requiresMembership = false,
 }: {
   children: React.ReactNode;
   pageTitle: string;
@@ -18,6 +20,7 @@ export default function AuthorizedWrapper2({
   contentHeader?: React.ReactNode;
   /** Extra classes for the inner content column (e.g. route-scoped styles). */
   contentClassName?: string;
+  requiresMembership?: boolean;
 }) {
   return (
     <div className="flex w-[100vw] h-[100vh] bg-[#F5E8FF] overflow-hidden">
@@ -49,7 +52,9 @@ export default function AuthorizedWrapper2({
             : "h-[80.8vh] flex justify-center overflow-y-auto scroll-smooth"}
         >
           <div className={`w-[84.7%] relative py-6 ${contentClassName ?? ""}`}>
-            {children}
+            <MembershipContentGate required={requiresMembership}>
+              {children}
+            </MembershipContentGate>
           </div>
         </div>
 

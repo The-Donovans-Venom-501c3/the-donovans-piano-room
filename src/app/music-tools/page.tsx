@@ -48,6 +48,7 @@ export default function MusicToolsPage() {
     <AuthorizedWrapper2
       pageTitle="Music tools"
       openedLink={nav4leftLinks.musicTools}
+      requiresMembership
     >
       <div className="w-full flex flex-col min-h-screen pb-32">
         {/* Navigation Bar Header */}

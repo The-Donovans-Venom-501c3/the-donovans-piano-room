@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Provider as JotaiProvider } from "jotai";
 import Navbar4Left from "@/components/navbars/Navbar4Left";
 import { nav4leftLinks } from "@/utils/stores";
+import MembershipContentGate from "@/components/membership/MembershipContentGate";
 import "./GameShell.scss";
 
 export default function GameShell({ children }: { children: ReactNode }) {
@@ -18,7 +19,7 @@ export default function GameShell({ children }: { children: ReactNode }) {
         {/* Main Stage Viewport Canvas */}
         <main className="games-shell__main">
           <div className="games-shell__viewport">
-            {children}
+            <MembershipContentGate>{children}</MembershipContentGate>
           </div>
         </main>
       </div>

@@ -1,21 +1,22 @@
 // Enums for better type safety
 export enum MembershipStatus {
-  ACTIVE = 'active',
-  CANCELLED = 'cancelled',
+  ACTIVE = "active",
+  CANCELLED = "cancelled",
 }
 
 export enum MembershipLevelId {
-  FREE = 'lvl_free',
-  DAY = 'lvl_day',
-  MONTH = 'lvl_month',
-  YEAR = 'lvl_year'
+  FREE = "lvl_free",
+  BASIC = "lvl_basic",
+  DAY = "lvl_day",
+  MONTH = "lvl_month",
+  YEAR = "lvl_year",
 }
 
 export enum PaymentMethodBrand {
-  VISA = 'visa',
-  AMEX = 'amex',// 'american express'
-  PAYPAL = 'paypal',
-  DEFAULT = 'default'
+  VISA = "visa",
+  AMEX = "amex", // 'american express'
+  PAYPAL = "paypal",
+  DEFAULT = "default",
 }
 
 // Core data structures
@@ -65,14 +66,17 @@ export interface UpgradeResponse {
   approvalUrl?: string;
   effectiveDate?: string;
   error?: string;
-  membershipHistoryId?: string; // This serves as the transaction ID
+  membershipHistoryId?: string;
   prorationAmount?: number;
+  amountPaid?: number;
+  paypalTransactionId?: string;
 }
 
 export interface UserMembership {
   membershipId: string;
   status: MembershipStatus;
   levelId: MembershipLevelId;
+  membershipType?: string;
   nextRenewalAt?: string;
   autoRenew?: boolean;
   paymentMethodSummary?: PaymentMethodSummary;
@@ -102,11 +106,11 @@ export interface Plan {
   period: string;
   benefits: string[];
   moreBenefits: string[];
-  
+
   // Formatted display data
   planName: string;
   formattedPrice: string;
-  
+
   // Display state
   isCurrent?: boolean;
   isPopular?: boolean;
@@ -116,4 +120,3 @@ export interface Plan {
   yearlyPrice?: string;
   billingMessage?: string;
 }
-

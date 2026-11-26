@@ -76,7 +76,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.dashboard,
       icon: "/navbar/NavBar4Left/Dashboard.svg",
       alt: "D",
-      disabled: false,
     },
     {
       href: "/lessons",
@@ -84,7 +83,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.lessons,
       icon: "/navbar/NavBar4Left/Lessons.svg",
       alt: "L",
-      disabled: false,
     },
     {
       href: "/games",
@@ -92,7 +90,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.games,
       icon: "/navbar/NavBar4Left/Games.svg",
       alt: "G",
-      disabled: false,
     },
     {
       href: "/music-tools",
@@ -100,7 +97,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.musicTools,
       icon: "/navbar/NavBar4Left/MusicTools.svg",
       alt: "MT",
-      disabled: false,
     },
     {
       href: "/planner",
@@ -108,7 +104,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.planner,
       icon: "/navbar/NavBar4Left/Planner.svg",
       alt: "P",
-      disabled: false,
     },
     {
       href: "/contact-page",
@@ -116,7 +111,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.contactUs,
       icon: "/navbar/NavBar4Left/Contact.svg",
       alt: "C",
-      disabled: false,
     },
     {
       href: "/admin",
@@ -124,7 +118,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.admin,
       icon: "/navbar/NavBar4Left/Contact.svg",
       alt: "A",
-      disabled: false,
     },
 
   ];
@@ -236,9 +229,7 @@ export default function Navbar4Left({
                 {/* ar: height changed from 8vh to 7vh as test to fit admin item */}
               const linkContent = (
                 <div
-                  className={`flex h-[7vh] w-full items-center rounded-2xl border transition-all ${
-                    item.disabled ? "opacity-50 cursor-not-allowed bg-white" : "cursor-pointer bg-white"
-                  }`}
+                  className="flex h-[7vh] w-full cursor-pointer items-center rounded-2xl border bg-white transition-all"
                   style={{
                     ...(isActive
                       ? {
@@ -250,7 +241,6 @@ export default function Navbar4Left({
                           borderColor: "#F5E8FF",
                           ...linkDynamicStyle,
                         }),
-                    ...(item.disabled ? { filter: "grayscale(90%)" } : {}),
                   }}
                 >
                   <div
@@ -285,8 +275,7 @@ export default function Navbar4Left({
               return (
                 <Link
                   key={item.label}
-                  href={item.disabled ? "#" : item.href}
-                  className={item.disabled ? "pointer-events-none" : ""}
+                  href={item.href}
                 >
                   {linkContent}
                 </Link>

@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const accessToken = request.cookies.get("access_token")?.value;
+  let accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
   let isSessionValid = false;
@@ -79,8 +79,19 @@ export async function middleware(request: NextRequest) {
       );
 
       if (refreshResponse.status === 200) {
-        isSessionValid = true;
         newSetCookieHeader = refreshResponse.headers.get("set-cookie");
+        const refreshedAccessCookie = newSetCookieHeader
+          ?.split(/,(?=\s*[^\s;,=]+=)/)
+          .map((cookie) => cookie.trim())
+          .find((cookie) => cookie.startsWith("access_token="));
+        if (refreshedAccessCookie) {
+          isSessionValid = true;
+          accessToken = refreshedAccessCookie
+            .split(";", 1)[0]
+            .slice("access_token=".length);
+        } else {
+          isSessionValid = false;
+        }
       }
     } catch (error) {
       console.error("Error refreshing token in middleware:", error);
@@ -113,6 +124,9 @@ export async function middleware(request: NextRequest) {
       "Cache-Control",
       "no-store, no-cache, must-revalidate, proxy-revalidate",
     );
+    if (newSetCookieHeader) {
+      response.headers.set("Set-Cookie", newSetCookieHeader);
+    }
     return response;
   }
 
@@ -135,7 +149,11 @@ export const config = {
     "/signup",
     "/dashboard/:path*",
     "/account/:path*",
+    "/lessons/:path*",
+    "/games/:path*",
+    "/music-tools/:path*",
     "/planner/:path*",
+    "/contact-page/:path*",
     "/admin/:path*",
   ],
 };

@@ -9,6 +9,7 @@ import {
   settingsNavigation,
 } from "@/utils/general";
 import { getUserMembership } from "@/lib/api/membershipService";
+import { isMembershipDateExpired } from "@/lib/membershipExpiration";
 import { UserMembership, MembershipLevelId, Plan } from "@/interfaces/membershipInterface";
 import PlanCard from "./components/PlanCard";
 import PaymentReceipt from "@/components/payment/PaymentReceipt";
@@ -17,6 +18,10 @@ import "@/styles/primary-purple-scrollbar.css";
 // Normalize backend plan identifier (levelId, membershipId, slug, etc.)
 function resolveMembershipLevelId(membership: any): MembershipLevelId {
   if (!membership) return MembershipLevelId.FREE;
+
+  const membershipType = String(membership.membershipType || "").toLowerCase().trim();
+  if (membershipType === "basic-access") return MembershipLevelId.BASIC;
+  if (membershipType === "scholarship") return MembershipLevelId.FREE;
 
   const rawId = String(
     membership.levelId ??
@@ -27,6 +32,15 @@ function resolveMembershipLevelId(membership: any): MembershipLevelId {
   )
     .toLowerCase()
     .trim();
+
+  if (
+    rawId === MembershipLevelId.BASIC.toLowerCase() ||
+    rawId === "basic" ||
+    rawId === "basic-access" ||
+    rawId === "5"
+  ) {
+    return MembershipLevelId.BASIC;
+  }
 
   if (
     rawId === MembershipLevelId.YEAR.toLowerCase() ||
@@ -68,7 +82,12 @@ export default function Page() {
   const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
 
   // Derive the user's current level from their membership
-  const currentLevelId = resolveMembershipLevelId(membership);
+  const hasCurrentPlan =
+    membership?.status?.toLowerCase() === "active" &&
+    !isMembershipDateExpired(membership?.nextRenewalAt);
+  const currentLevelId = hasCurrentPlan
+    ? resolveMembershipLevelId(membership)
+    : null;
 
   const availablePlans = [
     {
@@ -81,7 +100,7 @@ export default function Page() {
       period: "annually",
       yearlyPrice: "239.88",
       isPopular: true,
-      isCurrent: currentLevelId === MembershipLevelId.YEAR,
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.YEAR,
       benefits: [
         "Best value, biggest savings",
         "Save $120 every year",
@@ -100,7 +119,7 @@ export default function Page() {
       period: "monthly",
       yearlyPrice: "359.88",
       isRecommended: true,
-      isCurrent: currentLevelId === MembershipLevelId.MONTH,
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.MONTH,
       benefits: [
         "No long-term commitment",
         "Save $29.70 vs daily pass",
@@ -118,7 +137,7 @@ export default function Page() {
       formattedPrice: "1.99",
       period: "one day",
       yearlyPrice: "726.35",
-      isCurrent: currentLevelId === MembershipLevelId.DAY,
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.DAY,
       benefits: [
         "Try before you commit",
         "24 hours, full access",
@@ -135,7 +154,7 @@ export default function Page() {
       price: 0,
       formattedPrice: "FREE",
       period: "Scholarship",
-      isCurrent: currentLevelId === MembershipLevelId.FREE,
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.FREE,
       benefits: [
         "100% cost covered",
         "For eligible low-income families",
@@ -144,12 +163,28 @@ export default function Page() {
       ],
       moreBenefits: [],
     },
+    {
+      levelId: MembershipLevelId.BASIC,
+      slug: "basic",
+      name: "Basic",
+      planName: "Basic",
+      price: 0,
+      formattedPrice: "FREE",
+      period: "limited access",
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.BASIC,
+      benefits: [
+        "Free to start",
+        "Explore a limited selection of games and resources",
+        "Upgrade to full access any time",
+      ],
+      moreBenefits: [],
+    },
   ];
 
   // Dynamically resolve the active plan (no hardcoded Scholarship override)
-  const currentPlan =
-    availablePlans.find((p) => p.levelId === currentLevelId) ||
-    availablePlans[3];
+  const currentPlan = hasCurrentPlan
+    ? availablePlans.find((p) => p.levelId === currentLevelId)
+    : undefined;
 
   useEffect(() => {
     if (searchParams?.get("payment") === "success") {
@@ -166,11 +201,10 @@ export default function Page() {
         if (!isMounted) return;
         setMembership(userMembership);
 
-        if (userMembership && resolveMembershipLevelId(userMembership)) {
-          setShowPlanSelection(false); // Show Dashboard (View 2)
-        } else {
-          setShowPlanSelection(true); // Show Selection Grid (View 1) for non-members
-        }
+        const hasCurrentPlan =
+          userMembership?.status?.toLowerCase() === "active" &&
+          !isMembershipDateExpired(userMembership?.nextRenewalAt);
+        setShowPlanSelection(!hasCurrentPlan);
       } catch (error) {
         console.error("Failed to load membership status", error);
       } finally {
@@ -184,7 +218,11 @@ export default function Page() {
   }, []);
 
   const handleRenewClick = () => {
-    if (currentPlan.levelId === MembershipLevelId.FREE) {
+    if (
+      !currentPlan ||
+      currentPlan.levelId === MembershipLevelId.FREE ||
+      currentPlan.levelId === MembershipLevelId.BASIC
+    ) {
       setShowPlanSelection(true);
     } else {
       router.push(`/account/membership/upgrade/${currentPlan.slug}`);
@@ -268,7 +306,7 @@ export default function Page() {
                   <PlanCard
                     plan={currentPlan as unknown as Plan}
                     isScholarship={
-                      currentPlan.levelId === MembershipLevelId.FREE
+                      currentPlan?.levelId === MembershipLevelId.FREE
                     }
                     showExpirationMessage={false}
                   />
@@ -312,7 +350,7 @@ export default function Page() {
             </div>
           )}
 
-          {showPaymentReceipt ? (
+          {showPaymentReceipt && currentPlan ? (
             <PaymentReceipt
               open={true}
               category="membership"

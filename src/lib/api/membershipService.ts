@@ -30,6 +30,7 @@ export async function getUserMembership() {
         "Content-Type": "application/json",
       },
       credentials: "include",
+      cache: "no-store",
     });
 
     const contentType = response.headers.get("content-type") || "";
@@ -100,6 +101,61 @@ export async function validateCouponCode(
   }
 }
 
+export async function validateScholarshipCode(couponCode: string) {
+  try {
+    const response = await fetch(
+      "/api/membership/user/scholarship/validate-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ couponCode }),
+      },
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        data.message || "That scholarship code could not be verified.",
+      );
+    }
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.message ||
+        "An error occurred while verifying the scholarship code.",
+    );
+  }
+}
+
+export async function validateMembershipCouponCode(
+  membershipId: string,
+  couponCode: string,
+) {
+  try {
+    const response = await fetch("/api/membership/user/coupon/validate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ membershipId, couponCode }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        data.message || "That coupon could not be applied to this plan.",
+      );
+    }
+    return data as { success: boolean; finalAmount: number; message?: string };
+  } catch (error: any) {
+    throw new Error(
+      error.message || "An error occurred while validating the coupon.",
+    );
+  }
+}
+
 export async function getPlanInfo(levelId: string) {
   try {
     if (!levelId) {
@@ -123,13 +179,15 @@ export async function getPlanInfo(levelId: string) {
     return {
       levelId: data.levelId,
       planName:
-        data.levelId === "lvl_free"
-          ? "Scholarship"
-          : data.levelId === "lvl_month"
-            ? "Monthly"
-            : data.levelId === "lvl_year"
-              ? "Yearly"
-              : "Day Pass",
+        data.levelId === "lvl_basic"
+          ? "Basic"
+          : data.levelId === "lvl_free"
+            ? "Scholarship"
+            : data.levelId === "lvl_month"
+              ? "Monthly"
+              : data.levelId === "lvl_year"
+                ? "Yearly"
+                : "Day Pass",
       name: data.name,
       price: data.price,
       period: data.period,
@@ -362,8 +420,9 @@ export async function previewMembershipUpgrade(newMembershipId: string) {
 
 export async function requestMembershipUpgrade(
   newMembershipId: string,
-  vaultTokenId: string,
+  vaultTokenId?: string,
   prorationPreference: "immediate" | "next_cycle" = "immediate",
+  couponCode?: string,
 ) {
   try {
     const response = await fetch("/api/membership/user/upgrade/request", {
@@ -376,6 +435,7 @@ export async function requestMembershipUpgrade(
         newMembershipId,
         vaultTokenId,
         prorationPreference,
+        couponCode,
       }),
     });
 

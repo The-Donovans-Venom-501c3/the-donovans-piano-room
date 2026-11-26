@@ -22,6 +22,7 @@ import SwitchComponent from "./components/Switch";
 import VolumeSlider from "./components/VolumeSlider";
 import { useMIDI } from "./components/useMidi";
 import { playSynthesizedNote } from "@/utils/soundEngine";
+import MembershipContentGate from "@/components/membership/MembershipContentGate";
 
 export default function VirtualPiano() {
   const [isPiano, setIsPiano] = useState(true);
@@ -81,14 +82,15 @@ export default function VirtualPiano() {
   }, []);
 
   return (
-    <div
-      ref={fullScreenRef}
-      className={`w-full flex flex-col items-center justify-start transition-all ${
-        isExpanded
-          ? "fixed inset-0 z-[9999] bg-[#5B0D86] h-screen w-screen p-0 overflow-hidden"
-          : "px-2 md:px-6 py-4"
-      }`}
-    >
+    <MembershipContentGate>
+      <div
+        ref={fullScreenRef}
+        className={`w-full flex flex-col items-center justify-start transition-all ${
+          isExpanded
+            ? "fixed inset-0 z-[9999] bg-[#5B0D86] h-screen w-screen p-0 overflow-hidden"
+            : "px-2 md:px-6 py-4"
+        }`}
+      >
       {!isExpanded ? (
         /* STANDARD VIEW */
         <div className="w-full max-w-[1400px] mx-auto flex flex-col items-center">
@@ -343,6 +345,7 @@ export default function VirtualPiano() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </MembershipContentGate>
   );
 }
