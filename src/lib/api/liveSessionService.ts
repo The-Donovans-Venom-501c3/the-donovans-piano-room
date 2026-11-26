@@ -3,6 +3,7 @@ import {
   ChatMode,
   ChatRestriction,
   LiveSession,
+  LiveSessionSocketTicket,
   MessagesPage,
   Participant,
   Poll,
@@ -55,6 +56,8 @@ interface JoinResponse {
   };
   socket: {
     url: string;
+    ticket: string;
+    ticketExpiresInSeconds: number;
     protocolVersion: number;
   };
   typing: {
@@ -138,7 +141,7 @@ export const liveSessionApi = {
         ...response.session,
         chatMode: response.chat.mode,
       },
-      wsUrl: response.socket.url,
+      socket: response.socket satisfies LiveSessionSocketTicket,
       permissions: {
         // The authoritative role arrives in the session.ready socket event.
         isHost: false,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ApiError, apiBase } from "@/lib/api/api";
+import { ApiError } from "@/lib/api/api";
 import {
   liveSessionApi,
   normalizeParticipant,
@@ -13,6 +13,7 @@ import {
   ChatRestriction,
   CurrentUserRestriction,
   LiveSession,
+  LiveSessionSocketTicket,
   Participant,
   Poll,
   ReactionSendEvent,
@@ -72,16 +73,18 @@ function getCreateSessionErrorMessage(error: unknown): string {
   }
 }
 
-function resolveWebSocketUrl(wsPath: string): string {
-  if (wsPath.startsWith("ws://") || wsPath.startsWith("wss://")) return wsPath;
-
-  if (apiBase.startsWith("http://") || apiBase.startsWith("https://")) {
-    const backendOrigin = new URL(apiBase).origin.replace(/^http/, "ws");
-    return `${backendOrigin}${wsPath}`;
+function buildTicketedWebSocketUrl(socket: LiveSessionSocketTicket): string {
+  if (!socket.ticket || socket.protocolVersion !== 1) {
+    throw new Error("The backend returned an invalid WebSocket ticket.");
   }
 
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}${wsPath}`;
+  const url = new URL(socket.url);
+  if (url.protocol !== "ws:" && url.protocol !== "wss:") {
+    throw new Error("The backend returned an invalid WebSocket URL.");
+  }
+
+  url.searchParams.set("ticket", socket.ticket);
+  return url.toString();
 }
 
 export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOptions) {
@@ -124,6 +127,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
+  const socketAttemptGenerationRef = useRef(0);
   const shouldReconnectRef = useRef(false);
   const hasLivePresenceRef = useRef(false);
   const socketRoleRef = useRef<"host" | "participant">("participant");
@@ -235,6 +239,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
 
   const cleanupSocket = useCallback(() => {
     shouldReconnectRef.current = false;
+    socketAttemptGenerationRef.current += 1;
     socketRoleRef.current = "participant";
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     for (const pending of pendingChatRequestsRef.current.values()) {
@@ -264,14 +269,109 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
   }, []);
 
   const connectWebSocket = useCallback(
-    (sessionId: string, wsUrl: string) => {
+    async (
+      sessionId: string,
+      initialSocket?: LiveSessionSocketTicket,
+    ) => {
       cleanupSocket();
       shouldReconnectRef.current = true;
+      const attemptGeneration = socketAttemptGenerationRef.current;
       setConnectionState((prev) =>
         prev === "reconnecting" ? "reconnecting" : "connecting"
       );
 
-      const ws = new WebSocket(resolveWebSocketUrl(wsUrl));
+      let socket = initialSocket;
+      if (!socket) {
+        try {
+          const refreshedJoin = await liveSessionApi.joinSession(sessionId);
+          if (
+            !shouldReconnectRef.current ||
+            socketAttemptGenerationRef.current !== attemptGeneration
+          ) {
+            return;
+          }
+
+          socket = refreshedJoin.socket;
+          setConfig(refreshedJoin);
+          setCurrentSession(refreshedJoin.session);
+          setChatMode(refreshedJoin.session.chatMode);
+          setRestriction(refreshedJoin.restriction || null);
+          setActivePoll(refreshedJoin.activePoll);
+        } catch (err) {
+          if (
+            !shouldReconnectRef.current ||
+            socketAttemptGenerationRef.current !== attemptGeneration
+          ) {
+            return;
+          }
+
+          const terminalFailure =
+            err instanceof ApiError &&
+            err.status >= 400 &&
+            err.status < 500 &&
+            err.status !== 429;
+
+          if (terminalFailure) {
+            shouldReconnectRef.current = false;
+            setConnectionState(err.status === 409 ? "ended" : "disconnected");
+            setPresenceStatus("error");
+            setError(err.message);
+            return;
+          }
+
+          setConnectionState("reconnecting");
+          setPresenceStatus("reconnecting");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to refresh the live-session connection",
+          );
+          const delay = Math.min(
+            1000 * 2 ** reconnectAttemptRef.current,
+            15000,
+          );
+          reconnectAttemptRef.current += 1;
+          reconnectTimerRef.current = setTimeout(() => {
+            void connectWebSocket(sessionId);
+          }, delay);
+          return;
+        }
+      }
+
+      if (
+        !shouldReconnectRef.current ||
+        socketAttemptGenerationRef.current !== attemptGeneration
+      ) {
+        return;
+      }
+
+      let socketUrl: string;
+      try {
+        socketUrl = buildTicketedWebSocketUrl(socket);
+      } catch (err) {
+        shouldReconnectRef.current = false;
+        setConnectionState("disconnected");
+        setPresenceStatus("error");
+        setError(
+          err instanceof Error ? err.message : "Invalid WebSocket configuration",
+        );
+        return;
+      }
+
+      let ws: WebSocket;
+      try {
+        ws = new WebSocket(socketUrl);
+      } catch (err) {
+        shouldReconnectRef.current = false;
+        setConnectionState("disconnected");
+        setPresenceStatus("error");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to open the WebSocket connection",
+        );
+        return;
+      }
       wsRef.current = ws;
 
       ws.onopen = async () => {
@@ -671,7 +771,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current, 15000);
         reconnectAttemptRef.current += 1;
         reconnectTimerRef.current = setTimeout(() => {
-          connectWebSocket(sessionId, wsUrl);
+          void connectWebSocket(sessionId);
         }, delay);
       };
 
@@ -706,7 +806,7 @@ export function useLiveSession({ currentUserId, onReaction }: UseLiveSessionOpti
         setPollOperation("idle");
         setPollError(null);
         setIsJoined(true);
-        connectWebSocket(sessionId, joinData.wsUrl);
+        void connectWebSocket(sessionId, joinData.socket);
 
         const [historyResult, participantResult] = await Promise.allSettled([
           liveSessionApi.getMessages(sessionId, { limit: 50 }),
