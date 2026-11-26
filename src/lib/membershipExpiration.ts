@@ -32,13 +32,18 @@ export function isMembershipDateExpired(
 
 export function isMembershipRestricted(
   membership:
-    | { status?: string | null; nextRenewalAt?: string | Date | null }
+    | {
+        status?: string | null;
+        membershipType?: string | null;
+        nextRenewalAt?: string | Date | null;
+      }
     | null
     | undefined,
 ): boolean {
   return (
     !membership ||
     membership.status?.trim().toLowerCase() !== "active" ||
+    membership.membershipType?.trim().toLowerCase() === "basic-access" ||
     isMembershipDateExpired(membership.nextRenewalAt)
   );
 }

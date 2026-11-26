@@ -6,6 +6,7 @@ export enum MembershipStatus {
 
 export enum MembershipLevelId {
   FREE = "lvl_free",
+  BASIC = "lvl_basic",
   DAY = "lvl_day",
   MONTH = "lvl_month",
   YEAR = "lvl_year",
@@ -75,6 +76,7 @@ export interface UserMembership {
   membershipId: string;
   status: MembershipStatus;
   levelId: MembershipLevelId;
+  membershipType?: string;
   nextRenewalAt?: string;
   autoRenew?: boolean;
   paymentMethodSummary?: PaymentMethodSummary;

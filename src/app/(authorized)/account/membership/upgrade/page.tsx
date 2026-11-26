@@ -9,7 +9,7 @@ import {
   settingsNavigation,
 } from "@/utils/general";
 import { getUserMembership } from "@/lib/api/membershipService";
-import { isMembershipRestricted } from "@/lib/membershipExpiration";
+import { isMembershipDateExpired } from "@/lib/membershipExpiration";
 import { UserMembership, MembershipLevelId, Plan } from "@/interfaces/membershipInterface";
 import PlanCard from "../components/PlanCard";
 import RenewMembership from "../components/RenewMembership";
@@ -31,7 +31,10 @@ export default function MembershipPage() {
         const userMembership = await getUserMembership().catch(() => null);
         if (!isMounted) return;
         setMembership(userMembership);
-        setShowPlanSelection(isMembershipRestricted(userMembership));
+        const hasCurrentPlan =
+          userMembership?.status?.toLowerCase() === "active" &&
+          !isMembershipDateExpired(userMembership?.nextRenewalAt);
+        setShowPlanSelection(!hasCurrentPlan);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -43,8 +46,11 @@ export default function MembershipPage() {
   }, []);
 
   // Map backend levelId or fallback to FREE if unassigned
-  const hasActiveMembership = !isMembershipRestricted(membership);
-  const currentLevelId = hasActiveMembership ? membership?.levelId : null;
+  const hasCurrentPlan =
+    membership?.status?.toLowerCase() === "active" &&
+    !isMembershipDateExpired(membership?.nextRenewalAt);
+  const currentLevelId = hasCurrentPlan ? membership?.levelId : null;
+  const currentType = membership?.membershipType?.toLowerCase();
 
   const availablePlans = [
     {
@@ -57,7 +63,7 @@ export default function MembershipPage() {
       period: "annually",
       yearlyPrice: "239.88",
       isPopular: true,
-      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.YEAR,
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.YEAR,
       benefits: [
         "Best value, biggest savings",
         "Save $120 every year",
@@ -76,7 +82,7 @@ export default function MembershipPage() {
       period: "monthly",
       yearlyPrice: "359.88",
       isRecommended: true,
-      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.MONTH,
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.MONTH,
       benefits: [
         "No long-term commitment",
         "Save $29.70 vs daily pass",
@@ -94,7 +100,7 @@ export default function MembershipPage() {
       formattedPrice: "1.99",
       period: "one day",
       yearlyPrice: "726.35",
-      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.DAY,
+      isCurrent: hasCurrentPlan && currentLevelId === MembershipLevelId.DAY,
       benefits: [
         "Try before you commit",
         "24 hours, full access",
@@ -111,12 +117,28 @@ export default function MembershipPage() {
       price: 0,
       formattedPrice: "FREE",
       period: "Scholarship",
-      isCurrent: hasActiveMembership && currentLevelId === MembershipLevelId.FREE,
+      isCurrent: hasCurrentPlan && currentType === "scholarship",
       benefits: [
         "100% cost covered",
         "For eligible low-income families",
         "Renewed annually if qualified",
         "Apply once, enjoy all year",
+      ],
+      moreBenefits: [],
+    },
+    {
+      levelId: MembershipLevelId.BASIC,
+      slug: "basic",
+      name: "Basic",
+      planName: "Basic",
+      price: 0,
+      formattedPrice: "FREE",
+      period: "limited access",
+      isCurrent: hasCurrentPlan && currentType === "basic-access",
+      benefits: [
+        "Free to start",
+        "Explore a limited selection of games and resources",
+        "Upgrade to full access any time",
       ],
       moreBenefits: [],
     },
@@ -130,7 +152,11 @@ export default function MembershipPage() {
 
   const handleRenewClick = () => {
     // If the current plan is Scholarship (FREE), open the plan selection view
-    if (!currentPlan || currentPlan.levelId === MembershipLevelId.FREE) {
+    if (
+      !currentPlan ||
+      currentPlan.levelId === MembershipLevelId.FREE ||
+      currentPlan.levelId === MembershipLevelId.BASIC
+    ) {
       setShowPlanSelection(true);
     } else {
       handleSelectPlanToUpgrade(currentPlan.slug);

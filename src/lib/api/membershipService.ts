@@ -179,13 +179,15 @@ export async function getPlanInfo(levelId: string) {
     return {
       levelId: data.levelId,
       planName:
-        data.levelId === "lvl_free"
-          ? "Scholarship"
-          : data.levelId === "lvl_month"
-            ? "Monthly"
-            : data.levelId === "lvl_year"
-              ? "Yearly"
-              : "Day Pass",
+        data.levelId === "lvl_basic"
+          ? "Basic"
+          : data.levelId === "lvl_free"
+            ? "Scholarship"
+            : data.levelId === "lvl_month"
+              ? "Monthly"
+              : data.levelId === "lvl_year"
+                ? "Yearly"
+                : "Day Pass",
       name: data.name,
       price: data.price,
       period: data.period,
