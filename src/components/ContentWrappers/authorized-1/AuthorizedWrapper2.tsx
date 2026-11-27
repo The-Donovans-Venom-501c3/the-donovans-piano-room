@@ -4,22 +4,30 @@ import React from "react";
 import Footer4 from "../../footers/Footer4";
 import Navbar4Left from "../../navbars/Navbar4Left";
 import Image from "next/image";
+import MembershipContentGate from "@/components/membership/MembershipContentGate";
 
 export default function AuthorizedWrapper2({
   children,
   pageTitle,
   openedLink = "",
+  contentHeader,
+  contentClassName,
+  requiresMembership = false,
 }: {
   children: React.ReactNode;
   pageTitle: string;
   openedLink?: string;
+  contentHeader?: React.ReactNode;
+  /** Extra classes for the inner content column (e.g. route-scoped styles). */
+  contentClassName?: string;
+  requiresMembership?: boolean;
 }) {
   return (
     <div className="flex w-[100vw] h-[100vh] bg-[#F5E8FF] overflow-hidden">
       <Navbar4Left openedLink={openedLink} />
 
       {/* Main Column */}
-      <div className="w-full flex flex-col h-full overflow-hidden">
+      <div className="w-full min-w-0 flex flex-col h-full overflow-hidden">
         {/* Fixed Header */}
         <div className="relative z-40 h-[9.7vh] shrink-0 border-b border-[#ECD6FE] flex justify-center items-center backdrop-blur-sm">
           <div className="w-[84.7%] flex justify-between items-center">
@@ -29,12 +37,25 @@ export default function AuthorizedWrapper2({
           </div>
         </div>
 
+        {/* Keep page-level navigation outside the form/content scroll area. */}
+        {contentHeader && (
+          <div className="relative z-30 flex shrink-0 justify-center bg-[#F5E8FF] py-4">
+            <div className="w-[84.7%] min-w-0">{contentHeader}</div>
+          </div>
+        )}
+
         {/* Scrollable Content Container */}
         <div
           id="wrapper-content-scroll"
-          className="h-[80.8vh] flex justify-center overflow-y-auto scroll-smooth"
+          className={contentHeader
+            ? "min-h-0 flex-1 flex justify-center overflow-y-auto scroll-smooth"
+            : "h-[80.8vh] flex justify-center overflow-y-auto scroll-smooth"}
         >
-          <div className="w-[84.7%] relative py-6">{children}</div>
+          <div className={`w-[84.7%] relative py-6 ${contentClassName ?? ""}`}>
+            <MembershipContentGate required={requiresMembership}>
+              {children}
+            </MembershipContentGate>
+          </div>
         </div>
 
         {/* Fixed Footer */}

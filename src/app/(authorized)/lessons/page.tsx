@@ -10,11 +10,21 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { lessons, type Lesson } from "./components/Lesson";
 import VideoDetail from "./components/VideoDetailPage";
 import { useSearchParams } from "next/navigation";
+import { apiRequest } from "@/lib/api/api";
 
 interface NavItem {
   name: string;
   id: string;
 }
+
+interface CurrentUserProp {
+  id: string;
+  name: string;
+  role: "Presenter" | "Participant";
+  pronouns?: string;
+}
+
+const LIVE_SESSION_HOST_USER_ID = "p7xfhhe7le9rswpz4wace1eh";
 
 const sections: NavItem[] = [
   { name: "E-books", id: "ebooks" },
@@ -28,11 +38,40 @@ function LessonsPageContent() {
   const [activeSection, setActiveSection] = useState<string>("videos");
   const [selectedVideo, setSelectedVideo] = useState<Lesson | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentUser, setCurrentUser] = useState<CurrentUserProp | undefined>(
+    undefined
+  );
 
   // Track watched lesson IDs across the app session
   const [watchedLessonIds, setWatchedLessonIds] = useState<string[]>([]);
 
   const topRef = useRef<HTMLDivElement>(null);
+
+  // Load logged-in user for LiveSessionsComponent
+  useEffect(() => {
+    apiRequest<Record<string, unknown>>("/user/", { cache: "no-store" })
+      .then((res) => {
+        const user = (res?.user as Record<string, unknown>) || res;
+        if (!user || !user.id) return;
+
+        const userId = String(user.id);
+        const isHost =
+          Boolean(user.isHost) ||
+          user.role === "host" ||
+          user.role === "admin" ||
+          LIVE_SESSION_HOST_USER_ID === userId;
+
+        setCurrentUser({
+          id: userId,
+          name: String(user.name || user.fullName || user.firstName || "Member"),
+          role: isHost ? "Presenter" : "Participant",
+          pronouns: user.pronouns ? String(user.pronouns) : undefined,
+        });
+      })
+      .catch(() => {
+        // Falls back to default user in LiveSessionsComponent if endpoint differs
+      });
+  }, []);
 
   // Load initial watched IDs from localStorage (or your database API)
   useEffect(() => {
@@ -99,7 +138,7 @@ function LessonsPageContent() {
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    
+
     if (selectedVideo) {
       setSelectedVideo(null);
     }
@@ -137,7 +176,12 @@ function LessonsPageContent() {
         return <EbooksComponent searchQuery={searchQuery} />;
 
       case "live-sessions":
-        return <LiveSessionsComponent searchQuery={searchQuery} />;
+        return (
+          <LiveSessionsComponent
+            searchQuery={searchQuery}
+            currentUser={currentUser}
+          />
+        );
 
       case "audiobooks":
         return (
@@ -165,6 +209,7 @@ function LessonsPageContent() {
     <AuthorizedWrapper2
       pageTitle={authorizedWrapperTitles.Lessons}
       openedLink={nav4leftLinks.lessons}
+      requiresMembership
     >
       <div ref={topRef} />
 

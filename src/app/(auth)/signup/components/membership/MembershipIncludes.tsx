@@ -5,7 +5,7 @@ import {
   membershipTypes, 
   membershipChoiceAtom, 
   couponVerifiedAtom,
-  profileAtom,
+  appliedCouponAtom,
   signupFormDataAtom
 } from "@/utils/stores";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -31,7 +31,7 @@ const membershipIncludes = {
     ]
   },
   [membershipTypes["scholarship"]]: {
-    id: 3,
+    id: "local-scholarship-001",
     title: "Scholarship Access",
     content: [
       ["Full access", "Enjoy the same benefits as a paid membership, which includes the complete library of games, tools, and resources."],
@@ -67,21 +67,21 @@ const YellowCheck = () => (
 );
 
 interface DiscountSectionProps {
-  membershipId: number;
+  membershipId: string | number;
   currentKey: string;
   isBeta?: boolean;
 }
 
-function DiscountSection({ membershipId, currentKey, isBeta = false }: DiscountSectionProps) {
+function DiscountSection({ membershipId, currentKey, isBeta = true }: DiscountSectionProps) {
   const [discountCode, setDiscountCode] = useState("");
   const [status, setStatus] = useState<null | "success" | "error">(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const formData = useAtomValue(signupFormDataAtom);
-  const profile = useAtomValue(profileAtom);
-  const userEmail = formData?.email || profile?.email || "";
+  const userEmail = formData?.email || "";
 
   const setIsCouponVerified = useSetAtom(couponVerifiedAtom);
+  const setAppliedCoupon = useSetAtom(appliedCouponAtom);
   const isScholarship = currentKey === membershipTypes["scholarship"];
 
   if (isBeta && !isScholarship) {
@@ -99,15 +99,22 @@ function DiscountSection({ membershipId, currentKey, isBeta = false }: DiscountS
 
     try {
       setIsLoading(true);
-      const isValid = await validateCouponCode(membershipId, userEmail, discountCode);
-      if (isValid) {
+      const result = await validateCouponCode(membershipId, userEmail, discountCode);
+      if (result && typeof result.finalAmount === "number") {
+        setAppliedCoupon({
+          membershipId,
+          couponCode: discountCode.trim(),
+          finalAmount: result.finalAmount,
+        });
         setStatus("success");
         setIsCouponVerified(true);
       } else {
+        setAppliedCoupon(null);
         setStatus("error");
         setIsCouponVerified(false);
       }
     } catch (error) {
+      setAppliedCoupon(null);
       setStatus("error");
       setIsCouponVerified(false);
     } finally {
@@ -176,7 +183,7 @@ function DiscountSection({ membershipId, currentKey, isBeta = false }: DiscountS
   );
 }
 
-export default function MembershipIncludes({ isBeta = false }: { isBeta?: boolean }) {
+export default function MembershipIncludes({ isBeta = true }: { isBeta?: boolean }) {
   const membershipChoice = useAtomValue(membershipChoiceAtom);
 
   const currentKey =

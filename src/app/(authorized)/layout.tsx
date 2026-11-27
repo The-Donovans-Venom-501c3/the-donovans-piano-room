@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { profileAtom } from "@/utils/stores";
 import { getUser } from "@/lib/api/userService";
+import "../globals.css";
 
 export default function AuthorizedLayout({
   children,
@@ -11,7 +12,6 @@ export default function AuthorizedLayout({
   children: React.ReactNode;
 }) {
   const [profile, setProfile] = useAtom(profileAtom);
-  const [isLoading, setIsLoading] = useState(!profile?.id);
 
   useEffect(() => {
     let isMounted = true;
@@ -23,16 +23,12 @@ export default function AuthorizedLayout({
         if (ok && data?.id) {
           if (isMounted) {
             setProfile(data);
-            setIsLoading(false);
           }
-        } else {
-          // Unauthenticated: clear profile & force browser redirect to login
-          if (isMounted) {
-            setProfile(null);
-            window.location.href = "/login";
-          }
+        } else if (isMounted) {
+          setProfile(null);
+          window.location.href = "/login";
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setProfile(null);
           window.location.href = "/login";
@@ -42,7 +38,6 @@ export default function AuthorizedLayout({
 
     verifyAuth();
 
-    // Re-verify session on browser back/forward button clicks
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted) {
         verifyAuth();
@@ -57,12 +52,10 @@ export default function AuthorizedLayout({
     };
   }, [setProfile]);
 
-  // If profile exists in state, render immediately (no stuck loading screen)
   if (profile?.id) {
     return <>{children}</>;
   }
 
-  // Show loading indicator during initial verification or pending redirect
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-[#521C75] text-white">
       <p className="text-xl font-bold">Verifying Session...</p>

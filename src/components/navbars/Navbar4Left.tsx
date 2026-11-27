@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Skeleton } from "@mui/material";
@@ -9,6 +9,8 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { logout } from "@/lib/api/authService";
 import { isNavOpenAtom, nav4leftLinks, profileAtom } from "@/utils/stores";
 import { profileInterface } from "@/interfaces/profileInterface";
+import { getMyRbac } from "@/lib/api/rbacService";
+import { hasAdministratorPersona } from "@/lib/auth/adminAccess";
 
 export default function Navbar4Left({
   openedLink = "",
@@ -18,6 +20,33 @@ export default function Navbar4Left({
   const [isNavOpen, setIsNavOpen] = useAtom(isNavOpenAtom);
   const profile = useAtomValue(profileAtom) as profileInterface | null;
   const setProfile = useSetAtom(profileAtom);
+  const [adminUserId, setAdminUserId] = useState<string | null>(null);
+  const userId = profile?.id;
+  const isAdministrator = Boolean(userId && adminUserId === userId);
+
+  useEffect(() => {
+    let active = true;
+    const verifyAdministrator = async () => {
+      setAdminUserId(null);
+      if (!userId) return;
+      try {
+        const authorization = await getMyRbac();
+        if (active && authorization.userId === userId && hasAdministratorPersona(authorization)) {
+          setAdminUserId(userId);
+        }
+      } catch {
+        // Keep the link hidden when authorization cannot be verified.
+      }
+    };
+    void verifyAdministrator();
+    window.addEventListener("focus", verifyAdministrator);
+    window.addEventListener("pageshow", verifyAdministrator);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", verifyAdministrator);
+      window.removeEventListener("pageshow", verifyAdministrator);
+    };
+  }, [userId]);
 
   const toggleOpenNav = () => setIsNavOpen((state: boolean) => !state);
 
@@ -47,7 +76,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.dashboard,
       icon: "/navbar/NavBar4Left/Dashboard.svg",
       alt: "D",
-      disabled: false,
     },
     {
       href: "/lessons",
@@ -55,7 +83,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.lessons,
       icon: "/navbar/NavBar4Left/Lessons.svg",
       alt: "L",
-      disabled: false,
     },
     {
       href: "/games",
@@ -63,7 +90,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.games,
       icon: "/navbar/NavBar4Left/Games.svg",
       alt: "G",
-      disabled: false,
     },
     {
       href: "/music-tools",
@@ -71,7 +97,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.musicTools,
       icon: "/navbar/NavBar4Left/MusicTools.svg",
       alt: "MT",
-      disabled: false,
     },
     {
       href: "/planner",
@@ -79,7 +104,6 @@ export default function Navbar4Left({
       key: nav4leftLinks.planner,
       icon: "/navbar/NavBar4Left/Planner.svg",
       alt: "P",
-      disabled: true,
     },
     {
       href: "/contact-page",
@@ -87,8 +111,15 @@ export default function Navbar4Left({
       key: nav4leftLinks.contactUs,
       icon: "/navbar/NavBar4Left/Contact.svg",
       alt: "C",
-      disabled: false,
     },
+    {
+      href: "/admin",
+      label: "ADMIN",
+      key: nav4leftLinks.admin,
+      icon: "/navbar/NavBar4Left/Contact.svg",
+      alt: "A",
+    },
+
   ];
 
   return (
@@ -191,14 +222,14 @@ export default function Navbar4Left({
           )}
 
           {/* Navigation Items */}
+         
           <div className="mt-[1vh] flex flex-col gap-[1vh]">
-            {navItems.map((item) => {
+            {navItems.filter((item) => item.key !== nav4leftLinks.admin || isAdministrator).map((item) => {
               const isActive = openedLink === item.key;
+                {/* ar: height changed from 8vh to 7vh as test to fit admin item */}
               const linkContent = (
                 <div
-                  className={`flex h-[8vh] w-full items-center rounded-2xl border transition-all ${
-                    item.disabled ? "opacity-50 cursor-not-allowed bg-white" : "cursor-pointer bg-white"
-                  }`}
+                  className="flex h-[7vh] w-full cursor-pointer items-center rounded-2xl border bg-white transition-all"
                   style={{
                     ...(isActive
                       ? {
@@ -210,7 +241,6 @@ export default function Navbar4Left({
                           borderColor: "#F5E8FF",
                           ...linkDynamicStyle,
                         }),
-                    ...(item.disabled ? { filter: "grayscale(90%)" } : {}),
                   }}
                 >
                   <div
@@ -245,8 +275,7 @@ export default function Navbar4Left({
               return (
                 <Link
                   key={item.label}
-                  href={item.disabled ? "#" : item.href}
-                  className={item.disabled ? "pointer-events-none" : ""}
+                  href={item.href}
                 >
                   {linkContent}
                 </Link>

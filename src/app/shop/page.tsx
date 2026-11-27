@@ -14,7 +14,7 @@ import AddedToCartPopup from "./components/AddedToCartPopup";
 // =========================================================================
 // DEMO SWITCHES (Flip these booleans before/during your call)
 // =========================================================================
-const SHOW_TEASER_VIEW = true; // true = Mockup Teaser layout | false = Full Ecommerce Store
+const SHOW_TEASER_VIEW = false; // true = Mockup Teaser layout | false = Full Ecommerce Store
 const USE_HOMEPAGE_NAVBAR = false; // true = Home Navbar | false = Shop Navbar1
 // =========================================================================
 
@@ -76,7 +76,7 @@ export default function ShopPage() {
 
           <section className="w-[85%] max-w-[1200px]">
             <h2 className="text-3xl font-bold text-primary-brown mb-8">
-              Future Merchandise
+              Future Merchandise. <h1 className="text-4xl font-bold text-primary-red mb-10">(what do we do here!!)</h1> 
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

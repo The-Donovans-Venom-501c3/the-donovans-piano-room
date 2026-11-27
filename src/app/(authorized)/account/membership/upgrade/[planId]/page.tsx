@@ -14,12 +14,14 @@ import {
   getUserMembership, 
   getPaymentMethods, 
   previewMembershipUpgrade, 
-  requestMembershipUpgrade 
+  requestMembershipUpgrade,
+  validateMembershipCouponCode,
 } from "@/lib/api/membershipService";
 import Payment from "@/app/(authorized)/account/membership/components/Payment";
 import PlanCard from "@/app/(authorized)/account/membership/components/PlanCard";
 import Popup from "@/app/(authorized)/account/membership/components/Popup";
 import PaymentMethodSelectionPopup from "@/app/(authorized)/account/membership/components/PaymentMethodSelectionPopup";
+import PaymentReceipt from "@/components/payment/PaymentReceipt";
 import { 
   UserMembership, 
   MembershipLevelId, 
@@ -37,6 +39,15 @@ const PLAN_ID_MAP: Record<string, MembershipLevelId> = {
   'monthly': MembershipLevelId.MONTH,
   'daily': MembershipLevelId.DAY,
   'free': MembershipLevelId.FREE,
+  'basic': MembershipLevelId.BASIC,
+};
+
+const MEMBERSHIP_ID_MAP: Record<MembershipLevelId, string> = {
+  [MembershipLevelId.FREE]: "003",
+  [MembershipLevelId.DAY]: "001",
+  [MembershipLevelId.MONTH]: "002",
+  [MembershipLevelId.YEAR]: "004",
+  [MembershipLevelId.BASIC]: "5",
 };
 
 export default function UpgradeConfirmationPage() {
@@ -54,13 +65,22 @@ export default function UpgradeConfirmationPage() {
   const [showBackConfirmationPopup, setShowBackConfirmationPopup] = useState(false);
   const [showPaymentMethodPopup, setShowPaymentMethodPopup] = useState(false);
   const [showScholarshipWarningPopup, setShowScholarshipWarningPopup] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponVerified, setCouponVerified] = useState(false);
+  const [couponFinalAmount, setCouponFinalAmount] = useState<number | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [switching, setSwitching] = useState<boolean>(false);
   const [switchSuccess, setSwitchSuccess] = useState<boolean>(false);
   const [switchError, setSwitchError] = useState<string | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [amountPaid, setAmountPaid] = useState<number | null>(null);
   const [effectiveDate, setEffectiveDate] = useState<string | null>(null);
+  const [showReceipt, setShowReceipt] = useState<boolean>(false);
 
   const levelId = PLAN_ID_MAP[planId];
+  const isScholarshipPlan = levelId === MembershipLevelId.FREE;
+  const isBasicPlan = levelId === MembershipLevelId.BASIC;
 
   useEffect(() => {
     let isMounted = true;
@@ -90,8 +110,10 @@ export default function UpgradeConfirmationPage() {
           yearlyPrice: (planDetails.price * getYearlyPriceMultiplier(levelId)).toFixed(2)
         });
 
-        // Redirect if user already owns this tier
-        if (userMembership.levelId === levelId) {
+        // Expired or missing memberships are returned as null so the user can
+        // select a replacement plan. Only redirect when a current membership
+        // already matches the selected tier.
+        if (userMembership?.levelId === levelId) {
           setTimeout(() => {
             router.push('/account/membership');
           }, 1000);
@@ -99,7 +121,11 @@ export default function UpgradeConfirmationPage() {
         }
 
         // Prompt warning if user moves off scholarship plan
-        if (userMembership.levelId === MembershipLevelId.FREE && levelId !== MembershipLevelId.FREE) {
+        if (
+          userMembership?.levelId === MembershipLevelId.FREE &&
+          userMembership.membershipType === "scholarship" &&
+          levelId !== MembershipLevelId.FREE
+        ) {
           setShowScholarshipWarningPopup(true);
         }
         
@@ -108,15 +134,13 @@ export default function UpgradeConfirmationPage() {
         const defaultMethod = methods.find((method: PaymentMethod) => method.isDefault) || methods[0];
         setSelectedPaymentMethod(defaultMethod);
         
-        if (planDetails?.levelId) {
-          const memberIdMap = {
-            [MembershipLevelId.FREE]: '003',
-            [MembershipLevelId.DAY]: '001', 
-            [MembershipLevelId.MONTH]: '002',
-            [MembershipLevelId.YEAR]: '004'
-          };
-          
-          const newMembershipId = memberIdMap[planDetails.levelId as keyof typeof memberIdMap];
+        if (
+          userMembership &&
+          userMembership.membershipType !== "basic-access" &&
+          planDetails?.levelId
+        ) {
+          const newMembershipId =
+            MEMBERSHIP_ID_MAP[planDetails.levelId as MembershipLevelId];
           if (newMembershipId) {
             try {
               const preview = await previewMembershipUpgrade(newMembershipId);
@@ -161,7 +185,22 @@ export default function UpgradeConfirmationPage() {
   };
 
   const handleSwitch = async () => {
-    if (!selectedPaymentMethod || !selectedPlan || switching) {
+    if (switching) return;
+    if (!selectedPlan) {
+      setSwitchError("No plan selected.");
+      return;
+    }
+    if (isScholarshipPlan && !couponVerified) {
+      setSwitchError("Enter and verify your scholarship code before activating this membership.");
+      return;
+    }
+    if (
+      !isScholarshipPlan &&
+      !isBasicPlan &&
+      !selectedPaymentMethod &&
+      !(couponVerified && couponFinalAmount === 0)
+    ) {
+      setSwitchError("Please add and select a payment method first. Linking a payment method is separate from starting a subscription — after linking, return here and click Confirm Plan Selection to approve the PayPal subscription.");
       return;
     }
 
@@ -169,22 +208,16 @@ export default function UpgradeConfirmationPage() {
       setSwitching(true);
       setSwitchError(null);
 
-      const memberIdMap = {
-        [MembershipLevelId.FREE]: '003',
-        [MembershipLevelId.DAY]: '001', 
-        [MembershipLevelId.MONTH]: '002',
-        [MembershipLevelId.YEAR]: '004'
-      };
-
-      const newMembershipId = memberIdMap[selectedPlan.levelId];
+      const newMembershipId = MEMBERSHIP_ID_MAP[selectedPlan.levelId];
       if (!newMembershipId) {
         throw new Error('Invalid membership plan selected');
       }
 
       const response: UpgradeResponse = await requestMembershipUpgrade(
         newMembershipId,
-        selectedPaymentMethod.vaultTokenId,
-        'immediate'
+        isScholarshipPlan || isBasicPlan ? undefined : selectedPaymentMethod?.vaultTokenId,
+        'immediate',
+        couponVerified ? couponCode.trim() : undefined,
       );
 
       if (response.success) {
@@ -193,19 +226,21 @@ export default function UpgradeConfirmationPage() {
           return;
         }
 
-        setSwitchSuccess(true);
         setEffectiveDate(response.effectiveDate || null);
-        
-        setTimeout(async () => {
-          try {
-            const updatedMembership = await getUserMembership();
-            setMembership(updatedMembership);
-          } catch (error) {
-            console.warn('Failed to refresh membership:', error);
-          }
-          router.push('/account/membership');
-        }, 2000);
+        setTransactionId(response.paypalTransactionId || null);
+        setAmountPaid(typeof response.amountPaid === "number" ? response.amountPaid : null);
+          setShowReceipt(!isScholarshipPlan && !isBasicPlan);
 
+        try {
+          const updatedMembership = await getUserMembership();
+          setMembership(updatedMembership);
+        } catch (error) {
+          console.warn('Failed to refresh membership:', error);
+        }
+
+        window.dispatchEvent(new Event("membership-updated"));
+        setSwitchSuccess(true);
+        
       } else {
         const error = new Error(response.error || 'Switch failed');
         (error as any).transactionId = response.membershipHistoryId;
@@ -234,6 +269,37 @@ export default function UpgradeConfirmationPage() {
     setSelectedPaymentMethod(method);
   };
 
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim();
+    if (!code) {
+      setCouponVerified(false);
+      setCouponFinalAmount(null);
+      setCouponError(isScholarshipPlan ? "Enter your scholarship code to continue." : "Enter a coupon code to apply.");
+      return;
+    }
+
+    const memberId = MEMBERSHIP_ID_MAP[levelId];
+    if (!memberId) {
+      setCouponError("The selected membership plan could not be identified.");
+      return;
+    }
+
+    setValidatingCoupon(true);
+    setCouponError(null);
+    setCouponVerified(false);
+    setCouponFinalAmount(null);
+    try {
+      const result = await validateMembershipCouponCode(memberId, code);
+      setCouponVerified(true);
+      setCouponFinalAmount(Number(result.finalAmount));
+      setSwitchError(null);
+    } catch (error: any) {
+      setCouponError(error?.message || "That coupon could not be applied to this plan.");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
   const handleScholarshipWarningConfirm = () => {
     setShowScholarshipWarningPopup(false);
   };
@@ -246,12 +312,21 @@ export default function UpgradeConfirmationPage() {
   const handleRetry = () => {
     setSwitchError(null);
     setTransactionId(null);
+    setAmountPaid(null);
     setSwitching(false);
   };
 
+  const membershipDateLabel = membership?.nextRenewalAt
+    ? new Date(membership.nextRenewalAt).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
+
   const paymentButtons: ButtonConfig[] = [
     {
-      onClick: () => router.push('/account/payments'),
+      onClick: () => router.push('/account/payment-methods'),
       text: 'Add payment method',
       disabled: false,
       loading: false,
@@ -338,14 +413,32 @@ export default function UpgradeConfirmationPage() {
                   className="flex-shrink-0"
                 />
                 <h1 className="font-montserrat text-5xl font-medium text-primary-brown 3xl:text-6xl 4xl:text-7xl">
-                  Payment Successful
+                  {isScholarshipPlan
+                    ? "Scholarship Activated"
+                    : isBasicPlan
+                      ? "Basic Membership Active"
+                      : "Membership Active"}
                 </h1>
               </div>
               <p className="text-primary-gray text-2xl 3xl:text-3xl 4xl:text-4xl font-medium mt-[2%]">
-                Great news! You&apos;re now on the {selectedPlan?.planName} Plan and have access to brand-new features waiting for you. {effectiveDate && (
-                  <>Effective date: {new Date(effectiveDate).toLocaleDateString()}</>
-                )}
+                {isScholarshipPlan
+                  ? "Your scholarship code was verified and your Scholarship membership is now active."
+                  : isBasicPlan
+                    ? "Your Basic membership is now active. It includes limited access; choose a paid plan or scholarship for full access."
+                    : amountPaid === 0
+                    ? `Your coupon covered the full price of your ${selectedPlan?.planName} membership, which is now active.`
+                    : `Your ${selectedPlan?.planName} membership is active.${selectedPaymentMethod ? " Your saved payment method was used to start the subscription" : ""}${amountPaid !== null ? ` with a payment of $${amountPaid.toFixed(2)}` : ""}`}
+                {membershipDateLabel ? ` Your next renewal date is ${membershipDateLabel}.` : ""}
+                {effectiveDate ? ` It took effect on ${new Date(effectiveDate).toLocaleDateString()}.` : ""}
+                {" "}Your dashboard, lessons, games, and music tools are now available.
               </p>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="mt-6 rounded-full bg-primary-purple px-8 py-4 text-xl font-bold text-white hover:bg-purple-700"
+              >
+                Go to dashboard
+              </button>
             </>
           ) : (
             <>
@@ -368,7 +461,15 @@ export default function UpgradeConfirmationPage() {
 
               <PlanCard plan={selectedPlan} />
               
-              {upgradePreview && upgradePreview.proration && (
+              {couponVerified && couponFinalAmount !== null ? (
+                <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-green-900">
+                  <h3 className="font-semibold">Coupon applied</h3>
+                  <p className="mt-1">
+                    Discounted membership price: ${couponFinalAmount.toFixed(2)}
+                    {selectedPlan?.period ? ` ${selectedPlan.period}` : ""}.
+                  </p>
+                </div>
+              ) : membership && upgradePreview && upgradePreview.proration && (
                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <h3 className="text-lg font-semibold text-yellow-800 mb-2">Switch Summary</h3>
                   <div className="text-sm text-yellow-700 space-y-1">
@@ -380,19 +481,86 @@ export default function UpgradeConfirmationPage() {
                 </div>
               )}
 
-              {!switchSuccess && !switching && !switchError && (
+              {!switchSuccess && !switching && (!switchError || isScholarshipPlan) && (
                 <div className="mt-4 flex w-full justify-end text-3xl gap-4 font-semibold">
                   <button
                     type="button"
+                    disabled={isScholarshipPlan && !couponVerified}
                     className="w-auto rounded-full bg-primary-purple px-6 py-5 text-center text-white cursor-pointer hover:bg-purple-700"
                     onClick={handleSwitch}
                   >
-                    Confirm Plan Selection
+                    {isScholarshipPlan
+                      ? "Activate Scholarship"
+                      : isBasicPlan
+                        ? "Switch to Basic"
+                        : "Confirm Plan Selection"}
                   </button>
                 </div>
               )}
             </div>
 
+            <div className="flex flex-1 flex-col gap-5">
+              <div className="flex flex-1 flex-col gap-5 rounded-xl bg-primary-skin p-6 h-full">
+                <h2 className="font-montserrat text-2xl font-semibold text-primary-brown md:text-3xl">
+                  {isScholarshipPlan
+                    ? "Verify your scholarship code"
+                    : isBasicPlan
+                      ? "Basic membership"
+                      : "Have a coupon code?"}
+                </h2>
+                <p className="text-lg text-primary-gray">
+                  {isScholarshipPlan
+                    ? "A valid scholarship code is required to activate this free membership. Enter the code provided to you, then verify it before continuing."
+                    : isBasicPlan
+                      ? "Basic is free and provides limited access. No payment method is needed."
+                      : "Enter a coupon code for this plan to apply its discounted price. Coupons are optional."}
+                </p>
+                {!isBasicPlan && (
+                  <>
+                    <label htmlFor="membership-coupon-code" className="font-semibold text-primary-brown">
+                      {isScholarshipPlan ? "Scholarship code" : "Coupon code"}
+                    </label>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    id="membership-coupon-code"
+                    type="text"
+                    value={couponCode}
+                    disabled={switchSuccess}
+                    onChange={(event) => {
+                      setCouponCode(event.target.value);
+                      setCouponVerified(false);
+                      setCouponFinalAmount(null);
+                      setCouponError(null);
+                      setSwitchError(null);
+                    }}
+                    placeholder={isScholarshipPlan ? "Enter your scholarship code" : "Enter coupon code"}
+                    className="min-w-0 flex-1 rounded-xl border border-[#D8C8B8] bg-white px-4 py-3 text-lg text-gray-900 outline-none focus:border-primary-purple focus:ring-2 focus:ring-primary-purple/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim() || switchSuccess}
+                    className="rounded-full bg-primary-purple px-6 py-3 font-bold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {validatingCoupon ? "Checking..." : couponVerified ? "Applied" : isScholarshipPlan ? "Verify code" : "Apply coupon"}
+                  </button>
+                    </div>
+                  </>
+                )}
+                {!isBasicPlan && couponVerified && (
+                  <p role="status" className="font-semibold text-green-700">
+                    {isScholarshipPlan
+                      ? "Code verified. Select “Activate Scholarship” to apply it to your membership."
+                      : `Coupon applied. Membership price: $${(couponFinalAmount ?? 0).toFixed(2)}.`}
+                  </p>
+                )}
+                {(couponError || (isScholarshipPlan && switchError)) && (
+                  <p role="alert" className="font-semibold text-red-700">
+                    {couponError || switchError}
+                  </p>
+                )}
+              </div>
+              {!isScholarshipPlan && !isBasicPlan && (
             <Payment
               mode="upgrade"
               membershipId={membership?.membershipId || ""}
@@ -412,6 +580,8 @@ export default function UpgradeConfirmationPage() {
               transactionId={transactionId || undefined}
               onRetry={handleRetry}
             />
+              )}
+            </div>
           </div>
         </div>
 
@@ -429,14 +599,15 @@ export default function UpgradeConfirmationPage() {
           }}
         />
 
-        {/* Payment Method Selection Popup */}
-        <PaymentMethodSelectionPopup
-          isOpen={showPaymentMethodPopup}
-          onClose={() => setShowPaymentMethodPopup(false)}
-          paymentMethods={paymentMethods}
-          selectedPaymentMethod={selectedPaymentMethod}
-          onPaymentMethodSelect={handlePaymentMethodChange}
-        />
+        {!isScholarshipPlan && !isBasicPlan && (
+          <PaymentMethodSelectionPopup
+            isOpen={showPaymentMethodPopup}
+            onClose={() => setShowPaymentMethodPopup(false)}
+            paymentMethods={paymentMethods}
+            selectedPaymentMethod={selectedPaymentMethod}
+            onPaymentMethodSelect={handlePaymentMethodChange}
+          />
+        )}
 
         {/* Scholarship Warning Popup */}
         <Popup
@@ -451,6 +622,26 @@ export default function UpgradeConfirmationPage() {
             text: "Change Plan"
           }}
         />
+
+        {/* Payment Receipt Modal */}
+        {switchSuccess && showReceipt && !isScholarshipPlan && (
+          <PaymentReceipt
+            open={showReceipt}
+            category="membership"
+            title={`${selectedPlan?.planName || "Membership"} membership payment`}
+            amount={
+              amountPaid ?? (membership && upgradePreview?.proration
+                ? upgradePreview.proration.netAmount
+                : selectedPlan?.levelId === MembershipLevelId.YEAR
+                  ? Number(selectedPlan.yearlyPrice || selectedPlan.price)
+                  : selectedPlan?.price ?? null)
+            }
+            currency="USD"
+            transactionId={transactionId}
+            effectiveDate={effectiveDate}
+            onClose={() => setShowReceipt(false)}
+          />
+        )}
       </div>
     </AuthorizedWrapper1>
   );

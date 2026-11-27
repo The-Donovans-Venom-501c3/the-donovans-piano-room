@@ -106,7 +106,6 @@ export default function Payment({
         </p>
       )}
 
-      {/* 3. Payment Method Details Card */}
       {!errorMessage && (
         <div className="rounded-2xl border border-[#F6E2D1] bg-[#FFEBD5] p-4 shadow-custom">
           {isBeta ? (
@@ -161,7 +160,7 @@ export default function Payment({
                 </div>
               </div>
 
-              <button type="button" className="inline-flex items-center gap-2 text-primary-purple cursor-pointer" onClick={onEditClick || (() => router.push('/account/payments'))}>
+              <button type="button" className="inline-flex items-center gap-2 text-primary-purple cursor-pointer" onClick={onEditClick || (() => router.push('/account/payment-methods'))}>
                 <span className="text-xl font-medium">Edit</span>
                 <Image
                   src="/memberships/Payment/pencil-outline.svg"

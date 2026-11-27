@@ -2,40 +2,50 @@
 
 import { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { 
-  membershipChoiceAtom, 
-  membershipTypes, 
-  signupStepAtom, 
-  signupFormDataAtom, 
-  profileAtom 
+import { completeSignup } from "@/lib/api/authService";
+import {
+  membershipChoiceAtom,
+  membershipTypes,
+  signupStepAtom,
+  signupFormDataAtom,
+  signupPaymentMethodAtom,
+  resetSignupStateAtom,
+  appliedCouponAtom,
 } from "@/utils/stores";
 
 interface SignupSummaryProps {
   onComplete?: () => void;
 }
 
-const membershipDetails: Record<string, { label: string; price: number; id: number }> = {
+const membershipDetails: Record<string, { label: string; price: number; id: string | number }> = {
   [membershipTypes["24-hours"]]: { label: "24-Hour Membership", price: 1.99, id: 1 },
   [membershipTypes["monthly-access"]]: { label: "Monthly Membership", price: 29.99, id: 2 },
-  [membershipTypes["scholarship"]]: { label: "Free Beta Membership", price: 0, id: 3 },
+  [membershipTypes["scholarship"]]: { label: "Scholarship Membership", price: 0, id: "local-scholarship-001" },
   [membershipTypes["yearly-access"]]: { label: "Yearly Membership", price: 239.88, id: 4 },
   [membershipTypes["basic-access"]]: { label: "Basic Membership", price: 0, id: 5 },
 };
 
 export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   const setSignupStep = useSetAtom(signupStepAtom);
+  const resetSignupState = useSetAtom(resetSignupStateAtom);
   const membershipChoice = useAtomValue(membershipChoiceAtom);
   const formData = useAtomValue(signupFormDataAtom);
-  const profile = useAtomValue(profileAtom);
+  const appliedCoupon = useAtomValue(appliedCouponAtom);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selected = membershipChoice ? membershipDetails[membershipChoice] : null;
+  const hasMatchingCoupon =
+    !!appliedCoupon &&
+    !!selected &&
+    String(appliedCoupon.membershipId) === String(selected.id);
+  const displayedPrice = hasMatchingCoupon
+    ? appliedCoupon.finalAmount
+    : selected?.price ?? 0;
 
-  // Safely evaluate fields using optional chaining
-  const userEmail = formData?.email || profile?.email || "";
-  const userName = formData?.fullName || profile?.fullName || "";
+  const userEmail = formData?.email || "";
+  const userName = formData?.fullName || "";
   const membershipId = selected ? selected.id : 3;
 
   // Fixed static end date regardless of sign-up timestamp
@@ -46,20 +56,18 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/auth/complete-signup/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          membershipId: membershipId,
-        }),
-      });
+      const result = await completeSignup(userEmail, membershipId);
+      const payload = result?.data;
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to create account and membership.");
+      if (!result.ok) {
+        throw new Error(
+          payload?.message || "Failed to create account and membership."
+        );
+      }
+
+      if (payload?.approvalUrl) {
+        window.location.href = payload.approvalUrl;
+        return;
       }
 
       if (onComplete) {
@@ -75,7 +83,9 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
   };
 
   const handleCancel = () => {
-    setSignupStep(1);
+    // Nothing has been created yet — clear the whole wizard, including the
+    // persisted step and identity, so a fresh signup starts from step 1.
+    resetSignupState();
   };
 
   return (
@@ -120,7 +130,7 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
               <div>
                 <p className="text-[#FACC15] font-extrabold text-xl sm:text-2xl">Membership</p>
                 <p className="text-white font-semibold text-lg sm:text-xl mt-1">
-                  {selected ? selected.label : "Free Beta Membership"}
+                  {selected ? selected.label : "Scholarship Membership"}
                 </p>
               </div>
               <button
@@ -137,7 +147,7 @@ export default function SignupSummary({ onComplete }: SignupSummaryProps) {
               <div className="flex items-center justify-between">
                 <p className="text-[#FACC15] font-extrabold text-xl sm:text-2xl">Total</p>
                 <p className="text-white font-bold text-xl sm:text-2xl">
-                  ${selected ? selected.price.toFixed(2) : "0.00"}
+                  ${displayedPrice.toFixed(2)}
                 </p>
               </div>
               <p className="text-right text-sm sm:text-base text-purple-200/90 font-medium mt-1">

@@ -47,7 +47,8 @@ export const useMIDI = ({ onNoteOn, onNoteOff }: UseMIDIProps) => {
             const inputList: string[] = [];
             midiAccess.inputs.forEach((input) => {
               if (input.name) inputList.push(input.name);
-              input.onmidimessage = handleMIDIMessage;
+              input.onmidimessage = (event) =>
+                handleMIDIMessage(event as MIDIMessageEvent);
             });
             setDevices(inputList);
           };

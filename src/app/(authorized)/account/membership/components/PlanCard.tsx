@@ -79,16 +79,24 @@ export default function PlanCard({
   isScholarship: isScholarshipProp = false,
   showCurrentInHeader = true,
   showExpirationMessage = true,
+  showChooseButton = true,
   chooseButton,
   isBeta = false, // Set default to false for production
 }: PlanCardProps) {
   const router = useRouter();
   const isScholarship = isScholarshipProp || plan?.planName === "Scholarship";
-  const isCurrentPlan = isScholarship || plan?.isCurrent;
+  const isBasicPlan = plan?.levelId === "lvl_basic" || plan?.planName === "Basic";
+  // "Current" must reflect the user's actual membership, not the card theme.
+  // isScholarshipProp is only a styling choice (orange theme) and must NOT
+  // force the current-plan state — otherwise clicking it bounces back to the
+  // current-plan dashboard instead of running the choose action.
+  const isCurrentPlan = Boolean(plan?.isCurrent);
 
   // Display annual total (\$239.88) for Yearly, otherwise fall back to price string
   const rawPrice =
-    plan?.planName === "Yearly"
+    isBasicPlan || isScholarship
+      ? "FREE"
+      : plan?.planName === "Yearly"
       ? plan?.yearlyPrice || "239.88"
       : plan?.price || plan?.formattedPrice || "";
 
@@ -117,6 +125,8 @@ export default function PlanCard({
         return "one day";
       case "Yearly":
         return "per year";
+      case "Basic":
+        return "limited access";
       case "Monthly":
       default:
         return "per month";
@@ -204,6 +214,18 @@ export default function PlanCard({
                 below the Federal Poverty Level (FPL).
               </p>
             </>
+          ) : isBasicPlan ? (
+            <>
+              <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                FREE
+              </div>
+              <div className="text-sm sm:text-base font-extrabold text-gray-900 mt-1">
+                Limited access
+              </div>
+              <p className="mt-2 text-xs sm:text-sm leading-snug text-gray-700 font-semibold px-1">
+                Upgrade to a paid membership or scholarship for full access.
+              </p>
+            </>
           ) : (
             <>
               <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
@@ -259,19 +281,19 @@ export default function PlanCard({
                 </p>
               )}
             </div>
-          ) : (
+          ) : showChooseButton ? (
             <button
               disabled={isBeta || chooseButton?.disabled}
               onClick={isBeta ? undefined : chooseButton?.onClick}
               className={`w-full py-3 px-4 rounded-full text-sm sm:text-base font-black transition-all ${
                 isBeta
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60 pointer-events-none shadow-none"
-                  : `active:scale-95 cursor-pointer shadow-md \${theme.buttonBg}`
+                  : `active:scale-95 cursor-pointer shadow-md ${theme.buttonBg}`
               }`}
             >
               {isBeta ? "Choose plan" : chooseButton?.text || "Choose plan"}
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 

@@ -97,6 +97,12 @@ const colorImg = "/games/Color.png";
 const linksImg = "/games/Links.png";
 const speechImg = "/games/Speech.png";
 
+// Game End Screen Button Icons
+const gamesIcon = "/games/gameEndGamesIcon.svg";
+const lessonIcon = "/games/gameEndLessonIcon.svg";
+const playAgainIcon = "/games/gameEndPlayAgainIcon.svg";
+const reviewIcon = "/games/gameEndReviewIcon.svg";
+
 type GameFlowStage =
   | "dashboard"
   | "banner"
@@ -125,6 +131,9 @@ const FEEDBACK_MS = 1500;
 
 // How many upcoming question images to fetch ahead of the player
 const PRELOAD_AHEAD = 2;
+
+// Accessibility is turned off until the feature is ready
+const IS_ACCESSIBILITY_ENABLED = false;
 
 // Music is Reading: a letter lands on the blank under the mouse. If the mouse isn't over one
 // (or there's no mouse, as when dragging with the keyboard), it lands on the blank it overlaps most.
@@ -233,6 +242,8 @@ export default function Home() {
 
   // Keyboard shortcut Ctrl+U for accessibility modal
   useEffect(() => {
+    if (!IS_ACCESSIBILITY_ENABLED) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "u") {
         e.preventDefault();
@@ -913,31 +924,45 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={() => handleSelectLevel(nextLevel)}
-                          className="next-level-btn"
+                          className="finish-btn-lg"
                         >
-                          Next Level
+                          Next Level <span aria-hidden="true">&rarr;</span>
                         </button>
                       )}
                       <button
                         type="button"
                         onClick={playAgain}
-                        className="play-again-btn"
+                        className={lives > 0 && nextLevel ? "finish-btn-sm" : "finish-btn-lg"}
                       >
+                        {lives > 0 && nextLevel && (
+                          <img src={playAgainIcon} className="finish-icon" alt="" />
+                        )}
                         Play Again
                       </button>
                       <button
                         type="button"
-                        onClick={confirmExitGame}
-                        className="back-btn"
+                        onClick={startReview}
+                        className="finish-btn-sm"
                       >
-                        Back to Games
+                        <img src={reviewIcon} className="finish-icon" alt="" />
+                        Review
                       </button>
                       <button
                         type="button"
-                        onClick={startReview}
-                        className="review-btn"
+                        className="finish-btn-sm"
+                        title="Coming Soon!"
+                        disabled
                       >
-                        Review Your Questions
+                        <img src={lessonIcon} className="finish-icon" alt="" />
+                        Lesson
+                      </button>
+                      <button
+                        type="button"
+                        onClick={confirmExitGame}
+                        className="finish-btn-sm"
+                      >
+                        <img src={gamesIcon} className="finish-icon" alt="" />
+                        Games
                       </button>
                     </div>
                   </div>
@@ -980,9 +1005,10 @@ export default function Home() {
                     </div>
                     <div className="right-controls">
                       <button
-                        className="icon-circle-btn"
-                        title="Accessibility"
+                        className="icon-circle-btn accessibility-btn"
+                        title={`Accessibility${IS_ACCESSIBILITY_ENABLED ? "" : " (coming soon)"}`}
                         onClick={() => setShowAccessibilityModal(true)}
+                        disabled={!IS_ACCESSIBILITY_ENABLED}
                       >
                         <img src={accessibilityIcon} alt="Accessibility" />
                       </button>

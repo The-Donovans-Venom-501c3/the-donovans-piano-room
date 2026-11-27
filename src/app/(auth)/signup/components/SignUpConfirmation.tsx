@@ -2,11 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useAtomValue } from "jotai";
-import { membershipChoiceAtom, membershipTypes } from "@/utils/stores";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  membershipChoiceAtom,
+  membershipTypes,
+  resetSignupStateAtom,
+} from "@/utils/stores";
 
 interface SignUpConfirmationProps {
   isBeta?: boolean;
+  destination?: "login" | "dashboard";
 }
 
 const membershipLabels: Record<string, string> = {
@@ -14,14 +19,20 @@ const membershipLabels: Record<string, string> = {
   [membershipTypes["monthly-access"]]: "Monthly access",
   [membershipTypes["yearly-access"]]: "Yearly access",
   [membershipTypes["basic-access"]]: "Basic access",
-  [membershipTypes["scholarship"]]: "Free Beta access",
+  [membershipTypes["scholarship"]]: "Scholarship access",
 };
 
-export default function SignUpConfirmation({ isBeta = false }: SignUpConfirmationProps) {
+export default function SignUpConfirmation({
+  isBeta = false,
+  destination = "login",
+}: SignUpConfirmationProps) {
   const membershipChoice = useAtomValue(membershipChoiceAtom);
+  const resetSignupState = useSetAtom(resetSignupStateAtom);
+  const goToDashboard = destination === "dashboard";
+  const freeLabel = isBeta ? "Free Beta access" : "Scholarship access";
   const activeAccessLabel = membershipChoice
-    ? membershipLabels[membershipChoice] || "Free Beta access"
-    : "Free Beta access";
+    ? membershipLabels[membershipChoice] || freeLabel
+    : freeLabel;
 
   return (
     <div className="w-full min-h-[calc(100vh-160px)] flex items-center justify-center py-12 px-4 relative overflow-hidden select-none">
@@ -85,17 +96,20 @@ export default function SignUpConfirmation({ isBeta = false }: SignUpConfirmatio
             With your {activeAccessLabel} now active you can start exploring The Piano Room!
           </p>
           <p className="text-purple-100">
-            Please Log in to start your experience.
+            {goToDashboard
+              ? "You're all set — head to your dashboard to start your experience."
+              : "Please Log in to start your experience."}
           </p>
         </div>
 
-        {/* --- CONTENT ITEM 3: LOG IN BUTTON --- */}
+        {/* --- CONTENT ITEM 3: LOG IN / DASHBOARD BUTTON --- */}
         <div className="w-full">
           <Link
-            href="/login"
+            href={goToDashboard ? "/dashboard" : "/login"}
+            onClick={resetSignupState}
             className="block w-full py-3.5 px-6 rounded-full bg-[#FFD028] hover:bg-[#eab308] text-black font-extrabold text-[16px] transition-all shadow-md text-center"
           >
-            Log in
+            {goToDashboard ? "Go to Dashboard" : "Log in"}
           </Link>
         </div>
 
