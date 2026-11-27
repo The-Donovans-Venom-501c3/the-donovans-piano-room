@@ -45,6 +45,9 @@ function LessonsPageContent() {
   // Track watched lesson IDs across the app session
   const [watchedLessonIds, setWatchedLessonIds] = useState<string[]>([]);
 
+  // Track watched lesson IDs across the app session
+  const [watchedLessonIds, setWatchedLessonIds] = useState<string[]>([]);
+
   const topRef = useRef<HTMLDivElement>(null);
 
   // Load logged-in user for LiveSessionsComponent
